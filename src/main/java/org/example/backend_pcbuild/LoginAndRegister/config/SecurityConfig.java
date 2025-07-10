@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.config;
+package org.example.backend_pcbuild.LoginAndRegister.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -16,11 +16,12 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 public class SecurityConfig {
 
     private final UserAuthenticationEntryPoint userAuthenticationEntryPoint;
+    private final UserAuthProvider userAuthProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 //        http.exceptionHandling().authenticationEntryPoint(userAuthenticationEntryPoint)
-        http.addFilterBefore(new JwtAuthFilter(), BasicAuthenticationFilter.class)
+        http.addFilterBefore(new JwtAuthFilter(userAuthProvider), BasicAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -33,4 +34,6 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+
 }

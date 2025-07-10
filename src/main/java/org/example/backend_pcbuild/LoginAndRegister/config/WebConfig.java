@@ -1,11 +1,9 @@
-package org.example.backend_pcbuild.config;
+package org.example.backend_pcbuild.LoginAndRegister.config;
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -34,22 +32,4 @@ public class WebConfig {
         bean.setOrder(-102);
         return bean;
     }
-//
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http
-//                .authorizeHttpRequests(authz -> authz
-//                        .requestMatchers("/h2-console/**").permitAll()
-//                        .anyRequest().authenticated()
-//                )
-//                .csrf(csrf -> csrf
-//                        .ignoringRequestMatchers("/h2-console/**")
-//                )
-//                .headers(headers -> headers
-//                        .frameOptions(frame -> frame.sameOrigin()) // potrzebne do działania H2 w iframe
-//                );
-//
-//        return http.build();
-//    }
-
 }

@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.config;
+package org.example.backend_pcbuild.LoginAndRegister.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

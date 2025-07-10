@@ -1,15 +1,17 @@
-package org.example.backend_pcbuild.config;
+package org.example.backend_pcbuild.LoginAndRegister.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.backend_pcbuild.LoginAndRegister.dto.ErrorDto;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.net.http.HttpHeaders;
 
+@Component
 public class UserAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
