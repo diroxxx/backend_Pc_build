@@ -8,6 +8,7 @@ import org.example.backend_pcbuild.User;
 import org.example.backend_pcbuild.LoginAndRegister.dto.CredentialsDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.SignUpDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
+import org.example.backend_pcbuild.UserRole;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class UserService {
     public UserDto login(CredentialsDto credentials) {
         User user = userRepository.findByEmail(credentials.getLogin())
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
-        if(passwordEncoder.matches(CharBuffer.wrap(credentials.getPassword()), user.getPassword())) {
+        if(!passwordEncoder.matches(CharBuffer.wrap(credentials.getPassword()), user.getPassword())) {
 
             throw new AppException("Invalid password", HttpStatus.FORBIDDEN);
         }
@@ -43,10 +44,9 @@ public class UserService {
             throw new AppException("Email already in use", HttpStatus.BAD_REQUEST);
         }
         User user = userMapper.signUpToUser(userDto);
+        user.setRole(UserRole.USER);
         user.setPassword(passwordEncoder.encode(CharBuffer.wrap(userDto.getPassword())));
         User save = userRepository.save(user);
         return userMapper.toDto(save);
     }
-
-
 }

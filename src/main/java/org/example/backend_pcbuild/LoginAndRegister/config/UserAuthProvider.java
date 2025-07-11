@@ -13,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
@@ -21,24 +22,28 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class UserAuthProvider {
 
+
+
+
     @Value("${security.jwt.token.secret-key:secret-value}")
     private String secretKey;
 
-    private UserService userService;
+    private final UserService userService;
 
     @PostConstruct
     protected void init() {
         secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
     }
 
-    public String createToken(String login) {
+    public String createToken(UserDto login) {
         Date now  = new Date();
         Date validity = new Date(now.getTime() + 3_600_000);
 
         return com.auth0.jwt.JWT.create()
-                .withIssuer(login)
+                .withSubject(login.getEmail())
                 .withIssuedAt(now)
                 .withExpiresAt(validity)
+                .withClaim("role", login.getRole().name())
                 .sign(Algorithm.HMAC256(secretKey));
     }
 
@@ -47,7 +52,7 @@ public class UserAuthProvider {
         DecodedJWT decodedJWT = verifier.verify(token);
         UserDto user = userService.findByLogin(decodedJWT.getIssuer());
 
-        return new UsernamePasswordAuthenticationToken(user,null, Collections.emptyList());
+        return new UsernamePasswordAuthenticationToken(user,null, Collections.singletonList(user.getRole()));
 
 
     }

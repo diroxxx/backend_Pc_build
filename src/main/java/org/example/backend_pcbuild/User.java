@@ -34,7 +34,7 @@ public class User {
     @Size(min = 2, max = 100)
     private String password;
 
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     @NotNull
     private UserRole role;
 
