@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
+    @Mapping(target = "token", ignore = true) // jeśli token jest w DTO
     UserDto toDto(User user);
 
     @Mapping(target = "password", ignore = true)

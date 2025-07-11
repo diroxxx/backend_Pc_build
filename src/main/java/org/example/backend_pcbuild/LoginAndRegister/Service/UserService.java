@@ -47,6 +47,7 @@ public class UserService {
         user.setRole(UserRole.USER);
         user.setPassword(passwordEncoder.encode(CharBuffer.wrap(userDto.getPassword())));
         User save = userRepository.save(user);
+
         return userMapper.toDto(save);
     }
 }

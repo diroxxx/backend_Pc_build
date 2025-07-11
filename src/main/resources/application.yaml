@@ -9,10 +9,6 @@
 #    password:
 #    driverClassName: org.h2.Driver
 
-#  security:
-#    jwt:
-#      secret-key: dGhpcy1pcy1hLXRlc3Qtc2VjcmV0LWtleS0yNTZiaXRzIQ==
-#      expiration-time: 3600000
 
 #  jpa:
 #    generate-ddl: true
@@ -40,3 +36,21 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+
+
+logging:
+  level:
+    org:
+      example: DEBUG
+      springframework:
+        security: DEBUG
+        web: DEBUG
+server:
+  error:
+    include-message: always
+    include-stacktrace: always
+
+security:
+  jwt:
+    token:
+      secret-key: "7ebeb86698ffa45530878b427dca9b16"

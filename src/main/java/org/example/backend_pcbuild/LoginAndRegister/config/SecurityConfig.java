@@ -31,7 +31,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/auth/**").permitAll() // jeśli masz login/register endpointy
+                        .requestMatchers("/auth/**", "/error").permitAll() // jeśli masz login/register endpointy
                         .anyRequest().authenticated()
                 );
         return http.build();

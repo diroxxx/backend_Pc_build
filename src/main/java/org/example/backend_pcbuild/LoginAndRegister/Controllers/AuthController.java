@@ -29,10 +29,11 @@ public class AuthController {
         return userRepository.findAll();
     }
 
-
     @PostMapping("/login")
     public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsDto) {
         UserDto login = userService.login(credentialsDto);
+        login.setToken(userAuthProvider.createToken(login)); // ← to dodaj
+
         return ResponseEntity.ok(login);
     }
     @PostMapping("/register")
@@ -40,7 +41,6 @@ public class AuthController {
 
         UserDto user = userService.register(signUpDto);
         user.setToken(userAuthProvider.createToken(user));
-
         return ResponseEntity.created(URI.create("/users" + user.getId())).body(user);
     }
 }
