@@ -14,7 +14,8 @@ public class UserDto {
     private String email;
     @JsonIgnore
     private String password;
-    private String token;
+    private String accessToken;
+    private String refreshToken;
     private UserRole role;
 
 }

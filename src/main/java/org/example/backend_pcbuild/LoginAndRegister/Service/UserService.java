@@ -23,10 +23,12 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+
     public UserDto findByLogin(String login) {
         User user = userRepository.findByEmail(login).orElseThrow(() -> new AppException("Uknown user", HttpStatus.NOT_FOUND));
         return  userMapper.toDto(user);
     }
+
     public UserDto login(CredentialsDto credentials) {
         User user = userRepository.findByEmail(credentials.getLogin())
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
