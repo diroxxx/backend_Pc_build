@@ -17,14 +17,26 @@ public class Item {
     @NotNull
     @Size(min = 1, max = 100)
     private String brand;
+
     @NotNull
     @Size(min = 1, max = 100)
     private String model;
+
     @Enumerated(EnumType.ORDINAL)
+    @Column(name = "item_condition")
     private ItemCondition condition;
 
     @NotBlank
     private String photo_url;
+
+    @NotNull
+    private String website_url;
+
+    @NotNull
+    private double price;
+
+    @NotNull
+    private String shop;
 
     @OneToMany(mappedBy = "item")
     private Set<Computer_Item> computer_item = new HashSet<Computer_Item>();

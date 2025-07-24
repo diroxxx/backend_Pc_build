@@ -21,7 +21,7 @@ public class RetrieveFromScrapperController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getMessage(){
         String result = restClient.get()
-                .uri("http://127.0.0.1:5000/comp")
+                .uri("http://127.0.0.1:5000/components")
                 .retrieve()
                 .body(String.class);
 
