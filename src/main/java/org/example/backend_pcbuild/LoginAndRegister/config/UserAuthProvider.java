@@ -10,7 +10,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.RefreshTokenRepository;
 import org.example.backend_pcbuild.LoginAndRegister.Service.UserService;
-import org.example.backend_pcbuild.LoginAndRegister.model.RefreshToken;
+import org.example.backend_pcbuild.models.RefreshToken;
 import org.springframework.beans.factory.annotation.Value;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

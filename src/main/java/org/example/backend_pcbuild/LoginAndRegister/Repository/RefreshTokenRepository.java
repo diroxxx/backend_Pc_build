@@ -1,6 +1,6 @@
 package org.example.backend_pcbuild.LoginAndRegister.Repository;
 
-import org.example.backend_pcbuild.LoginAndRegister.model.RefreshToken;
+import org.example.backend_pcbuild.models.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

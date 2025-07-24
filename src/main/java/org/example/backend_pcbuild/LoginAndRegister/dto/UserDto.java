@@ -2,7 +2,7 @@ package org.example.backend_pcbuild.LoginAndRegister.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
-import org.example.backend_pcbuild.UserRole;
+import org.example.backend_pcbuild.models.UserRole;
 
 @AllArgsConstructor
 @NoArgsConstructor

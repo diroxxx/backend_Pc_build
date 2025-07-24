@@ -1,10 +1,8 @@
-package org.example.backend_pcbuild;
+package org.example.backend_pcbuild.models;
 
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashSet;
 import java.util.Set;

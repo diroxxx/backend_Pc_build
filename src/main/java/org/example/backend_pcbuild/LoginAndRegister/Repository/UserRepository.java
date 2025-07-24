@@ -1,6 +1,6 @@
 package org.example.backend_pcbuild.LoginAndRegister.Repository;
 
-import org.example.backend_pcbuild.User;
+import org.example.backend_pcbuild.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.LoginAndRegister.model;
+package org.example.backend_pcbuild.models;
 
 
 import jakarta.persistence.*;

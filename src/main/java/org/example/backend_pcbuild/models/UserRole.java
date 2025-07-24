@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild;
+package org.example.backend_pcbuild.models;
 
 import org.springframework.security.core.GrantedAuthority;
 

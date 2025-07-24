@@ -10,7 +10,7 @@ import org.example.backend_pcbuild.LoginAndRegister.Service.UserService;
 import org.example.backend_pcbuild.LoginAndRegister.dto.CredentialsDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.SignUpDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
-import org.example.backend_pcbuild.User;
+import org.example.backend_pcbuild.models.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
