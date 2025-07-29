@@ -25,6 +25,7 @@ public class RetrieveFromScrapperController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, List<Object>>> getComponents() {
         Map<String, List<Object>> result = componentService.fetchComponentsAsMap();
+        componentService.saveAllComponents(result);
         return ResponseEntity.ok(result);
     }
 

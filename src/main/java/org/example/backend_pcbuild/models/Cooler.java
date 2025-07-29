@@ -1,13 +1,10 @@
 package org.example.backend_pcbuild.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Data
 public class Cooler {
     
     @Id
@@ -16,7 +13,7 @@ public class Cooler {
 
     private String socketType;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "item_id")
     private Item item;
 

@@ -1,8 +1,10 @@
 package org.example.backend_pcbuild.models;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Data
 public class Computer_Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

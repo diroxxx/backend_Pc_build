@@ -1,6 +1,7 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:devdb
+#    url: jdbc:h2:mem:devdb
+    url: jdbc:h2:file:~/testdb
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
@@ -12,6 +13,7 @@ spring:
 
   jpa:
     hibernate:
+#      ddl-auto: update
       ddl-auto: update
     show-sql: true
     properties:

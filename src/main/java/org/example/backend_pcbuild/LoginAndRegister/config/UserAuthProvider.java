@@ -47,6 +47,7 @@ public class UserAuthProvider {
                 .withIssuedAt(now)
                 .withExpiresAt(validity)
                 .withClaim("role", login.getRole().name())
+                .withClaim("username", login.getUsername()) // Dodaj username
                 .sign(Algorithm.HMAC256(secretKey));
     }
 
@@ -59,6 +60,8 @@ public class UserAuthProvider {
                 .withSubject(login.getEmail())
                 .withIssuedAt(now)
                 .withExpiresAt(validity)
+                .withClaim("username", login.getUsername()) // Dodaj username
+
                 .sign(Algorithm.HMAC256(secretKey));
 
         // Zapisz refresh token w bazie
