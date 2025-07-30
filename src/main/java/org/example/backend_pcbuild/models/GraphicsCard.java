@@ -10,7 +10,7 @@ public class GraphicsCard {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer memorySize;
+    private Integer vram;
     private String gddr;
     private Double power_draw;
 

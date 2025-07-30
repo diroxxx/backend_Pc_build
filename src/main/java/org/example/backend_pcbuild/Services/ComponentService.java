@@ -6,7 +6,6 @@ import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.*;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
@@ -52,7 +51,7 @@ public class ComponentService {
                     .website_url(gc.getItem().getWebsite_url())
                     .price(gc.getItem().getPrice())
                     .shop(gc.getItem().getShop())
-                    .gpuMemorySize(gc.getMemorySize())
+                    .gpuMemorySize(gc.getVram())
                     .gpuGddr(gc.getGddr())
                     .gpuPowerDraw(gc.getPower_draw())
                     .build());
@@ -241,7 +240,7 @@ public class ComponentService {
 
                             graphicsCard.setGddr(getStringValue(processorData, "gddr"));
                             graphicsCard.setPower_draw(getDoubleValue(processorData, "power_draw"));
-                            graphicsCard.setMemorySize(getIntegerValue(processorData, "memory_size"));
+                            graphicsCard.setVram(getIntegerValue(processorData, "memory_size"));
 
                             graphicsCard.setItem(item);
                             item.setGraphicsCard(graphicsCard);
