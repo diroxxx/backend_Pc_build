@@ -43,8 +43,9 @@ public class Item {
 //    @NotNull
     private String shop;
 
-    @OneToMany(mappedBy = "item")
-    private Set<Computer_Item> computer_item = new HashSet<Computer_Item>();
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
+    private Set<Offer> offers = new HashSet<Offer>();
+
 
     @OneToOne(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private GraphicsCard graphicsCard;

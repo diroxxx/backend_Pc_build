@@ -12,6 +12,8 @@ import org.example.backend_pcbuild.LoginAndRegister.dto.SignUpDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
 import org.example.backend_pcbuild.models.User;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -26,11 +28,6 @@ public class AuthController {
     private final UserAuthProvider userAuthProvider;
 
     private final UserRepository userRepository;
-
-    @GetMapping("/users")
-    public List<User> getAll() {
-        return userRepository.findAll();
-    }
 
     @PostMapping("/login")
     public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsDto) {
@@ -48,6 +45,7 @@ public class AuthController {
     }
 
 
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         System.out.println("old access token: " + request.getRefreshToken());
@@ -55,6 +53,44 @@ public class AuthController {
 
         System.out.println("new access token: " + newAccessToken);
         return ResponseEntity.ok(new LoginResponse(newAccessToken, request.getRefreshToken()));
+    }
+
+    @PreAuthorize("hasAuthority('USER')")
+    @PostMapping("/verify-password")
+    public ResponseEntity<?> verifyCurrentPassword(@RequestBody PasswordChangeRequest request, Authentication authentication) {
+//        String userEmail = authentication.getName();
+//        System.out.println( "userEmail: " +userEmail);
+//        System.out.println(request.currentPassword);
+        UserDto user = (UserDto) authentication.getPrincipal(); // Rzutowanie!
+        String email = user.getEmail();
+        boolean isValid = userService.checkPassword(email, request.getCurrentPassword());
+        if (isValid) {
+            return ResponseEntity.ok("Password verified");
+        }
+        return ResponseEntity.badRequest().body("Invalid password");
+    }
+
+    @PreAuthorize("hasAuthority('USER')")
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest request,  Authentication authentication) {
+//        String userEmail = authentication.getName();
+        UserDto user = (UserDto) authentication.getPrincipal(); // Rzutowanie!
+        String email = user.getEmail();
+        User userAfterChanged = userService.changePassword(email, request.currentPassword);
+
+        if (userAfterChanged == null) {
+            return ResponseEntity.badRequest().body("Password have not been changed");
+        }
+        return ResponseEntity.ok("Password changed");
+    }
+
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class PasswordChangeRequest {
+        private String currentPassword;
+
     }
 
     @Data
