@@ -1,8 +1,10 @@
 package org.example.backend_pcbuild.models;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Data
 public class Computer_Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,7 +15,7 @@ public class Computer_Item {
     private Computer computer;
 
     @ManyToOne
-    @JoinColumn(name = "item_id", nullable = false)
-    private Item item;
+    @JoinColumn(name = "offer", nullable = false)
+    private Offer offer;
 
 }

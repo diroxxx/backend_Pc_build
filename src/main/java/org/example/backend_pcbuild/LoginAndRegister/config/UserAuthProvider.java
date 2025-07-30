@@ -47,6 +47,7 @@ public class UserAuthProvider {
                 .withIssuedAt(now)
                 .withExpiresAt(validity)
                 .withClaim("role", login.getRole().name())
+                .withClaim("username", login.getUsername())
                 .sign(Algorithm.HMAC256(secretKey));
     }
 
@@ -59,6 +60,8 @@ public class UserAuthProvider {
                 .withSubject(login.getEmail())
                 .withIssuedAt(now)
                 .withExpiresAt(validity)
+                .withClaim("username", login.getUsername()) // Dodaj username
+
                 .sign(Algorithm.HMAC256(secretKey));
 
         // Zapisz refresh token w bazie
@@ -82,6 +85,8 @@ public class UserAuthProvider {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secretKey)).build();
             DecodedJWT decodedJWT = verifier.verify(token);
             UserDto user = userService.findByLogin(decodedJWT.getSubject());
+//            return new UsernamePasswordAuthenticationToken(user.getEmail(), null, Collections.singletonList(user.getRole()));
+//
             return new UsernamePasswordAuthenticationToken(user, null, Collections.singletonList(user.getRole()));
         } catch (TokenExpiredException e) {
             System.out.println("Token expired: " + e.getMessage());

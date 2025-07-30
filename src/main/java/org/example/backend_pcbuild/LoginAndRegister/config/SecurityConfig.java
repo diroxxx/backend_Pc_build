@@ -30,8 +30,9 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**", "/collectData").permitAll()
-                        .requestMatchers("/auth/**", "/error").permitAll() // jeśli masz login/register endpointy
+                        .requestMatchers("/h2-console/**", "/collectData","/components/**").permitAll()
+//                        .requestMatchers("/auth/**", "/error").permitAll() // jeśli masz login/register endpointy
+                        .requestMatchers("/auth/login", "/auth/register", "/error").permitAll()
                         .anyRequest().authenticated()
                 );
         return http.build();

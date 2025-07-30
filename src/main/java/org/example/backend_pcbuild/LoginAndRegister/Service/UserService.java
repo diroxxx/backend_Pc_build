@@ -1,5 +1,6 @@
 package org.example.backend_pcbuild.LoginAndRegister.Service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserMapper;
@@ -38,6 +39,18 @@ public class UserService {
         }
 
         return userMapper.toDto(user);
+    }
+
+    public boolean checkPassword(String login, String password) {
+        User user = userRepository.findByEmail(login).orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
+        return passwordEncoder.matches(CharBuffer.wrap(password), user.getPassword());
+    }
+    @Transactional
+    public User changePassword(String login,  String newPassword) {
+        User user = userRepository.findByEmail(login).orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        System.out.println(user.getPassword());
+        return userRepository.save(user);
     }
 
     public UserDto register(SignUpDto userDto) {

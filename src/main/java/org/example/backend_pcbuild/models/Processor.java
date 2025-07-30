@@ -1,25 +1,22 @@
 package org.example.backend_pcbuild.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
+@Data
 public class Processor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int cores;
-    private int threads;
+    private Integer cores;
+    private Integer threads;
     private String socket_type;
-    private double base_clock;
+    private String base_clock;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "item_id")
     private Item item;
 
