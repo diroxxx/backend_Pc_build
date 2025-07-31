@@ -1,10 +1,10 @@
 package org.example.backend_pcbuild.models;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -29,7 +29,7 @@ public class ComponentDto {
     private String cpuBase_clock;
 
 //    Cooler
-    private String coolerSocketType;
+    private List<String> coolerSocketsType;
 
 //    GraphicsCard
     private Integer gpuMemorySize;

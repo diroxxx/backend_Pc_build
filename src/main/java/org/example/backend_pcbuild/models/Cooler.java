@@ -3,6 +3,8 @@ package org.example.backend_pcbuild.models;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.List;
+
 @Entity
 @Data
 public class Cooler {
@@ -11,7 +13,10 @@ public class Cooler {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String socketType;
+    @ElementCollection
+    @CollectionTable(name = "looler_socket_types", joinColumns = @JoinColumn(name = "cooler_id"))
+    @Column(name = "socket_type")
+    private List<String> socketTypes;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "item_id")

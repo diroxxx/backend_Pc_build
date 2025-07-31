@@ -11,6 +11,7 @@ public class PowerSupply {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     private Integer maxPowerWatt;
 
     @OneToOne(cascade = CascadeType.ALL)

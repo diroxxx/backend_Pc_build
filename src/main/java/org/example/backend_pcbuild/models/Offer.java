@@ -15,9 +15,7 @@ public class Offer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "item_condition")
-    private ItemCondition condition;
+
 
     //    @NotBlank
     @Column(length = 1000) // Zwiększ z domyślnych 255 na 1000
@@ -32,6 +30,10 @@ public class Offer {
 
     //    @NotNull
     private String shop;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "item_condition")
+    private ItemCondition condition;
 
     @ManyToOne
     @JoinColumn(name = "item_id")
