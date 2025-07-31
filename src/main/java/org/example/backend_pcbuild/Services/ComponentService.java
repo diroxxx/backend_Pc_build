@@ -56,6 +56,7 @@ public class ComponentService {
                 try {
                     Map<String, Object> processorData = (Map<String, Object>) object;
 
+                    System.out.println(processorData.toString());
                     Item item = new Item();
                     item.setBrand((String) processorData.get("brand"));
                     item.setModel((String) processorData.get("model"));
@@ -105,7 +106,12 @@ public class ComponentService {
                     } else if (entry.getKey().equalsIgnoreCase("cpu_cooler")) {
                         Cooler cooler = new Cooler();
 
-                        cooler.setSocketTypes((List<String>) processorData.get("sockets"));
+
+                        Object socketsObj = processorData.get("sockets");
+                        if (socketsObj instanceof List) {
+                            List<String> sockets = (List<String>) socketsObj;
+                            cooler.setSocketTypes(sockets);
+                        }
 
                         cooler.setItem(item);
                         item.setCooler(cooler);
