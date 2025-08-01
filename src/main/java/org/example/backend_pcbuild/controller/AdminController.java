@@ -32,7 +32,7 @@ public class AdminController {
     @GetMapping(value = "/offers",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, List<Object>>> getOffers() {
         Map<String, List<Object>> result = componentService.fetchOffersAsMap();
-//        componentService.saveAllComponents(result);
+        componentService.saveAllComponents(result);
         return ResponseEntity.ok(result);
     }
 }

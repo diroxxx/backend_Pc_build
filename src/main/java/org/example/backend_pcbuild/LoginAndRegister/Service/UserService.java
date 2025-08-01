@@ -31,6 +31,7 @@ public class UserService {
     }
 
     public UserDto login(CredentialsDto credentials) {
+        System.out.println(credentials);
         User user = userRepository.findByEmail(credentials.getLogin())
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
         if(!passwordEncoder.matches(CharBuffer.wrap(credentials.getPassword()), user.getPassword())) {
