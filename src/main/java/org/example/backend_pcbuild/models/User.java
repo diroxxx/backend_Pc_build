@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.backend_pcbuild.Community.PostComment;
 
 import java.util.Set;
 
@@ -26,6 +27,7 @@ public class User {
     @Column(unique = true)
     @Size(min = 2, max = 100)
     private String email;
+
     @NotNull
     @Size(min = 2, max = 100)
     private String password;
@@ -33,6 +35,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     @NotNull
     private UserRole role;
+
+    @OneToMany(mappedBy = "user")
+    private Set<PostComment> comments;
 
     public User(String username, String email, String password) {
         this.username = username;
