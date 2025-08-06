@@ -33,6 +33,7 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**", "/collectData","/components/**", "/admin/**").permitAll()
 //                        .requestMatchers("/auth/**", "/error").permitAll() // jeśli masz login/register endpointy
                         .requestMatchers("/auth/login", "/auth/register", "/error").permitAll()
+                                .requestMatchers("/community/**").permitAll() //
                         .anyRequest().authenticated()
                 );
         return http.build();

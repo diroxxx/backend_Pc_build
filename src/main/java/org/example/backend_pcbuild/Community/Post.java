@@ -2,8 +2,11 @@ package org.example.backend_pcbuild.Community;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -24,4 +27,7 @@ public class Post {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private Set<PostComment> comments;
+
+    @NotNull
+    private LocalDateTime createdAt;
 }

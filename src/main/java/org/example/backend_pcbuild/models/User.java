@@ -14,6 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Table(name = "app_user")
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
