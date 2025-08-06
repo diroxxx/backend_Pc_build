@@ -5,8 +5,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.backend_pcbuild.Community.Post;
 import org.example.backend_pcbuild.Community.PostComment;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -37,8 +39,12 @@ public class User {
     @NotNull
     private UserRole role;
 
-    @OneToMany(mappedBy = "user")
-    private Set<PostComment> comments;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Post> posts = new HashSet<>();
+
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<PostComment> comments = new HashSet<>();
 
     public User(String username, String email, String password) {
         this.username = username;

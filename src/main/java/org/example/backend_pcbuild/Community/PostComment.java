@@ -33,4 +33,11 @@ public class PostComment {
     @NotNull
     private LocalDateTime createdAt;
 
+//    public void setPost(Post post) {
+//        this.post = post;
+//    }
+//
+//    public void setUser(User user) {
+//        this.user = user;
+//    }
 }
