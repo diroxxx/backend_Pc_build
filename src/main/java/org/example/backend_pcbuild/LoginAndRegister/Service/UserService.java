@@ -34,7 +34,12 @@ public class UserService {
         System.out.println(credentials);
         User user = userRepository.findByEmail(credentials.getLogin())
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
+
+//        System.out.println(credentials.getPassword());
+//        System.out.println(user.getPassword());
+
         if(!passwordEncoder.matches(CharBuffer.wrap(credentials.getPassword()), user.getPassword())) {
+//        if(!passwordEncoder.matches(CharBuffer.wrap(credentials.getPassword()), user.getPassword())) {
 
             throw new AppException("Invalid password", HttpStatus.FORBIDDEN);
         }
@@ -50,7 +55,9 @@ public class UserService {
     public User changePassword(String login,  String newPassword) {
         User user = userRepository.findByEmail(login).orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
         user.setPassword(passwordEncoder.encode(newPassword));
-        System.out.println(user.getPassword());
+
+        System.out.println("nowe hasło " + newPassword);
+//        System.out.println("nowe hasło " + user.getPassword());
         return userRepository.save(user);
     }
 
