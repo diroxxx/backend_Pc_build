@@ -47,6 +47,8 @@ public class ComponentDto {
     private String boardSocketType;
     private String boardMemoryType;
     private String boardFormat;
+    private Integer boardRamSlots;
+    private Integer boardRamCapacity;
 
 //    Power supply
     private Integer powerSupplyMaxPowerWatt;

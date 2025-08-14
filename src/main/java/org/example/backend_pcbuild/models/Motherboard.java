@@ -14,6 +14,8 @@ public class Motherboard {
     private String chipset;
     private String socketType;
     private String memoryType;
+    private Integer ramSlots;
+    private Integer ramCapacity;
     private String format;
 
 

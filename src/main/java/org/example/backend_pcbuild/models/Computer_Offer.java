@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Entity
 @Data
-public class Computer_Item {
+public class Computer_Offer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

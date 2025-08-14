@@ -88,6 +88,9 @@ public class ComponentService {
                         motherboard.setFormat(getStringValue(processorData, "format"));
                         motherboard.setMemoryType(getStringValue(processorData, "memory_type"));
                         motherboard.setSocketType(getStringValue(processorData, "socket_motherboard"));
+                        motherboard.setRamSlots(getIntegerValue(processorData, "ramslots"));
+                        motherboard.setMemoryType(getStringValue(processorData, "memory_type"));
+                        motherboard.setRamCapacity(getIntegerValue(processorData, "memory_capacity"));
 
                         motherboard.setItem(item);
                         item.setMotherboard(motherboard);
@@ -255,6 +258,8 @@ public class ComponentService {
                         .boardFormat(item.getFormat())
                         .boardMemoryType(item.getMemoryType())
                         .boardSocketType(item.getSocketType())
+                        .boardRamCapacity(item.getRamCapacity())
+                        .boardRamSlots(item.getRamSlots())
                         .build());
             }
         }
@@ -326,8 +331,13 @@ public class ComponentService {
                         ItemCondition condition = ItemCondition.valueOf(statusString);
 
                         offer.setCondition(condition);
-                        offer.setPrice((Double) processorData.get("price"));
-
+//                        offer.setPrice((Double) processorData.get("price"));
+                        Object priceObject = processorData.get("price");
+                        if (priceObject instanceof Number) {
+                            offer.setPrice(((Number) priceObject).doubleValue());
+                        } else {
+                            throw new IllegalArgumentException("Invalid price value: " + priceObject);
+                        }
                         offer.setShop((String) processorData.get("shop"));
                         offer.setPhoto_url((String) processorData.get("img"));
                         offer.setWebsite_url((String) processorData.get("url"));

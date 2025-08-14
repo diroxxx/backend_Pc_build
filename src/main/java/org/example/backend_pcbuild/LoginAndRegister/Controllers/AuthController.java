@@ -76,8 +76,8 @@ public class AuthController {
 //        String userEmail = authentication.getName();
         UserDto user = (UserDto) authentication.getPrincipal(); // Rzutowanie!
         String email = user.getEmail();
-        User userAfterChanged = userService.changePassword(email, request.currentPassword);
-
+        User userAfterChanged = userService.changePassword(email, request.getCurrentPassword());
+        System.out.println( "hasło do zmiany " +request.getCurrentPassword());
         if (userAfterChanged == null) {
             return ResponseEntity.badRequest().body("Password have not been changed");
         }
