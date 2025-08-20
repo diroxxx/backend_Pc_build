@@ -18,6 +18,7 @@ public class Item {
 
 //    @NotNull
 //    @Size(min = 1, max = 100)
+//    @Column(nullable = false, unique = true)
     private String brand;
 
 //    @NotNull

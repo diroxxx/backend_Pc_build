@@ -18,12 +18,12 @@ public class Offer {
 
 
     //    @NotBlank
-    @Column(length = 1000) // Zwiększ z domyślnych 255 na 1000
-    private String photo_url;
+    @Column(length = 1000)
+    private String photoUrl;
 
     //    @NotNull
-    @Column(length = 1000) // Zwiększ z domyślnych 255 na 1000
-    private String website_url;
+    @Column(length = 1000)
+    private String websiteUrl;
 
     //    @NotNull
     private Double price;

@@ -3,7 +3,6 @@ package org.example.backend_pcbuild.controller;
 
 import lombok.AllArgsConstructor;
 import org.example.backend_pcbuild.Services.ComponentService;
-import org.example.backend_pcbuild.models.ComponentDto;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -32,7 +31,7 @@ public class AdminController {
     @GetMapping(value = "/offers",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, List<Object>>> getOffers() {
         Map<String, List<Object>> result = componentService.fetchOffersAsMap();
-        componentService.saveAllComponents(result);
+        componentService.saveAllOffers(result);
         return ResponseEntity.ok(result);
     }
 }
