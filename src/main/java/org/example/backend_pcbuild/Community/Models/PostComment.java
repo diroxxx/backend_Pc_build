@@ -1,16 +1,16 @@
-package org.example.backend_pcbuild.Community;
+package org.example.backend_pcbuild.Community.Models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import org.example.backend_pcbuild.Community.Models.Post;
 import org.example.backend_pcbuild.models.User;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table
-@Setter
+@Data
 public class PostComment {
 
     @Id
@@ -20,12 +20,12 @@ public class PostComment {
     @Column(length = 100, nullable = false)
     private String content;
 
-    @Getter
+
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    @Getter
+
     @ManyToOne
     @JoinColumn(name = "users_id", nullable = false)
     private User user;
@@ -33,11 +33,4 @@ public class PostComment {
     @NotNull
     private LocalDateTime createdAt;
 
-//    public void setPost(Post post) {
-//        this.post = post;
-//    }
-//
-//    public void setUser(User user) {
-//        this.user = user;
-//    }
 }

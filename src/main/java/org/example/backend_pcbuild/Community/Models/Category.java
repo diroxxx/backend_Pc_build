@@ -1,14 +1,15 @@
-package org.example.backend_pcbuild.Community;
+package org.example.backend_pcbuild.Community.Models;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 
 @Entity
 @Table
+@Data
 public class Category {
 
     @Id
