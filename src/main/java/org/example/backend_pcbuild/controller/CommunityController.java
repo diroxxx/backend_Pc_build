@@ -14,7 +14,6 @@ import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -54,11 +53,9 @@ public class CommunityController {
 //    }
 
     public Post createPost(@RequestBody CreatePostDTO dto) {
-        // Pobranie użytkownika np. po ID podanym w DTO
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Pobranie kategorii po ID
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
@@ -72,8 +69,6 @@ public class CommunityController {
         return postRepository.save(post);
     }
 
-
-
     @GetMapping("/posts/{id}")
     public Optional<Post> getPostById(@PathVariable Integer id) {
         return postRepository.findById(id);
@@ -82,49 +77,9 @@ public class CommunityController {
 
     // ============ KOMENTARZE ============
 
-//    @GetMapping("/posts/{postId}/comments")
-//    public List<PostComment> getCommentsForPost(@PathVariable Long postId) {
-////        return commentRepository.findAll()
-////                .stream()
-////                .filter(c -> c.getPost().getId().equals(postId))
-////                .toList();
-//        return commentRepository.findCommentsByPostId(postId);
-//    }
-
     @GetMapping("/posts/{postId}/comments")
     public List<PostCommentDTO> getCommentsForPost(@PathVariable Long postId) {
-        return commentRepository.findAll()
-                .stream()
-                .filter(c -> c.getPost().getId().equals(postId))
-                .map(c -> {
-                    // Mapowanie użytkownika
-                    UserPostDTO userDTO = new UserPostDTO(
-                            c.getUser().getId(),
-                            c.getUser().getUsername()
-                    );
-
-                    // Mapowanie kategorii posta
-                    CategoryDTO categoryDTO = new CategoryDTO(
-                            c.getPost().getCategory().getName()
-                    );
-
-                    // Mapowanie posta
-                    PostDTO postDTO = new PostDTO(
-                            c.getPost().getId(),
-                            c.getPost().getTitle(),
-                            c.getPost().getContent(),
-                            categoryDTO
-                    );
-                    // Mapowanie komentarza
-                    return new PostCommentDTO(
-                            c.getId(),
-                            c.getContent(),
-                            c.getCreatedAt(),
-                            userDTO,
-                            postDTO
-                    );
-                })
-                .toList();
+        return communityService.getCommentsForPost(postId);
     }
 
     @PostMapping("/posts/{postId}/comments")
