@@ -59,8 +59,6 @@ public class ComponentService {
                 try {
                     Map<String, Object> processorData = (Map<String, Object>) object;
 
-//                    System.out.println(processorData.toString());
-
 
                     Item item = new Item();
                     item.setBrand((String) processorData.get("brand"));

@@ -4,8 +4,11 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.validator.constraints.Length;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -17,6 +20,11 @@ public class Computer {
 
     @Column(precision = 2,nullable = false)
     private Double price;
+
+    @Length(min = 2, max = 50)
+//    @Column(unique = true, nullable = false)
+    private String name;
+
     private Boolean is_visible;
 
 
@@ -26,6 +34,11 @@ public class Computer {
     @ToString.Exclude
     private User user;
 
-    @OneToMany(mappedBy = "computer")
-    private Set<Computer_Offer> computer_offer = new HashSet<Computer_Offer>();
+    @OneToMany(mappedBy = "computer", cascade = CascadeType.ALL)
+//    @EqualsAndHashCode.Exclude
+    private List<ComputerOffer> computer_offer = new ArrayList<>();
+
+
+
+
 }

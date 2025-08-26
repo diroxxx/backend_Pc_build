@@ -34,6 +34,7 @@ public class SecurityConfig {
 //                        .requestMatchers("/auth/**", "/error").permitAll() // jeśli masz login/register endpointy
                         .requestMatchers("/auth/login", "/auth/register", "/error").permitAll()
                                 .requestMatchers("/community/**").permitAll() //
+                                .requestMatchers("/computerApi/**").permitAll() //
                         .anyRequest().authenticated()
                 );
         return http.build();

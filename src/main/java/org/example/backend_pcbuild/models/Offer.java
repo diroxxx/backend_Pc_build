@@ -42,6 +42,6 @@ public class Offer {
     private Item item;
 
     @OneToMany(mappedBy = "offer")
-    private Set<Computer_Offer> computer_offer = new HashSet<Computer_Offer>();
+    private Set<ComputerOffer> computer_offer = new HashSet<ComputerOffer>();
 
 }
