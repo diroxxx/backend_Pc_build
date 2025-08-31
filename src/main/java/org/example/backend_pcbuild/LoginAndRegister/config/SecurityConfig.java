@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/h2-console/**", "/collectData","/components/**", "/admin/**").permitAll()
 //                        .requestMatchers("/auth/**", "/error").permitAll() // jeśli masz login/register endpointy
-                        .requestMatchers("/auth/login", "/auth/register", "/error").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/error").permitAll()
                                 .requestMatchers("/community/**").permitAll() //
                                 .requestMatchers("/computerApi/**").permitAll() //
                         .anyRequest().authenticated()

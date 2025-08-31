@@ -14,9 +14,11 @@ import org.example.backend_pcbuild.models.RefreshToken;
 import org.example.backend_pcbuild.models.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
@@ -86,16 +88,16 @@ public class UserAuthProvider {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secretKey)).build();
             DecodedJWT decodedJWT = verifier.verify(token);
             UserDto user = userService.findByLogin(decodedJWT.getSubject());
-//            return new UsernamePasswordAuthenticationToken(user.getEmail(), null, Collections.singletonList(user.getRole()));
-//
+            if (user == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token or user not found");
+            }
+
+
             return new UsernamePasswordAuthenticationToken(user, null, Collections.singletonList(user.getRole()));
         } catch (TokenExpiredException e) {
-            System.out.println("Token expired: " + e.getMessage());
-            throw new RuntimeException("Access token has expired", e);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token has expired", e);
         } catch (Exception e) {
-            System.out.println("Token validation failed: " + e.getMessage());
-            throw new RuntimeException("Invalid access token", e);
-        }
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token", e);}
     }
 
     public String validateRefreshToken(String refreshToken) {

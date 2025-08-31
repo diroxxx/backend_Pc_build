@@ -93,7 +93,6 @@ public class ComponentDto {
                 .cpuThreads(processor.getThreads())
                 .build();
     }
-    // Mapowanie dla Cooler
     public static ComponentDto fromCooler(Cooler cooler, Offer offer) {
         return ComponentDto.builder()
                 .componentType("cooler")
@@ -107,7 +106,6 @@ public class ComponentDto {
                 .build();
     }
 
-    // Mapowanie dla Memory
     public static ComponentDto fromMemory(Memory memory, Offer offer) {
         return ComponentDto.builder()
                 .componentType("memory")
@@ -125,7 +123,6 @@ public class ComponentDto {
                 .build();
     }
 
-    // Mapowanie dla Motherboard
     public static ComponentDto fromMotherboard(Motherboard motherboard, Offer offer) {
         return ComponentDto.builder()
                 .componentType("motherboard")
@@ -145,7 +142,6 @@ public class ComponentDto {
                 .build();
     }
 
-    // Mapowanie dla PowerSupply
     public static ComponentDto fromPowerSupply(PowerSupply powerSupply, Offer offer) {
         return ComponentDto.builder()
                 .componentType("powerSupply")
@@ -160,7 +156,6 @@ public class ComponentDto {
                 .build();
     }
 
-    // Mapowanie dla Storage
     public static ComponentDto fromStorage(Storage storage, Offer offer) {
         return ComponentDto.builder()
                 .componentType("ssd")
@@ -175,7 +170,6 @@ public class ComponentDto {
                 .build();
     }
 
-    // Mapowanie dla Case
     public static ComponentDto fromCase(Case caseItem, Offer offer) {
         return ComponentDto.builder()
                 .componentType("casePc")

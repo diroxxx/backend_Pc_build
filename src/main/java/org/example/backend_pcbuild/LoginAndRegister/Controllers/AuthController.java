@@ -31,6 +31,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsDto) {
+//        try{
+//
+//        }
         UserDto login = userService.login(credentialsDto);
         login.setAccessToken(userAuthProvider.createToken(login));
         login.setRefreshToken( userAuthProvider.createRefreshToken(login));
@@ -44,8 +47,7 @@ public class AuthController {
         return ResponseEntity.created(URI.create("/users" + user.getId())).body(user);
     }
 
-
-    @PreAuthorize("hasAuthority('USER')")
+//    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         System.out.println("old access token: " + request.getRefreshToken());
@@ -58,10 +60,7 @@ public class AuthController {
     @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/verify-password")
     public ResponseEntity<?> verifyCurrentPassword(@RequestBody PasswordChangeRequest request, Authentication authentication) {
-//        String userEmail = authentication.getName();
-//        System.out.println( "userEmail: " +userEmail);
-//        System.out.println(request.currentPassword);
-        UserDto user = (UserDto) authentication.getPrincipal(); // Rzutowanie!
+        UserDto user = (UserDto) authentication.getPrincipal();
         String email = user.getEmail();
         boolean isValid = userService.checkPassword(email, request.getCurrentPassword());
         if (isValid) {
@@ -74,7 +73,7 @@ public class AuthController {
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest request,  Authentication authentication) {
 //        String userEmail = authentication.getName();
-        UserDto user = (UserDto) authentication.getPrincipal(); // Rzutowanie!
+        UserDto user = (UserDto) authentication.getPrincipal();
         String email = user.getEmail();
         User userAfterChanged = userService.changePassword(email, request.getCurrentPassword());
         System.out.println( "hasło do zmiany " +request.getCurrentPassword());

@@ -6,8 +6,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.Objects;
+
 @AllArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -22,9 +25,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(
                             userAuthProvider.validateToken(elements[1])
                     );
-                } catch (RuntimeException e) {
+                } catch (ResponseStatusException e) {
                     SecurityContextHolder.clearContext();
-                    throw e;
+                    response.setStatus(e.getStatusCode().value());
+                    response.getWriter().write(Objects.requireNonNull(e.getReason()));
+                    return;
                 }
             }
         }

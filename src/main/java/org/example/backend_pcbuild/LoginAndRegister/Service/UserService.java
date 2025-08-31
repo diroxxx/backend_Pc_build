@@ -35,11 +35,7 @@ public class UserService {
         User user = userRepository.findByEmail(credentials.getLogin())
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
 
-//        System.out.println(credentials.getPassword());
-//        System.out.println(user.getPassword());
-
         if(!passwordEncoder.matches(CharBuffer.wrap(credentials.getPassword()), user.getPassword())) {
-//        if(!passwordEncoder.matches(CharBuffer.wrap(credentials.getPassword()), user.getPassword())) {
 
             throw new AppException("Invalid password", HttpStatus.FORBIDDEN);
         }

@@ -1,10 +1,11 @@
-package org.example.backend_pcbuild.controller;
+package org.example.backend_pcbuild.Admin;
 
 
 import lombok.AllArgsConstructor;
 import org.example.backend_pcbuild.Services.ComponentService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,7 @@ public class AdminController {
 
     private final ComponentService componentService;
 
+//    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping(value = "/components",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, List<Object>>> getComponents() {
         Map<String, List<Object>> result = componentService.fetchComponentsAsMap();
@@ -28,6 +30,7 @@ public class AdminController {
         return ResponseEntity.ok(result);
     }
 
+//    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping(value = "/offers",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, List<Object>>> getOffers() {
         Map<String, List<Object>> result = componentService.fetchOffersAsMap();
