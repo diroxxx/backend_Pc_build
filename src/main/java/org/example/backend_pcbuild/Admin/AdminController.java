@@ -2,6 +2,9 @@ package org.example.backend_pcbuild.Admin;
 
 
 import lombok.AllArgsConstructor;
+import org.example.backend_pcbuild.Admin.dto.UserDto;
+import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
+import org.example.backend_pcbuild.LoginAndRegister.dto.UserMapper;
 import org.example.backend_pcbuild.Services.ComponentService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,12 +24,17 @@ import java.util.Map;
 public class AdminController {
 
     private final ComponentService componentService;
+    private final UserRepository userRepository;
 
-//    @PreAuthorize("hasAuthority('ADMIN')")
+    private final UserMapper userMapper;
+    //    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping(value = "/components",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, List<Object>>> getComponents() {
         Map<String, List<Object>> result = componentService.fetchComponentsAsMap();
         componentService.saveBasedComponents(result);
+
+
+
         return ResponseEntity.ok(result);
     }
 
@@ -35,8 +43,20 @@ public class AdminController {
     public ResponseEntity<Map<String, List<Object>>> getOffers() {
         Map<String, List<Object>> result = componentService.fetchOffersAsMap();
         componentService.saveAllOffers(result);
+        Map<String, Map<String, Integer>> componentsBased;
         return ResponseEntity.ok(result);
     }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/users")
+    public ResponseEntity<List<UserDto>> getUsers() {
+        List<UserDto> users = userRepository.findAll().stream()
+                .map(userMapper::toUserDto)
+                .toList();
+        return ResponseEntity.ok(users);
+    }
+
+
 }
 
 

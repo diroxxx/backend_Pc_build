@@ -15,4 +15,10 @@ public interface UserMapper {
     @Mapping(target = "computers", ignore = true)
     @Mapping(target = "password", ignore = true)
     User signUpToUser(SignUpDto signUpDto);
+
+
+    //dla admina
+
+    org.example.backend_pcbuild.Admin.dto.UserDto toUserDto(org.example.backend_pcbuild.models.User user);
+    org.example.backend_pcbuild.models.User toUser(org.example.backend_pcbuild.Admin.dto.UserDto userDto);
 }
