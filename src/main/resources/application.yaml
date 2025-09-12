@@ -1,6 +1,12 @@
 spring:
   profiles:
     active: dev
+  rabbitmq:
+    host: localhost
+    port: 5672
+    stream:
+      username: guest
+      password: guest
 logging:
   level:
     org:
@@ -12,10 +18,12 @@ server:
   error:
     include-message: always
     include-stacktrace: always
+  tomcat:
+    accesslog:
+      enabled: true
 security:
   jwt:
     token:
       secret-key: "7ebeb86698ffa45530878b427dca9b16"
     refresh-token:
       expiration: 604800000
-

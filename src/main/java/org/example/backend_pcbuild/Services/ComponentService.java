@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -320,28 +321,6 @@ public class ComponentService {
 
 
     private static final JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
-    // Progi per kategoria (accept, review)
-//    private static final Map<String, double[]> THRESHOLDS = Map.of(
-//            "processor", new double[]{0.70, 0.60},
-//            "graphics_card", new double[]{0.72, 0.62},
-//            "ram", new double[]{0.65, 0.55},
-//            "storage", new double[]{0.68, 0.58},
-//            "motherboard", new double[]{0.70, 0.60},
-//            "power_supply", new double[]{0.65, 0.55},
-//            "cooler", new double[]{0.60, 0.50},
-//            "case", new double[]{0.60, 0.50}
-//    );
-//    private static final Pattern SOCKET_RX = Pattern.compile("\\b(am4|am5|lga\\s?1700|lga\\s?1200|lga\\s?1151|lga\\s?1150)\\b", Pattern.CASE_INSENSITIVE);
-//    private static final Pattern CPU_MODEL_INTEL = Pattern.compile("\\bi[3579]-?\\d{3,5}[a-z]?\\b", Pattern.CASE_INSENSITIVE);
-//    private static final Pattern CPU_MODEL_RYZEN = Pattern.compile("\\bryzen\\s?[3579]?\\s?\\d{3,4}x?\\b", Pattern.CASE_INSENSITIVE);
-//    private static final Pattern GPU_SERIES = Pattern.compile("\\b(rtx|gtx|rx)\\s?\\d{3,4}\\s?(ti|xt|super)?\\b", Pattern.CASE_INSENSITIVE);
-//    private static final Pattern VRAM_RX = Pattern.compile("(\\d+)\\s?(gb|g)\\b", Pattern.CASE_INSENSITIVE);
-//    private static final Pattern SPEED_RX = Pattern.compile("\\b(\\d{3,5})\\s?mhz\\b", Pattern.CASE_INSENSITIVE);
-//    private static final Pattern DDR_RX = Pattern.compile("\\bddr(3|4|5)\\b", Pattern.CASE_INSENSITIVE);
-//    private static final Pattern WATT_RX = Pattern.compile("\\b(\\d{3,4})\\s?w\\b", Pattern.CASE_INSENSITIVE);
-//    private static final Pattern CAPACITY_RX = Pattern.compile("(\\d+)(tb|gb)\\b", Pattern.CASE_INSENSITIVE);
-//    private static final Pattern GDDR_RX = Pattern.compile("\\bgddr(6x|6|5x|5)\\b", Pattern.CASE_INSENSITIVE);
-//    private static final Pattern CHIPSET_RX = Pattern.compile("\\b(b450|b550|x570|z790|b760|h610|z690|b650|x670|z590|z490)\\b", Pattern.CASE_INSENSITIVE);
 
 
     @Transactional
@@ -357,9 +336,8 @@ public class ComponentService {
         List<Cooler> coolerList = coolerRepository.findAll();
 
         List<Item> itemList = itemRepository.findAll();
-        log.info("Rozpoczęto przypisywanie ofert do podzespołów, liczba kategorii: {}", components.size());
+//        log.info("Rozpoczęto przypisywanie ofert do podzespołów, liczba kategorii: {}", components.size());
         for(Map.Entry<String, List<Object>> entry : components.entrySet()) {
-
                 for (Object object : entry.getValue()) {
                     try {
                         Map<String, Object> processorData = (Map<String, Object>) object;
@@ -397,28 +375,86 @@ public class ComponentService {
                             continue;
                         }
 
-                        log.info("Przetwarzanie oferty: brand={}, model={}, kategoria={}", offerBrand, offerModel, offerCategory);
+//                        log.info("Przetwarzanie oferty: brand={}, model={}, category={}", offerBrand, offerModel, offerCategory);
                         Item bestItem = null;
                         double bestScore = 0.0;
+
+
+                        String[] offerWords = offerModel.toLowerCase().split(" ");
+                        
                         if (offerCategory.equalsIgnoreCase("processor")) {
+
+                            Pattern socketPattern = Pattern.compile("(am4|lga\\d{4}|s\\d{3,4}|fm2|fm1)", Pattern.CASE_INSENSITIVE);
+                            Pattern clockPattern = Pattern.compile("(\\d{1,2}\\.\\d{1,2}\\s?ghz)", Pattern.CASE_INSENSITIVE);
+                            Pattern coresPattern = Pattern.compile("(\\d+)\\s*(rdzeni|cores)", Pattern.CASE_INSENSITIVE);
+                            Pattern threadsPattern = Pattern.compile("(\\d+)\\s*(wątk|threads)", Pattern.CASE_INSENSITIVE);
+                            String offerLower = offerModel.toLowerCase();
+
+                            // Wyciąganie cech z oferty
+                            String offerSocket = null;
+                            String offerClock = null;
+                            Integer offerCores = null;
+                            Integer offerThreads = null;
+
+                            var mSocket = socketPattern.matcher(offerLower);
+                            if (mSocket.find()) offerSocket = mSocket.group(1);
+
+                            var mClock = clockPattern.matcher(offerLower);
+                            if (mClock.find()) offerClock = mClock.group(1);
+
+                            var mCores = coresPattern.matcher(offerLower);
+                            if (mCores.find()) offerCores = Integer.valueOf(mCores.group(1));
+
+                            var mThreads = threadsPattern.matcher(offerLower);
+                            if (mThreads.find()) offerThreads = Integer.valueOf(mThreads.group(1));
+
                             for(Processor processor : processorList){
-                                double score = 0.0;
+                                String[] itemWords = processor.getItem().getModel().toLowerCase().split(" ");
+                               
+                                int commonWords = 0;
+                                for (String ow : offerWords) {
+                                    for (String iw : itemWords) {
+                                        if (ow.equals(iw)) commonWords++;
+                                    }
+                                }
+                                double score = commonWords * 0.2;
+
                                 if (processor.getItem().getBrand() != null &&
-                                        offerBrand.equalsIgnoreCase(processor.getItem().getBrand())
-                                ) {
+                                        offerBrand.equalsIgnoreCase(processor.getItem().getBrand())) {
                                     score += 0.3;
                                 }
-                                if (processor.getItem().getModel() != null) {
-                                    score += similarity.apply(offerModel.toLowerCase(), processor.getItem().getModel().toLowerCase());
+
+                                // Dopasowanie socket
+                                if (offerSocket != null && processor.getSocket_type() != null &&
+                                        offerSocket.equalsIgnoreCase(processor.getSocket_type())) {
+                                    score += 0.3;
+                                }
+
+                                // Dopasowanie base_clock
+                                if (offerClock != null && processor.getBase_clock() != null &&
+                                        offerClock.equalsIgnoreCase(processor.getBase_clock().toLowerCase())) {
+                                    score += 0.2;
+                                }
+
+                                // Dopasowanie liczby rdzeni
+                                if (offerCores != null && processor.getCores() != null &&
+                                        offerCores.equals(processor.getCores())) {
+                                    score += 0.2;
+                                }
+
+                                // Dopasowanie liczby wątków
+                                if (offerThreads != null && processor.getThreads() != null &&
+                                        offerThreads.equals(processor.getThreads())) {
+                                    score += 0.2;
                                 }
 
                                 if (score > bestScore) {
                                     bestScore = score;
                                     bestItem = processor.getItem();
-                                    log.info("Przypisano ofertę {},  do podzespołu: {}, dopasowanie punktowe: {}", offerModel, bestItem.getModel(), bestScore);
+//                                    log.info("Przypisano ofertę {},  do podzespołu: {}, dopasowanie punktowe: {}", offerModel, bestItem.getModel(), bestScore);
                                 } else {
-                                    log.debug("Oferta nie została przypisana z powodu zbyt niskiego wyniku dopasowania: {}. Oferta: model={}, brand={}",
-                                            bestScore, offerModel, offerBrand);
+//                                    log.debug("Oferta nie została przypisana z powodu zbyt niskiego wyniku dopasowania: {}. Oferta: model={}, brand={}",
+//                                            bestScore, offerModel, offerBrand);
                                 }
                             }
                             }  else if (offerCategory.equalsIgnoreCase("graphics_card")) {
@@ -432,6 +468,7 @@ public class ComponentService {
                                 if (graphicsCard.getItem().getModel() != null) {
                                     score += similarity.apply(offerModel.toLowerCase(), graphicsCard.getItem().getModel().toLowerCase());
                                 }
+
 
                                 if (score > bestScore) {
                                     bestScore = score;

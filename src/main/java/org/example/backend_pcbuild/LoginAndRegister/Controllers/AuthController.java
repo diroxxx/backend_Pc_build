@@ -1,5 +1,8 @@
 package org.example.backend_pcbuild.LoginAndRegister.Controllers;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,6 +14,7 @@ import org.example.backend_pcbuild.LoginAndRegister.dto.CredentialsDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.SignUpDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
 import org.example.backend_pcbuild.models.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -22,6 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AuthController {
 
     private final UserService userService;
@@ -29,16 +34,29 @@ public class AuthController {
 
     private final UserRepository userRepository;
 
-    @PostMapping("/login")
-    public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsDto) {
-//        try{
-//
-//        }
-        UserDto login = userService.login(credentialsDto);
-        login.setAccessToken(userAuthProvider.createToken(login));
-        login.setRefreshToken( userAuthProvider.createRefreshToken(login));
-        return ResponseEntity.ok(login);
-    }
+//    @PostMapping("/login")
+//    public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsDto) {
+//        UserDto login = userService.login(credentialsDto);
+//        login.setAccessToken(userAuthProvider.createToken(login));
+//        login.setRefreshToken( userAuthProvider.createRefreshToken(login));
+//        return ResponseEntity.ok(login);
+//    }
+@PostMapping("/login")
+public ResponseEntity<UserDto> login(@RequestBody CredentialsDto credentialsDto, HttpServletResponse response) {
+    UserDto login = userService.login(credentialsDto);
+    login.setAccessToken(userAuthProvider.createToken(login));
+    String refreshToken = userAuthProvider.createRefreshToken(login);
+
+    // Ustaw refresh token jako cookie HTTP-only
+    Cookie cookie = new Cookie("refresh_token", refreshToken);
+    cookie.setHttpOnly(true);
+    cookie.setPath("/");
+    response.addCookie(cookie);
+
+    return ResponseEntity.ok(login);
+}
+
+
     @PostMapping("/register")
     public ResponseEntity<UserDto> register(@RequestBody SignUpDto signUpDto) {
 
@@ -48,13 +66,36 @@ public class AuthController {
     }
 
 //    @PreAuthorize("hasAuthority('USER')")
-    @PostMapping("/refresh")
-    public ResponseEntity<LoginResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
-        System.out.println("old access token: " + request.getRefreshToken());
-        String newAccessToken = userAuthProvider.validateRefreshToken(request.getRefreshToken());
+//    @PostMapping("/refresh")
+//    public ResponseEntity<LoginResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+//        System.out.println("old access token: " + request.getRefreshToken());
+//        String newAccessToken = userAuthProvider.validateRefreshToken(request.getRefreshToken());
+//
+//        System.out.println("new access token: " + newAccessToken);
+//        return ResponseEntity.ok(new LoginResponse(newAccessToken, request.getRefreshToken()));
+//    }
 
-        System.out.println("new access token: " + newAccessToken);
-        return ResponseEntity.ok(new LoginResponse(newAccessToken, request.getRefreshToken()));
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refresh_token".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Walidacja i generowanie nowego access tokena
+        String newAccessToken = userAuthProvider.validateRefreshToken(refreshToken);
+        if (newAccessToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(new LoginResponse(newAccessToken, refreshToken));
     }
 
     @PreAuthorize("hasAuthority('USER')")
