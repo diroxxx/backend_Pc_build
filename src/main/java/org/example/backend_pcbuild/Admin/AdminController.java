@@ -47,7 +47,7 @@ public class AdminController {
     @MessageMapping("/offers")
     @SendTo("/topic/offers")
 //    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping(value = "/offers",produces = MediaType.APPLICATION_JSON_VALUE)
+//    @GetMapping(value = "/offers",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, List<Object>>> getOffers() {
         Map<String, List<Object>> result = componentService.fetchOffersAsMap();
         componentService.saveAllOffers(result);
