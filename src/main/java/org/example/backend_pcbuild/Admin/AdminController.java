@@ -1,7 +1,10 @@
 package org.example.backend_pcbuild.Admin;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.dto.UserDto;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserMapper;
@@ -18,19 +21,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @CrossOrigin("http://127.0.0.1:5000")
 @RequestMapping("/admin")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AdminController {
 
     private final ComponentService componentService;
     private final UserRepository userRepository;
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final ObjectMapper objectMapper;
 
 
     private final UserMapper userMapper;
@@ -46,20 +51,43 @@ public class AdminController {
     }
     @MessageMapping("/offers")
     @SendTo("/topic/offers")
-//    @PreAuthorize("hasAuthority('ADMIN')")
-//    @GetMapping(value = "/offers",produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, List<Object>>> getOffers() {
+//    public Map<String, List<Object>> getOffers() {
+    public void getOffers() {
         Map<String, List<Object>> result = componentService.fetchOffersAsMap();
         componentService.saveAllOffers(result);
-        System.out.println();
-        return ResponseEntity.ok(result);
     }
 
-    @RabbitListener(queues = "olx")
+    @RabbitListener(queues = "offers")
     public void receiveOffer(String message) {
-        System.out.println(message);
-        messagingTemplate.convertAndSend("/topic/offers", message);
-    }
+//        System.out.println(message);
+        try {
+            List<Map<String, Object>> offers = objectMapper.readValue(
+                    message, new TypeReference<List<Map<String, Object>>>() {
+                    }
+            );
+            Map<String, Map<String, Integer>> shopCategoryCounts = new HashMap<>();
+
+            for (Map<String, Object> offer : offers) {
+                String shop = (String) offer.get("shop");
+                String category = (String) offer.get("category");
+
+                if (shop == null || category == null) continue;
+
+                shopCategoryCounts
+                        .computeIfAbsent(shop, k -> new HashMap<>())
+                        .merge(category, 1, Integer::sum);
+            }
+
+            messagingTemplate.convertAndSend("/topic/offers", shopCategoryCounts);
+            System.out.println(shopCategoryCounts);
+//            shopCategoryCounts.forEach((shop, catMap) -> {
+//                System.out.println("Sklep: " + shop);
+//                catMap.forEach((cat, count) -> System.out.println("- " + cat + ": " + count));
+//            });
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/users")

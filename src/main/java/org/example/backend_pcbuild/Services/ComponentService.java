@@ -10,10 +10,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
@@ -31,6 +28,7 @@ public class ComponentService {
     private final ProcessorRepository processorRepository;
     private final StorageRepository storageRepository;
     private final OfferRepository offerRepository;
+    private final OfferMatchingService offerMatchingService;
 
     private final RestClient restClient = RestClient.create();
 
@@ -319,13 +317,10 @@ public class ComponentService {
             return result;
     }
 
-
     private static final JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
-
 
     @Transactional
     public void saveAllOffers(Map<String, List<Object>> components) {
-
         List<GraphicsCard> graphicsCardList = graphicsCardRepository.findAll();
         List<Processor> processorList = processorRepository.findAll();
         List<Memory> memoryList = memoryRepository.findAll();
@@ -335,338 +330,94 @@ public class ComponentService {
         List<Case> caseList = caseRepository.findAll();
         List<Cooler> coolerList = coolerRepository.findAll();
 
-        List<Item> itemList = itemRepository.findAll();
-//        log.info("Rozpoczęto przypisywanie ofert do podzespołów, liczba kategorii: {}", components.size());
-        for(Map.Entry<String, List<Object>> entry : components.entrySet()) {
-                for (Object object : entry.getValue()) {
-                    try {
-                        Map<String, Object> processorData = (Map<String, Object>) object;
+        Map<String, List<?>> categoryMap = Map.of(
+                "graphics_card", graphicsCardList,
+                "processor", processorList,
+                "ram", memoryList,
+                "motherboard", motherboardList,
+                "power_supply", powerSupplyList,
+                "storage", storageList,
+                "case", caseList,
+                "cpu_cooler", coolerList
+        );
 
-                        Offer offer = new Offer();
-//
-                        String statusString = (String) processorData.get("status");
-                        ItemCondition condition = ItemCondition.valueOf(statusString);
+        for (Map.Entry<String, List<Object>> entry : components.entrySet()) {
+            String offerCategory = entry.getKey().toLowerCase();
+            List<?> itemsForCategory = categoryMap.getOrDefault(offerCategory, Collections.emptyList());
 
-                        offer.setCondition(condition);
-                        Object priceObject = processorData.get("price");
-                        if (priceObject instanceof Number) {
-                            offer.setPrice(((Number) priceObject).doubleValue());
-                        } else {
-                            throw new IllegalArgumentException("Invalid price value: " + priceObject);
-                        }
-                        String shop = (String) processorData.get("shop");
-                        String img = (String) processorData.get("img");
-                        String url = (String) processorData.get("url");
-                        String offerBrand = (String) processorData.get("brand");
-                        String offerModel = (String) processorData.get("model");
-                        String offerCategory = (String) processorData.get("category");
+            for (Object object : entry.getValue()) {
+                try {
+                    Map<String, Object> componentData = (Map<String, Object>) object;
+                    Offer offer = buildOfferFromData(componentData);
+                    String url = offer.getWebsiteUrl();
 
-                        offer.setShop(shop);
-                        offer.setPhotoUrl(img);
-                        offer.setWebsiteUrl(url);
-
-                        if (offerCategory == null || offerBrand == null || offerModel == null) {
-                            continue;
-                        }
-
-                        Optional<Offer> existedOffer = offerRepository.findByWebsiteUrl(url);
-
-                        if (existedOffer.isPresent()) {
-                            continue;
-                        }
-
-//                        log.info("Przetwarzanie oferty: brand={}, model={}, category={}", offerBrand, offerModel, offerCategory);
-                        Item bestItem = null;
-                        double bestScore = 0.0;
-
-
-                        String[] offerWords = offerModel.toLowerCase().split(" ");
-                        
-                        if (offerCategory.equalsIgnoreCase("processor")) {
-
-                            Pattern socketPattern = Pattern.compile("(am4|lga\\d{4}|s\\d{3,4}|fm2|fm1)", Pattern.CASE_INSENSITIVE);
-                            Pattern clockPattern = Pattern.compile("(\\d{1,2}\\.\\d{1,2}\\s?ghz)", Pattern.CASE_INSENSITIVE);
-                            Pattern coresPattern = Pattern.compile("(\\d+)\\s*(rdzeni|cores)", Pattern.CASE_INSENSITIVE);
-                            Pattern threadsPattern = Pattern.compile("(\\d+)\\s*(wątk|threads)", Pattern.CASE_INSENSITIVE);
-                            String offerLower = offerModel.toLowerCase();
-
-                            // Wyciąganie cech z oferty
-                            String offerSocket = null;
-                            String offerClock = null;
-                            Integer offerCores = null;
-                            Integer offerThreads = null;
-
-                            var mSocket = socketPattern.matcher(offerLower);
-                            if (mSocket.find()) offerSocket = mSocket.group(1);
-
-                            var mClock = clockPattern.matcher(offerLower);
-                            if (mClock.find()) offerClock = mClock.group(1);
-
-                            var mCores = coresPattern.matcher(offerLower);
-                            if (mCores.find()) offerCores = Integer.valueOf(mCores.group(1));
-
-                            var mThreads = threadsPattern.matcher(offerLower);
-                            if (mThreads.find()) offerThreads = Integer.valueOf(mThreads.group(1));
-
-                            for(Processor processor : processorList){
-                                String[] itemWords = processor.getItem().getModel().toLowerCase().split(" ");
-                               
-                                int commonWords = 0;
-                                for (String ow : offerWords) {
-                                    for (String iw : itemWords) {
-                                        if (ow.equals(iw)) commonWords++;
-                                    }
-                                }
-                                double score = commonWords * 0.2;
-
-                                if (processor.getItem().getBrand() != null &&
-                                        offerBrand.equalsIgnoreCase(processor.getItem().getBrand())) {
-                                    score += 0.3;
-                                }
-
-                                // Dopasowanie socket
-                                if (offerSocket != null && processor.getSocket_type() != null &&
-                                        offerSocket.equalsIgnoreCase(processor.getSocket_type())) {
-                                    score += 0.3;
-                                }
-
-                                // Dopasowanie base_clock
-                                if (offerClock != null && processor.getBase_clock() != null &&
-                                        offerClock.equalsIgnoreCase(processor.getBase_clock().toLowerCase())) {
-                                    score += 0.2;
-                                }
-
-                                // Dopasowanie liczby rdzeni
-                                if (offerCores != null && processor.getCores() != null &&
-                                        offerCores.equals(processor.getCores())) {
-                                    score += 0.2;
-                                }
-
-                                // Dopasowanie liczby wątków
-                                if (offerThreads != null && processor.getThreads() != null &&
-                                        offerThreads.equals(processor.getThreads())) {
-                                    score += 0.2;
-                                }
-
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestItem = processor.getItem();
-//                                    log.info("Przypisano ofertę {},  do podzespołu: {}, dopasowanie punktowe: {}", offerModel, bestItem.getModel(), bestScore);
-                                } else {
-//                                    log.debug("Oferta nie została przypisana z powodu zbyt niskiego wyniku dopasowania: {}. Oferta: model={}, brand={}",
-//                                            bestScore, offerModel, offerBrand);
-                                }
-                            }
-                            }  else if (offerCategory.equalsIgnoreCase("graphics_card")) {
-                            for(GraphicsCard graphicsCard : graphicsCardList){
-                                double score = 0.0;
-                                if (graphicsCard.getItem().getBrand() != null &&
-                                        offerBrand.equalsIgnoreCase(graphicsCard.getItem().getBrand())
-                                ) {
-                                    score += 0.3;
-                                }
-                                if (graphicsCard.getItem().getModel() != null) {
-                                    score += similarity.apply(offerModel.toLowerCase(), graphicsCard.getItem().getModel().toLowerCase());
-                                }
-
-
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestItem = graphicsCard.getItem();
-                                    log.info("Przypisano ofertę {},  do podzespołu: {}, dopasowanie punktowe: {}", offerModel, bestItem.getModel(), bestScore);
-                                } else {
-                                    log.debug("Oferta nie została przypisana z powodu zbyt niskiego wyniku dopasowania: {}. Oferta: model={}, brand={}",
-                                            bestScore, offerModel, offerBrand);
-                                }
-                            }
-                        } else if (offerCategory.equalsIgnoreCase("ram")) {
-                            for(Memory memory : memoryList){
-                                double score = 0.0;
-                                if (memory.getItem().getBrand() != null &&
-                                        offerBrand.equalsIgnoreCase(memory.getItem().getBrand())
-                                ) {
-                                    score += 0.3;
-                                }
-                                if (memory.getItem().getModel() != null) {
-                                    score += similarity.apply(offerModel.toLowerCase(), memory.getItem().getModel().toLowerCase());
-                                }
-
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestItem = memory.getItem();
-                                    log.info("Przypisano ofertę {},  do podzespołu: {}, dopasowanie punktowe: {}", offerModel, bestItem.getModel(), bestScore);
-                                } else {
-                                    log.debug("Oferta nie została przypisana z powodu zbyt niskiego wyniku dopasowania: {}. Oferta: model={}, brand={}",
-                                            bestScore, offerModel, offerBrand);
-                                }
-                            }
-                        }else if (offerCategory.equalsIgnoreCase("case")) {
-                            for(Case casePc : caseList){
-                                double score = 0.0;
-                                if (casePc.getItem().getBrand() != null &&
-                                        offerBrand.equalsIgnoreCase(casePc.getItem().getBrand())
-                                ) {
-                                    score += 0.3;
-                                }
-                                if (casePc.getItem().getModel() != null) {
-                                    score += similarity.apply(offerModel.toLowerCase(), casePc.getItem().getModel().toLowerCase());
-                                }
-
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestItem = casePc.getItem();
-                                    log.info("Przypisano ofertę {},  do podzespołu: {}, dopasowanie punktowe: {}", offerModel, bestItem.getModel(), bestScore);
-                                } else {
-                                    log.debug("Oferta nie została przypisana z powodu zbyt niskiego wyniku dopasowania: {}. Oferta: model={}, brand={}",
-                                            bestScore, offerModel, offerBrand);
-                                }
-                            }
-                        }else if (offerCategory.equalsIgnoreCase("storage")) {
-                            for(Storage storage : storageList){
-                                double score = 0.0;
-                                if (storage.getItem().getBrand() != null &&
-                                        offerBrand.equalsIgnoreCase(storage.getItem().getBrand())
-                                ) {
-                                    score += 0.3;
-                                }
-                                if (storage.getItem().getModel() != null) {
-                                    score += similarity.apply(offerModel.toLowerCase(), storage.getItem().getModel().toLowerCase());
-                                }
-
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestItem = storage.getItem();
-                                    log.info("Przypisano ofertę {},  do podzespołu: {}, dopasowanie punktowe: {}", offerModel, bestItem.getModel(), bestScore);
-                                } else {
-                                    log.debug("Oferta nie została przypisana z powodu zbyt niskiego wyniku dopasowania: {}. Oferta: model={}, brand={}",
-                                            bestScore, offerModel, offerBrand);
-                                }
-                            }
-                        }else if (offerCategory.equalsIgnoreCase("power_supply")) {
-                            for(PowerSupply powerSupply : powerSupplyList){
-                                double score = 0.0;
-                                if (powerSupply.getItem().getBrand() != null &&
-                                        offerBrand.equalsIgnoreCase(powerSupply.getItem().getBrand())
-                                ) {
-                                    score += 0.3;
-                                }
-                                if (powerSupply.getItem().getModel() != null) {
-                                    score += similarity.apply(offerModel.toLowerCase(), powerSupply.getItem().getModel().toLowerCase());
-                                }
-
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestItem = powerSupply.getItem();
-                                    log.info("Przypisano ofertę {},  do podzespołu: {}, dopasowanie punktowe: {}", offerModel, bestItem.getModel(), bestScore);
-                                } else {
-                                    log.debug("Oferta nie została przypisana z powodu zbyt niskiego wyniku dopasowania: {}. Oferta: model={}, brand={}",
-                                            bestScore, offerModel, offerBrand);
-                                }
-                            }
-                        }else if (offerCategory.equalsIgnoreCase("motherboard")) {
-                            for(Motherboard motherboard : motherboardList){
-                                double score = 0.0;
-                                if (motherboard.getItem().getBrand() != null &&
-                                        offerBrand.equalsIgnoreCase(motherboard.getItem().getBrand())
-                                ) {
-                                    score += 0.3;
-                                }
-                                if (motherboard.getItem().getModel() != null) {
-                                    score += similarity.apply(offerModel.toLowerCase(), motherboard.getItem().getModel().toLowerCase());
-                                }
-
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestItem = motherboard.getItem();
-                                    log.info("Przypisano ofertę {},  do podzespołu: {}, dopasowanie punktowe: {}", offerModel, bestItem.getModel(), bestScore);
-                                } else {
-                                    log.debug("Oferta nie została przypisana z powodu zbyt niskiego wyniku dopasowania: {}. Oferta: model={}, brand={}",
-                                            bestScore, offerModel, offerBrand);
-                                }
-                            }
-                        }else if (offerCategory.equalsIgnoreCase("cpu_cooler")) {
-                            for(Cooler cooler : coolerList){
-                                double score = 0.0;
-                                if (cooler.getItem().getBrand() != null &&
-                                        offerBrand.equalsIgnoreCase(cooler.getItem().getBrand())
-                                ) {
-                                    score += 0.3;
-                                }
-                                if (cooler.getItem().getModel() != null) {
-                                    score += similarity.apply(offerModel.toLowerCase(), cooler.getItem().getModel().toLowerCase());
-                                }
-
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestItem = cooler.getItem();
-                                    log.info("Przypisano ofertę {},  do podzespołu: {}, dopasowanie punktowe: {}", offerModel, bestItem.getModel(), bestScore);
-                                } else {
-                                    log.debug("Oferta nie została przypisana z powodu zbyt niskiego wyniku dopasowania: {}. Oferta: model={}, brand={}",
-                                            bestScore, offerModel, offerBrand);
-                                }
-                            }
-                        }
-
-                        if (bestItem != null) {
-                            offer.setItem(bestItem);
-                            bestItem.getOffers().add(offer);
-
-                            itemRepository.save(bestItem);
-                        }
-//                        for (Item item : itemList) {
-//                            double score = 0.0;
-//                            if (offerBrand != null && item.getBrand() != null &&
-//                                    offerBrand.equalsIgnoreCase(item.getBrand())
-//                            ) {
-//                                score += 0.3;
-//                            }
-//                            if (offerModel != null && item.getModel() != null) {
-//                                score += similarity.apply(offerModel.toLowerCase(), item.getModel().toLowerCase());
-//                            }
-
-//                            if (offerCategory.equalsIgnoreCase("processor")) {
-//                                if (item.getProcessor() != null){
-//                                    score += similarity.apply(offerModel.toLowerCase(), item.getProcessor().getBase_clock().toLowerCase());
-//                                    score += similarity.apply(offerModel.toLowerCase(), item.getProcessor().getSocket_type().toLowerCase());
-////                                    score += similarity.apply(offerModel.toLowerCase(), item.getProcessor().getCores());
-//                                }
-//                            } else if (offerCategory.equalsIgnoreCase("graphics_card")) {
-//                                if (item.getGraphicsCard() != null){
-//                                    score += similarity.apply(offerModel.toLowerCase(), item.getGraphicsCard().getVram().toString());
-//                                }
-//
-//                            }
-
-//                            if (score > bestScore) {
-//                                bestScore = score;
-//                                bestItem = item;
-//                                log.info("Przypisano ofertę {},  do podzespołu: {}, dopasowanie punktowe: {}", offerModel, bestItem.getModel(), bestScore);
-//                            } else {
-//                                log.debug("Oferta nie została przypisana z powodu zbyt niskiego wyniku dopasowania: {}. Oferta: model={}, brand={}",
-//                                        bestScore, offerModel, offerBrand);
-//                            }
-//                        }
-//                        // Próg dopasowania, np. 0.7
-//                        if (bestItem != null) {
-//                            offer.setItem(bestItem);
-//                            bestItem.getOffers().add(offer);
-//
-//                            itemRepository.save(bestItem);
-//                        }
-                    } catch (ClassCastException e) {
-                        System.err.println(e.getMessage());
-                        throw e;
-
-                    } catch (Exception e) {
-                        System.err.println( e.getMessage());
-                        throw e;
-
+                    if (offer.getCondition() == null || offer.getShop() == null || offer.getPhotoUrl() == null || url == null) {
+                        continue;
                     }
+
+                    Optional<Offer> existedOffer = offerRepository.findByWebsiteUrl(url);
+                    if (existedOffer.isPresent()) {
+                        // Tu można dodać obsługę aktualizacji oferty, jeśli jest nieaktualna
+                        continue;
+                    }
+
+                    Item bestItem = offerMatchingService.matchOfferToItem(offerCategory, componentData, itemsForCategory);
+                    if (bestItem != null) {
+                        offer.setItem(bestItem);
+                        bestItem.getOffers().add(offer);
+                        itemRepository.save(bestItem);
+                    }
+                } catch (Exception e) {
+                    System.err.println("[saveAllOffers] " + e.getMessage());
+                }
             }
         }
     }
 
-    // Pomocnicze metody do bezpiecznego pobierania wartości
+    private Offer buildOfferFromData(Map<String, Object> componentData) {
+        Offer offer = new Offer();
+
+        String statusString = (String) componentData.get("status");
+        ItemCondition condition = null;
+        if (statusString != null) {
+            try {
+                condition = ItemCondition.valueOf(statusString);
+            } catch (IllegalArgumentException ignored) {}
+        }
+        offer.setCondition(condition);
+
+        Object priceObject = componentData.get("price");
+        offer.setPrice(parsePrice(priceObject));
+
+        String shop = (String) componentData.get("shop");
+        String img = (String) componentData.get("img");
+        String url = (String) componentData.get("url");
+        offer.setShop(shop);
+        offer.setPhotoUrl(img);
+        offer.setWebsiteUrl(url);
+
+        return offer;
+    }
+
+    private Double parsePrice(Object priceObject) {
+        if (priceObject instanceof Number) {
+            return ((Number) priceObject).doubleValue();
+        } else if (priceObject instanceof String) {
+            String p = ((String) priceObject).replaceAll("[^\\d,\\.]", "").replace(",", ".");
+            if (!p.isEmpty()) {
+                try {
+                    return Double.parseDouble(p);
+                } catch (NumberFormatException ex) {
+                    throw new IllegalArgumentException("Invalid price value: " + priceObject);
+                }
+            } else {
+                throw new IllegalArgumentException("Invalid price value: " + priceObject);
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid price value: " + priceObject);
+        }
+    }
+
     private Integer getIntegerValue(Map<String, Object> data, String key) {
         Object value = data.get(key);
         if (value instanceof Integer) {
