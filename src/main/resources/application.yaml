@@ -4,9 +4,9 @@ spring:
   rabbitmq:
     host: localhost
     port: 5672
-    stream:
-      username: guest
-      password: guest
+    username: guest
+    password: guest
+#    virtual-host: /
 logging:
   level:
     org:
