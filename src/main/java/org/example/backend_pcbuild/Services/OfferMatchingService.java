@@ -17,8 +17,18 @@ public class OfferMatchingService {
 
 
     public Item matchOfferToItem(String category, Map<String, Object> offerData, List<?> items) {
-        String offerModel = ((String) offerData.get("model")).toLowerCase();
-        String offerBrand = ((String) offerData.get("brand"));
+        Object modelObj = offerData.get("model");
+        Object brandObj = offerData.get("brand");
+
+        if (modelObj == null || brandObj == null) {
+            System.err.println("[matchOfferToItem] Missing model or brand for category: " + category);
+            System.err.println("[matchOfferToItem] Available keys: " + offerData.keySet());
+            System.err.println("[matchOfferToItem] Data: " + offerData);
+            return null;
+        }
+
+        String offerModel = modelObj.toString().toLowerCase();
+        String offerBrand = brandObj.toString();
         String offerLower = offerModel.toLowerCase();
         String[] offerWords = offerModel.split(" ");
 

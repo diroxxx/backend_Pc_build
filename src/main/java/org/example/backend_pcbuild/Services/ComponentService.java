@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
+import org.example.backend_pcbuild.Computer.dto.*;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.*;
 import org.springframework.core.ParameterizedTypeReference;
@@ -34,6 +35,16 @@ public class ComponentService {
 
 
 
+    /**
+     * Retrieves a map containing components, where the key is a string identifier of the component
+     * and the value is a list of objects representing the component details.
+     *
+     * The data is fetched from an external HTTP service located at the URL
+     * http://127.0.0.1:5000/installComponents.
+     *
+     * @return a map where the keys are string identifiers of components and
+     *         the values are lists of objects representing the component details
+     */
     public Map<String, List<Object>> fetchComponentsAsMap() {
         return restClient.get()
                 .uri("http://127.0.0.1:5000/installComponents")
@@ -41,6 +52,12 @@ public class ComponentService {
                 .body(new ParameterizedTypeReference<>() {});
     }
 
+    /**
+     * Fetches offers from the specified endpoint and returns them as a map.
+     * The map contains a string key and a list of objects as values, representing the retrieved offers data.
+     *
+     * @return a map where the keys are strings and the values are lists of objects, representing the offers information
+     */
     public Map<String, List<Object>> fetchOffersAsMap() {
         return restClient.get()
                 .uri("http://127.0.0.1:5000/offers")
@@ -49,276 +66,230 @@ public class ComponentService {
     }
 
 
+    /**
+     * Persists various hardware components into their respective repositories based on their type.
+     * Each component is matched with an existing `Item` in the database by its brand and model.
+     * If no matching `Item` exists, a new one is created. Then, the specific component (e.g., processor,
+     * storage, motherboard, etc.) is associated with the `Item` and saved.
+     *
+     * @param components a map containing component types as keys (e.g., "processor", "storage") and
+     *                   lists of objects as values. Each object is expected to be a map of attributes
+     *                   describing a specific component.
+     */
     @Transactional
     public void saveBasedComponents(Map<String, List<Object>> components) {
+        if (components == null || components.isEmpty()) return;
 
-        for(Map.Entry<String, List<Object>> entry : components.entrySet()) {
+        for (Map.Entry<String, List<Object>> entry : components.entrySet()) {
+            final String type = entry.getKey() == null ? "" : entry.getKey().toLowerCase(Locale.ROOT);
+            final List<Object> payload = entry.getValue();
+            if (payload == null) continue;
 
-            for (Object object : entry.getValue()) {
+            for (Object object : payload) {
                 try {
-                    Map<String, Object> processorData = (Map<String, Object>) object;
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> data = (Map<String, Object>) object;
+                    if (data == null) continue;
 
-
-                    Item item = new Item();
-                    item.setBrand((String) processorData.get("brand"));
-                    item.setModel((String) processorData.get("model"));
-                    Item itemToCheck = itemRepository.findByBrandAndModel((String) processorData.get("brand"), (String) processorData.get("model")).orElse(null);
-
-                    if (itemToCheck != null) {
+                    String brand = getStringValue(data, "brand");
+                    String model = getStringValue(data, "model");
+                    if (brand == null || model == null) {
                         continue;
                     }
 
-                    if (entry.getKey().equalsIgnoreCase("processor")) {
-                        Processor processor = new Processor();
+                    Item item = itemRepository.findByBrandAndModel(brand, model)
+                            .orElseGet(() -> {
+                                Item it = new Item();
+                                it.setBrand(brand);
+                                it.setModel(model);
+                                return itemRepository.save(it);
+                            });
 
-                        processor.setCores(getIntegerValue(processorData, "cores"));
-                        processor.setThreads(getIntegerValue(processorData, "threads"));
-                        processor.setSocket_type(getStringValue(processorData, "socket"));
-                        processor.setBase_clock(getStringValue(processorData, "base_clock"));
-
-                        processor.setItem(item);
-                        item.setProcessor(processor);
-
-                        processorRepository.save(processor);
-                    } else if (entry.getKey().equalsIgnoreCase("storage")) {
-                        Storage storage = new Storage();
-
-                        storage.setCapacity(getDoubleValue(processorData, "capacity"));
-                        storage.setItem(item);
-                        item.setStorage(storage);
-                        storageRepository.save(storage);
-
-                    } else if (entry.getKey().equalsIgnoreCase("motherboard")) {
-                        Motherboard motherboard = new Motherboard();
-
-                        motherboard.setChipset(getStringValue(processorData, "chipset"));
-                        motherboard.setFormat(getStringValue(processorData, "format"));
-                        motherboard.setMemoryType(getStringValue(processorData, "memory_type"));
-                        motherboard.setSocketType(getStringValue(processorData, "socket_motherboard"));
-                        motherboard.setRamSlots(getIntegerValue(processorData, "ramslots"));
-                        motherboard.setMemoryType(getStringValue(processorData, "memory_type"));
-                        motherboard.setRamCapacity(getIntegerValue(processorData, "memory_capacity"));
-
-                        motherboard.setItem(item);
-                        item.setMotherboard(motherboard);
-
-                        motherboardRepository.save(motherboard);
-
-                    } else if (entry.getKey().equalsIgnoreCase("power_supply")) {
-                        PowerSupply powerSupply = new PowerSupply();
-
-                        powerSupply.setMaxPowerWatt(getIntegerValue(processorData, "maxPowerWatt"));
-
-                        powerSupply.setItem(item);
-                        item.setPowerSupply(powerSupply);
-
-                        powerSupplyRepository.save(powerSupply);
-                    } else if (entry.getKey().equalsIgnoreCase("cpu_cooler")) {
-                        Cooler cooler = new Cooler();
-
-
-                        Object socketsObj = processorData.get("sockets");
-                        if (socketsObj instanceof List) {
-                            List<String> sockets = (List<String>) socketsObj;
-                            cooler.setSocketTypes(sockets);
+                    switch (type) {
+                        case "processor": {
+                            if (item.getProcessor() != null) break;
+                            Processor p = new Processor();
+                            p.setCores(getIntegerValue(data, "cores"));
+                            p.setThreads(getIntegerValue(data, "threads"));
+                            p.setSocket_type(getStringValue(data, "socket"));
+                            p.setBase_clock(getStringValue(data, "base_clock"));
+                            p.setItem(item);
+                            item.setProcessor(p);
+                            processorRepository.save(p);
+                            break;
                         }
-
-                        cooler.setItem(item);
-                        item.setCooler(cooler);
-                        coolerRepository.save(cooler);
-
-                    } else if (entry.getKey().equalsIgnoreCase("graphics_card")) {
-                        GraphicsCard graphicsCard = new GraphicsCard();
-
-                        graphicsCard.setGddr(getStringValue(processorData, "gddr"));
-                        graphicsCard.setPower_draw(getDoubleValue(processorData, "power_draw"));
-                        graphicsCard.setVram(getIntegerValue(processorData, "vram"));
-
-                        graphicsCard.setItem(item);
-                        item.setGraphicsCard(graphicsCard);
-
-                        graphicsCardRepository.save(graphicsCard);
-
-                    } else if (entry.getKey().equalsIgnoreCase("case")) {
-                        Case case1 = new Case();
-
-                        case1.setFormat(getStringValue(processorData, "format"));
-
-                        case1.setItem(item);
-                        item.setCase_(case1);
-                        caseRepository.save(case1);
-                    } else if (entry.getKey().equalsIgnoreCase("ram")) {
-                        Memory memory = new Memory();
-
-                        memory.setCapacity(getIntegerValue(processorData, "capacity"));
-                        memory.setType(getStringValue(processorData, "type"));
-                        memory.setSpeed(getStringValue(processorData, "speed"));
-                        memory.setLatency(getStringValue(processorData, "latency"));
-
-                        memory.setItem(item);
-                        item.setMemory(memory);
-                        memoryRepository.save(memory);
+                        case "storage": {
+                            if (item.getStorage() != null) break;
+                            Storage s = new Storage();
+                            s.setCapacity(getDoubleValue(data, "capacity"));
+                            s.setItem(item);
+                            item.setStorage(s);
+                            storageRepository.save(s);
+                            break;
+                        }
+                        case "motherboard": {
+                            if (item.getMotherboard() != null) break;
+                            Motherboard mb = new Motherboard();
+                            mb.setChipset(getStringValue(data, "chipset"));
+                            mb.setFormat(getStringValue(data, "format"));
+                            mb.setMemoryType(getStringValue(data, "memory_type"));
+                            mb.setSocketType(getStringValue(data, "socket_motherboard"));
+                            mb.setRamSlots(getIntegerValue(data, "ramslots"));
+                            mb.setRamCapacity(getIntegerValue(data, "memory_capacity"));
+                            mb.setItem(item);
+                            item.setMotherboard(mb);
+                            motherboardRepository.save(mb);
+                            break;
+                        }
+                        case "power_supply": {
+                            if (item.getPowerSupply() != null) break;
+                            PowerSupply ps = new PowerSupply();
+                            Integer maxW = getIntegerValue(data, "maxPowerWatt");
+                            if (maxW == null) maxW = getIntegerValue(data, "max_power_watt");
+                            ps.setMaxPowerWatt(maxW);
+                            ps.setItem(item);
+                            item.setPowerSupply(ps);
+                            powerSupplyRepository.save(ps);
+                            break;
+                        }
+                        case "cpu_cooler": {
+                            if (item.getCooler() != null) break;
+                            Cooler cooler = new Cooler();
+                            Object socketsObj = data.get("sockets");
+                            if (socketsObj instanceof List) {
+                                @SuppressWarnings("unchecked")
+                                List<String> sockets = (List<String>) socketsObj;
+                                cooler.setSocketTypes(sockets);
+                            } else if (socketsObj instanceof String s) {
+                                List<String> sockets = Arrays.stream(s.split(","))
+                                        .map(String::trim)
+                                        .filter(v -> !v.isEmpty())
+                                        .toList();
+                                cooler.setSocketTypes(sockets);
+                            }
+                            cooler.setItem(item);
+                            item.setCooler(cooler);
+                            coolerRepository.save(cooler);
+                            break;
+                        }
+                        case "graphics_card": {
+                            if (item.getGraphicsCard() != null) break;
+                            GraphicsCard g = new GraphicsCard();
+                            g.setGddr(getStringValue(data, "gddr"));
+                            g.setPower_draw(getDoubleValue(data, "power_draw"));
+                            g.setVram(getIntegerValue(data, "vram"));
+                            g.setItem(item);
+                            item.setGraphicsCard(g);
+                            graphicsCardRepository.save(g);
+                            break;
+                        }
+                        case "case": {
+                            if (item.getCase_() != null) break;
+                            Case c = new Case();
+                            c.setFormat(getStringValue(data, "format"));
+                            c.setItem(item);
+                            item.setCase_(c);
+                            caseRepository.save(c);
+                            break;
+                        }
+                        case "ram": {
+                            if (item.getMemory() != null) break;
+                            Memory m = new Memory();
+                            m.setCapacity(getIntegerValue(data, "capacity"));
+                            m.setType(getStringValue(data, "type"));
+                            m.setSpeed(getStringValue(data, "speed"));
+                            m.setLatency(getStringValue(data, "latency"));
+                            m.setItem(item);
+                            item.setMemory(m);
+                            memoryRepository.save(m);
+                            break;
+                        }
+                        default:
+                            break;
                     }
-
-
+                } catch (ClassCastException cce) {
+                     log.warn("Invalid payload entry for type {}: {}", entry.getKey(), cce.getMessage());
                 } catch (Exception e) {
-                    System.err.println( e.getMessage());
-                    throw e;
+                     log.error("Failed to save component of type {}: {}", entry.getKey(), e.getMessage(), e);
                 }
             }
         }
     }
 
 
-    public List<ComponentDto> getAllComponents() {
-        List<ComponentDto> result = new ArrayList<>();
+    /**
+     * Retrieves all components from various repositories, converts them to their corresponding DTOs,
+     * and groups them into a map categorized by component type.
+     *
+     * @return a map where the keys represent the component types (e.g., "graphicsCards", "processors", etc.)
+     * and the values are lists of the corresponding component DTOs.
+     */
+    public Map<String, List<?>> getAllComponents() {
+        Map<String, List<?>> result = new LinkedHashMap<>();
 
-        for (GraphicsCard gc : graphicsCardRepository.findAll()) {
-            for( Offer offer: gc.getItem().getOffers()){
-            result.add(ComponentDto.builder()
-                    .componentType("graphicsCard")
-                    .brand(gc.getItem().getBrand())
-                    .model(gc.getItem().getModel())
-                    .condition(offer.getCondition())
-                    .photo_url(offer.getPhotoUrl())
-                    .website_url(offer.getWebsiteUrl())
-                    .price(offer.getPrice())
-                    .shop(offer.getShop())
-                    .gpuMemorySize(gc.getVram())
-                    .gpuGddr(gc.getGddr())
-                    .gpuPowerDraw(gc.getPower_draw())
-                    .build());
-            }
-        }
-        for (Processor item : processorRepository.findAll()) {
-            for( Offer offer: item.getItem().getOffers()) {
+        List<GraphicsCardDto> gpus = graphicsCardRepository.findAll().stream()
+                .flatMap(gc -> gc.getItem().getOffers().stream()
+                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(gc, offer)))
+                .toList();
 
-                result.add(ComponentDto.builder()
-                        .componentType("processor")
-                        .brand(item.getItem().getBrand())
-                        .model(item.getItem().getModel())
-                        .condition(offer.getCondition())
-                        .photo_url(offer.getPhotoUrl())
-                        .website_url(offer.getWebsiteUrl())
-                        .price(offer.getPrice())
-                        .shop(offer.getShop())
-                        .cpuSocketType(item.getSocket_type())
-                        .cpuBase_clock(item.getBase_clock())
-                        .cpuCores(item.getCores())
-                        .cpuThreads(item.getThreads())
-                        .build());
-            }
-        }
-        for (Cooler item : coolerRepository.findAll()) {
-            for( Offer offer: item.getItem().getOffers()) {
+        List<ProcessorDto> processors = processorRepository.findAll().stream()
+                .flatMap(cpu -> cpu.getItem().getOffers().stream()
+                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(cpu, offer)))
+                .toList();
 
-                result.add(ComponentDto.builder()
-                        .componentType("cooler")
-                        .brand(item.getItem().getBrand())
-                        .model(item.getItem().getModel())
-                        .condition(offer.getCondition())
-                        .photo_url(offer.getPhotoUrl())
-                        .website_url(offer.getWebsiteUrl())
-                        .price(offer.getPrice())
-                        .shop(offer.getShop())
-//                    .coolerSocketType(item.getSocketType())
-                        .build());
-            }
-        }
-        for (Memory item : memoryRepository.findAll()) {
-            for( Offer offer: item.getItem().getOffers()) {
+        List<CoolerDto> coolers = coolerRepository.findAll().stream()
+                .flatMap(c -> c.getItem().getOffers().stream()
+                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(c, offer)))
+                .toList();
 
-                result.add(ComponentDto.builder()
-                        .componentType("memory")
-                        .brand(item.getItem().getBrand())
-                        .model(item.getItem().getModel())
-                        .condition(offer.getCondition())
-                        .photo_url(offer.getPhotoUrl())
-                        .website_url(offer.getWebsiteUrl())
-                        .price(offer.getPrice())
-                        .shop(offer.getShop())
-                        .ramCapacity(item.getCapacity())
-                        .ramLatency(item.getLatency())
-                        .ramSpeed(item.getSpeed())
-                        .ramType(item.getType())
-                        .build());
-            }
-        }
-        for (Motherboard item : motherboardRepository.findAll()) {
-            for( Offer offer: item.getItem().getOffers()) {
+        List<MemoryDto> memories = memoryRepository.findAll().stream()
+                .flatMap(m -> m.getItem().getOffers().stream()
+                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(m, offer)))
+                .toList();
 
-                result.add(ComponentDto.builder()
-                        .componentType("motherboard")
-                        .brand(item.getItem().getBrand())
-                        .model(item.getItem().getModel())
-                        .condition(offer.getCondition())
-                        .photo_url(offer.getPhotoUrl())
-                        .website_url(offer.getWebsiteUrl())
-                        .price(offer.getPrice())
-                        .shop(offer.getShop())
-                        .boardChipset(item.getChipset())
-                        .boardFormat(item.getFormat())
-                        .boardMemoryType(item.getMemoryType())
-                        .boardSocketType(item.getSocketType())
-                        .boardRamCapacity(item.getRamCapacity())
-                        .boardRamSlots(item.getRamSlots())
-                        .build());
-            }
-        }
-        for (PowerSupply item : powerSupplyRepository.findAll()) {
-            for( Offer offer: item.getItem().getOffers()) {
+        List<MotherboardDto> motherboards = motherboardRepository.findAll().stream()
+                .flatMap(mb -> mb.getItem().getOffers().stream()
+                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(mb, offer)))
+                .toList();
 
-                result.add(ComponentDto.builder()
-                        .componentType("powerSupply")
-                        .brand(item.getItem().getBrand())
-                        .model(item.getItem().getModel())
-                        .condition(offer.getCondition())
-                        .photo_url(offer.getPhotoUrl())
-                        .website_url(offer.getWebsiteUrl())
-                        .price(offer.getPrice())
-                        .shop(offer.getShop())
-                        .powerSupplyMaxPowerWatt(item.getMaxPowerWatt())
-                        .build());
-            }
-        }
-        for (Storage item : storageRepository.findAll()) {
-            for( Offer offer: item.getItem().getOffers()) {
+        List<PowerSupplyDto> powerSupplies = powerSupplyRepository.findAll().stream()
+                .flatMap(ps -> ps.getItem().getOffers().stream()
+                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(ps, offer)))
+                .toList();
 
-                result.add(ComponentDto.builder()
-                        .componentType("ssd")
-                        .brand(item.getItem().getBrand())
-                        .model(item.getItem().getModel())
-                        .condition(offer.getCondition())
-                        .photo_url(offer.getPhotoUrl())
-                        .website_url(offer.getWebsiteUrl())
-                        .price(offer.getPrice())
-                        .shop(offer.getShop())
-                        .storageCapacity(item.getCapacity())
-                        .build());
-            }
-        }
+        List<StorageDto> storages = storageRepository.findAll().stream()
+                .flatMap(s -> s.getItem().getOffers().stream()
+                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(s, offer)))
+                .toList();
 
-        for (Case item : caseRepository.findAll()) {
-            for (Offer offer : item.getItem().getOffers()) {
+        List<CaseDto> casesPc = caseRepository.findAll().stream()
+                .flatMap(c -> c.getItem().getOffers().stream()
+                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(c, offer)))
+                .toList();
 
-                result.add(ComponentDto.builder()
-                        .componentType("casePc")
-                        .brand(item.getItem().getBrand())
-                        .model(item.getItem().getModel())
-                        .condition(offer.getCondition())
-                        .photo_url(offer.getPhotoUrl())
-                        .website_url(offer.getWebsiteUrl())
-                        .price(offer.getPrice())
-                        .shop(offer.getShop())
-                        .caseFormat(item.getFormat())
-                        .build());
-            }
-        }
-            return result;
+        result.put("graphicsCards", gpus);
+        result.put("processors", processors);
+        result.put("coolers", coolers);
+        result.put("memories", memories);
+        result.put("motherboards", motherboards);
+        result.put("powerSupplies", powerSupplies);
+        result.put("storages", storages);
+        result.put("cases", casesPc);
+
+        return result;
     }
 
     private static final JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
 
+    /**
+     * Saves all offers provided in the input map by matching them with the appropriate categories
+     * and items, and then persisting the matching offers and items into the repository.
+     * This method processes and categorizes offers, checks for duplicates, and assigns them to
+     * the best matching items when applicable.
+     *
+     * @param components a map where the key is the offer category name and the value is the list of
+     *                   offer data objects to be processed and saved
+     */
     @Transactional
     public void saveAllOffers(Map<String, List<Object>> components) {
         List<GraphicsCard> graphicsCardList = graphicsCardRepository.findAll();
@@ -341,23 +312,33 @@ public class ComponentService {
                 "cpu_cooler", coolerList
         );
 
+        int totalProcessed = 0;
+        int totalSaved = 0;
+        int totalSkipped = 0;
+
         for (Map.Entry<String, List<Object>> entry : components.entrySet()) {
             String offerCategory = entry.getKey().toLowerCase();
             List<?> itemsForCategory = categoryMap.getOrDefault(offerCategory, Collections.emptyList());
 
+            System.out.println("Processing category: " + offerCategory + " with " + entry.getValue().size() + " offers");
+
             for (Object object : entry.getValue()) {
+                totalProcessed++;
                 try {
                     Map<String, Object> componentData = (Map<String, Object>) object;
                     Offer offer = buildOfferFromData(componentData);
                     String url = offer.getWebsiteUrl();
 
                     if (offer.getCondition() == null || offer.getShop() == null || offer.getPhotoUrl() == null || url == null) {
+                        System.out.println("Skipping offer - missing required fields: " + componentData);
+                        totalSkipped++;
                         continue;
                     }
 
                     Optional<Offer> existedOffer = offerRepository.findByWebsiteUrl(url);
                     if (existedOffer.isPresent()) {
-                        // Tu można dodać obsługę aktualizacji oferty, jeśli jest nieaktualna
+                        System.out.println("Offer already exists: " + url);
+                        totalSkipped++;
                         continue;
                     }
 
@@ -366,14 +347,30 @@ public class ComponentService {
                         offer.setItem(bestItem);
                         bestItem.getOffers().add(offer);
                         itemRepository.save(bestItem);
+                        totalSaved++;
+//                        System.out.println("Saved offer for: " + bestItem.getBrand() + " " + bestItem.getModel());
+                    } else {
+//                        System.out.println("No matching item found for offer: " + componentData.get("brand") + " " + componentData.get("model"));
+                        totalSkipped++;
                     }
                 } catch (Exception e) {
-                    System.err.println("[saveAllOffers] " + e.getMessage());
+                    System.err.println("Error: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         }
-    }
 
+        System.out.println("Summary: Processed=" + totalProcessed + ", Saved=" + totalSaved + ", Skipped=" + totalSkipped);
+    }
+   
+    /**
+     * Builds and returns an Offer object using the provided component data.
+     *
+     * @param componentData a map containing key-value pairs of component data used to construct the Offer object.
+     *                      Expected keys include "status", "price", "shop", "img", and "url".
+     * @return an Offer object populated with data from the componentData map. If specific data is missing or invalid,
+     *         corresponding properties may be null or set to default values.
+     */
     private Offer buildOfferFromData(Map<String, Object> componentData) {
         Offer offer = new Offer();
 

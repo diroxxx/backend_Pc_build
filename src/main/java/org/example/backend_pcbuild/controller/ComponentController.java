@@ -3,7 +3,6 @@ package org.example.backend_pcbuild.controller;
 
 import lombok.AllArgsConstructor;
 import org.example.backend_pcbuild.Services.ComponentService;
-import org.example.backend_pcbuild.models.ComponentDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin("http://127.0.0.1:5000")
@@ -22,7 +22,7 @@ public class ComponentController {
 
 
     @GetMapping()
-    public ResponseEntity<List<ComponentDto>> getAllComponents() {
+    public ResponseEntity<Map<String,List<?>>> getAllComponents() {
         return ResponseEntity.ok(componentService.getAllComponents());
     }
 }

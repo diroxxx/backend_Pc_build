@@ -3,6 +3,7 @@ package org.example.backend_pcbuild.Admin;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.dto.UserDto;
@@ -45,8 +46,6 @@ public class AdminController {
         Map<String, List<Object>> result = componentService.fetchComponentsAsMap();
         componentService.saveBasedComponents(result);
 
-
-
         return ResponseEntity.ok(result);
     }
     @MessageMapping("/offers")
@@ -54,18 +53,31 @@ public class AdminController {
 //    public Map<String, List<Object>> getOffers() {
     public void getOffers() {
         Map<String, List<Object>> result = componentService.fetchOffersAsMap();
-        componentService.saveAllOffers(result);
+//        componentService.saveAllOffers(result);
     }
 
+    @Transactional
     @RabbitListener(queues = "offers")
     public void receiveOffer(String message) {
 //        System.out.println(message);
         try {
             List<Map<String, Object>> offers = objectMapper.readValue(
-                    message, new TypeReference<List<Map<String, Object>>>() {
+                    message, new TypeReference<>() {
                     }
             );
             Map<String, Map<String, Integer>> shopCategoryCounts = new HashMap<>();
+
+            Map<String, List<Object>> offersByCategory = new HashMap<>();
+            for (Map<String, Object> offer : offers) {
+                String category = (String) offer.get("category");
+                if (category == null) continue;
+
+                offersByCategory
+                        .computeIfAbsent(category, k -> new java.util.ArrayList<>())
+                        .add(offer);
+            }
+
+            componentService.saveAllOffers(offersByCategory);
 
             for (Map<String, Object> offer : offers) {
                 String shop = (String) offer.get("shop");
@@ -80,10 +92,6 @@ public class AdminController {
 
             messagingTemplate.convertAndSend("/topic/offers", shopCategoryCounts);
             System.out.println(shopCategoryCounts);
-//            shopCategoryCounts.forEach((shop, catMap) -> {
-//                System.out.println("Sklep: " + shop);
-//                catMap.forEach((cat, count) -> System.out.println("- " + cat + ": " + count));
-//            });
         }catch (Exception e){
             System.out.println(e.getMessage());
         }

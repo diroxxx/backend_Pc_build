@@ -14,7 +14,7 @@ public class Cooler {
     private Long id;
 
     @ElementCollection
-    @CollectionTable(name = "looler_socket_types", joinColumns = @JoinColumn(name = "cooler_id"))
+    @CollectionTable(name = "cooler_socket_types", joinColumns = @JoinColumn(name = "cooler_id"))
     @Column(name = "socket_type")
     private List<String> socketTypes;
 
