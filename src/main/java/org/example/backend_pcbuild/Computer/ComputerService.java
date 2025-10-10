@@ -47,14 +47,15 @@ public class ComputerService {
 
             for (ComputerDto computerDto : computers) {
                 incomingComputerNames.add(computerDto.getName());
-                computerRepository.findByName(computerDto.getName()).ifPresentOrElse(computer -> {
 
+                computerList.stream().filter(c -> c.getName().equals(computerDto.getName())).findFirst().ifPresentOrElse(computer -> {
                     prepareComputerForUpdate(computer, computerDto);
                     computersToSave.add(computer);
                 }, () -> {
                     Computer newComputer = createNewComputer(computerDto, user);
                     computersToSave.add(newComputer);
-                });
+                        }
+                        );
             }
             for (Computer existingComputer : computerList) {
                 if (!incomingComputerNames.contains(existingComputer.getName())) {
