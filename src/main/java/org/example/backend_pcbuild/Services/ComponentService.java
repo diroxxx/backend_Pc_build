@@ -30,6 +30,7 @@ public class ComponentService {
     private final StorageRepository storageRepository;
     private final OfferRepository offerRepository;
     private final OfferMatchingService offerMatchingService;
+    private final ShopRepository shopRepository;
 
     private final RestClient restClient = RestClient.create();
 
@@ -386,10 +387,21 @@ public class ComponentService {
         Object priceObject = componentData.get("price");
         offer.setPrice(parsePrice(priceObject));
 
-        String shop = (String) componentData.get("shop");
+        String shopName = (String) componentData.get("shop");
         String img = (String) componentData.get("img");
         String url = (String) componentData.get("url");
-        offer.setShop(shop);
+
+        if (shopName != null && !shopName.isBlank()) {
+            Shop shop = shopRepository.findByNameIgnoreCase(shopName)
+                    .orElseGet(() -> {
+                        Shop s = new Shop();
+                        s.setName(shopName.trim());
+                        return shopRepository.save(s);
+                    });
+            offer.setShop(shop);
+        }
+
+
         offer.setPhotoUrl(img);
         offer.setWebsiteUrl(url);
 

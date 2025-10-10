@@ -1,6 +1,8 @@
 package org.example.backend_pcbuild.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -15,21 +17,26 @@ public class Offer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-
-    //    @NotBlank
+    @NotNull
     @Column(length = 1000)
     private String photoUrl;
 
-    //    @NotNull
+    @NotNull
     @Column(length = 1000)
     private String websiteUrl;
 
-    //    @NotNull
+    @NotNull
     private Double price;
 
-    //    @NotNull
-    private String shop;
+//    @NotNull
+//    private String shop;
+
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+//    @ManyToOne(optional = false)
+    @JoinColumn(name = "shop_id", nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Shop shop;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "item_condition")

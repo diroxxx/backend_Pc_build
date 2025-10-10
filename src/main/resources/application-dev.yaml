@@ -19,4 +19,4 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
-#  insert into app_user ( email , password ,  username , role ) values ('admin1@wp.pl', 'd5f52c91-31e1-4ef2-a20a-c51de38fdd4c', 'admin1', 'ADMIN')
+#  insert into app_user ( email , password ,  username , role ) values ('admin1@wp.pl', '$2a$10$Ex02DfV0RrCd2ugBxnbEnOqnNy9tr.6pu0ZFVdbbSqRZHv9O1K0hu', 'admin1', 'ADMIN')
