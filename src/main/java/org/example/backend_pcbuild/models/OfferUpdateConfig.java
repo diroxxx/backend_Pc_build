@@ -3,7 +3,6 @@ package org.example.backend_pcbuild.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -11,33 +10,24 @@ import lombok.ToString;
 import java.util.HashSet;
 import java.util.Set;
 
-@Entity
 @Data
-public class Shop {
-
+@Entity
+public class OfferUpdateConfig {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     @NotNull
-    @Size(min = 2, max = 100)
-    private String name;
+    private OfferUpdateType type;
 
-//    @Lob
-//    private byte[] logo;
+    //in minutes
+    @NotNull
+    private Integer intervalInMinutes;
 
-
-    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
-    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "offerUpdateConfig")
     @ToString.Exclude
-    @JsonIgnore
-    private Set<Offer> offers = new HashSet<>();
-
-    @OneToMany(mappedBy = "shop")
     @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     @JsonIgnore
-    private Set<ShopOfferUpdate> shopOfferUpdates = new HashSet<>();
-
-
+    private Set<OfferUpdate> offerUpdates = new HashSet<>();
 }

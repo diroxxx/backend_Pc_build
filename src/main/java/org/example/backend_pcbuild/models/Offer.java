@@ -1,5 +1,6 @@
 package org.example.backend_pcbuild.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -28,9 +29,6 @@ public class Offer {
     @NotNull
     private Double price;
 
-//    @NotNull
-//    private String shop;
-
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
 //    @ManyToOne(optional = false)
     @JoinColumn(name = "shop_id", nullable = false)
@@ -49,6 +47,17 @@ public class Offer {
     private Item item;
 
     @OneToMany(mappedBy = "offer")
-    private Set<ComputerOffer> computer_offer = new HashSet<ComputerOffer>();
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
+    private Set<ComputerOffer> computerOffers = new HashSet<>();
+
+    @OneToMany(mappedBy = "offer")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
+    private Set<OfferOfferUpdate> offerOfferUpdates = new HashSet<>();
+
+
 
 }

@@ -104,7 +104,7 @@ public class ComputerService {
                 System.out.println("znaleziony komp: " + componentDto.getModel());
                 ComputerOffer computer_offer = new ComputerOffer();
                 computer_offer.setOffer(offer);
-                offer.getComputer_offer().add(computer_offer);
+                offer.getComputerOffers().add(computer_offer);
                 computer_offer.setComputer(computer);
                 computer.getComputer_offer().add(computer_offer);
                 System.out.println("Added ComputerOffer. Total now: " + computer.getComputer_offer().size());

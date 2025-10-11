@@ -66,7 +66,6 @@ public class ComponentService {
                 .body(new ParameterizedTypeReference<>() {});
     }
 
-
     /**
      * Persists various hardware components into their respective repositories based on their type.
      * Each component is matched with an existing `Item` in the database by its brand and model.
@@ -231,7 +230,7 @@ public class ComponentService {
         List<GraphicsCardDto> gpus = graphicsCardRepository.findAll().stream()
                 .flatMap(gc -> gc.getItem().getOffers().stream()
                         .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(gc, offer)))
-                .toList();
+                . toList();
 
         List<ProcessorDto> processors = processorRepository.findAll().stream()
                 .flatMap(cpu -> cpu.getItem().getOffers().stream()
