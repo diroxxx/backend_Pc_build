@@ -14,6 +14,10 @@ public class ShopOfferUpdate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Integer offersAdded;
+    private Integer offersDeleted;
+    private Integer offersUpdated;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "shop_id", nullable = false)
     @EqualsAndHashCode.Exclude

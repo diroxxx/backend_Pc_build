@@ -4,15 +4,15 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
-import org.example.backend_pcbuild.Computer.dto.*;
+import org.example.backend_pcbuild.Components.dto.*;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.*;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -59,9 +59,11 @@ public class ComponentService {
      *
      * @return a map where the keys are strings and the values are lists of objects, representing the offers information
      */
-    public Map<String, List<Object>> fetchOffersAsMap() {
-        return restClient.get()
+    public Map<String, List<Object>> fetchOffersAsMap(List<String> shops) {
+        return restClient.post()
                 .uri("http://127.0.0.1:5000/offers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("shops", shops))
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {});
     }
@@ -229,42 +231,42 @@ public class ComponentService {
 
         List<GraphicsCardDto> gpus = graphicsCardRepository.findAll().stream()
                 .flatMap(gc -> gc.getItem().getOffers().stream()
-                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(gc, offer)))
+                        .map(offer -> ComponentMapper.toDto(gc, offer)))
                 . toList();
 
         List<ProcessorDto> processors = processorRepository.findAll().stream()
                 .flatMap(cpu -> cpu.getItem().getOffers().stream()
-                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(cpu, offer)))
+                        .map(offer -> ComponentMapper.toDto(cpu, offer)))
                 .toList();
 
         List<CoolerDto> coolers = coolerRepository.findAll().stream()
                 .flatMap(c -> c.getItem().getOffers().stream()
-                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(c, offer)))
+                        .map(offer -> ComponentMapper.toDto(c, offer)))
                 .toList();
 
         List<MemoryDto> memories = memoryRepository.findAll().stream()
                 .flatMap(m -> m.getItem().getOffers().stream()
-                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(m, offer)))
+                        .map(offer -> ComponentMapper.toDto(m, offer)))
                 .toList();
 
         List<MotherboardDto> motherboards = motherboardRepository.findAll().stream()
                 .flatMap(mb -> mb.getItem().getOffers().stream()
-                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(mb, offer)))
+                        .map(offer -> ComponentMapper.toDto(mb, offer)))
                 .toList();
 
         List<PowerSupplyDto> powerSupplies = powerSupplyRepository.findAll().stream()
                 .flatMap(ps -> ps.getItem().getOffers().stream()
-                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(ps, offer)))
+                        .map(offer -> ComponentMapper.toDto(ps, offer)))
                 .toList();
 
         List<StorageDto> storages = storageRepository.findAll().stream()
                 .flatMap(s -> s.getItem().getOffers().stream()
-                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(s, offer)))
+                        .map(offer -> ComponentMapper.toDto(s, offer)))
                 .toList();
 
         List<CaseDto> casesPc = caseRepository.findAll().stream()
                 .flatMap(c -> c.getItem().getOffers().stream()
-                        .map(offer -> org.example.backend_pcbuild.Computer.dto.ComponentMapper.toDto(c, offer)))
+                        .map(offer -> ComponentMapper.toDto(c, offer)))
                 .toList();
 
         result.put("graphicsCards", gpus);

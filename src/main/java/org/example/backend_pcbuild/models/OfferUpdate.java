@@ -24,9 +24,6 @@ public class OfferUpdate {
     //maybe add some validation startedAt < finishedAt
     private LocalDateTime startedAt;
     private LocalDateTime finishedAt;
-    private Integer offersAdded;
-    private Integer offersDeleted;
-    private Integer offersUpdated;
 
     @OneToMany(mappedBy = "offerUpdate")
     private Set<OfferOfferUpdate> offerOfferUpdates = new HashSet<>();

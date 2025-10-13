@@ -2,8 +2,8 @@ package org.example.backend_pcbuild.Computer;
 
 import lombok.Builder;
 import lombok.Data;
-import org.example.backend_pcbuild.Computer.dto.BaseComponentDto;
-import org.example.backend_pcbuild.Computer.dto.ComponentMapper;
+import org.example.backend_pcbuild.Components.dto.BaseComponentDto;
+import org.example.backend_pcbuild.Components.dto.ComponentMapper;
 import org.example.backend_pcbuild.models.*;
 
 import java.util.HashSet;

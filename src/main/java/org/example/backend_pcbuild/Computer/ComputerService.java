@@ -2,7 +2,7 @@ package org.example.backend_pcbuild.Computer;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.example.backend_pcbuild.Computer.dto.BaseComponentDto;
+import org.example.backend_pcbuild.Components.dto.BaseComponentDto;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.ComputerRepository;

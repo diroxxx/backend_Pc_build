@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.Computer.dto;
+package org.example.backend_pcbuild.Components.dto;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

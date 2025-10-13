@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.Computer.dto;
+package org.example.backend_pcbuild.Components.dto;
 
 import org.example.backend_pcbuild.models.*;
 import org.springframework.stereotype.Component;
