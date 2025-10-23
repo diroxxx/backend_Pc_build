@@ -6,6 +6,9 @@ spring:
     port: 5672
     username: guest
     password: guest
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
 #    virtual-host: /
 logging:
   level:
@@ -27,3 +30,4 @@ security:
       secret-key: "7ebeb86698ffa45530878b427dca9b16"
     refresh-token:
       expiration: 604800000
+

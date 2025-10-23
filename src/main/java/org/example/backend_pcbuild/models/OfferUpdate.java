@@ -25,24 +25,16 @@ public class OfferUpdate {
     private LocalDateTime startedAt;
     private LocalDateTime finishedAt;
 
-    @OneToMany(mappedBy = "offerUpdate")
-    private Set<OfferOfferUpdate> offerOfferUpdates = new HashSet<>();
-
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "offer_update_config_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private OfferUpdateConfig offerUpdateConfig;
 
-    @OneToMany(mappedBy = "offerUpdate")
+    @OneToMany(mappedBy = "offerUpdate", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @JsonIgnore
     private Set<ShopOfferUpdate> shopOfferUpdates = new HashSet<>();
-
-
-
-
-
 
 }

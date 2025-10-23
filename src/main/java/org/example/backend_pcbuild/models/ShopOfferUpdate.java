@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @Entity
 public class ShopOfferUpdate {
@@ -14,21 +17,20 @@ public class ShopOfferUpdate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer offersAdded;
-    private Integer offersDeleted;
-    private Integer offersUpdated;
-
     @ManyToOne(optional = false)
     @JoinColumn(name = "shop_id", nullable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Shop shop;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false,cascade = CascadeType.PERSIST)
     @JoinColumn(name = "offer_update_id", nullable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private OfferUpdate offerUpdate;
+
+    @OneToMany(mappedBy = "shopOfferUpdate", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OfferShopOfferUpdate> offerShopOfferUpdates = new ArrayList<>();
 
 
 }

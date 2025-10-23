@@ -33,7 +33,7 @@ public class OfferUpdateConfig {
     private OfferUpdateType type;
 
     //in minutes
-    @NotNull
+//    @NotNull
     private Integer intervalInMinutes;
 
     @OneToMany(mappedBy = "offerUpdateConfig")

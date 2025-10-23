@@ -1,27 +1,26 @@
 package org.example.backend_pcbuild.models;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @Entity
-@Table(
-        uniqueConstraints = @UniqueConstraint(columnNames = {"offer_id", "offer_update_id"})
-)
-public class OfferOfferUpdate {
+@Data
+public class OfferShopOfferUpdate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, cascade = CascadeType.ALL)
     @JoinColumn(name = "offer_id", nullable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Offer offer;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "offer_update_id", nullable = false)
+    @ManyToOne(optional = false, cascade = CascadeType.ALL)
+    @JoinColumn(name = "shop_offer_update_id", nullable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private OfferUpdate offerUpdate;
+    private ShopOfferUpdate shopOfferUpdate;
 }

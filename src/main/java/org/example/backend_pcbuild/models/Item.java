@@ -25,6 +25,8 @@ public class Item {
 //    @Size(min = 1, max = 100)
     private String model;
 
+    @Enumerated(EnumType.STRING)
+    private ItemType itemType;
 
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
     private Set<Offer> offers = new HashSet<Offer>();

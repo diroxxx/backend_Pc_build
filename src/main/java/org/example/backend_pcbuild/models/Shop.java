@@ -8,7 +8,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -33,11 +35,13 @@ public class Shop {
     @JsonIgnore
     private Set<Offer> offers = new HashSet<>();
 
-    @OneToMany(mappedBy = "shop")
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @JsonIgnore
-    private Set<ShopOfferUpdate> shopOfferUpdates = new HashSet<>();
+//    @OneToMany(mappedBy = "shop")
+//    @EqualsAndHashCode.Exclude
+//    @ToString.Exclude
+//    @JsonIgnore
+//    private Set<ShopOfferUpdate> shopOfferUpdates = new HashSet<>();
 
+    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ShopOfferUpdate> shopOfferUpdates = new HashSet<>();
 
 }

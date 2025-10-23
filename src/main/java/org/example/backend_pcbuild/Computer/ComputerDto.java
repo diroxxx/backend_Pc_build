@@ -16,7 +16,7 @@ public class ComputerDto {
     private Double price;
     private Boolean isVisible;
 
-    private Set<BaseComponentDto> components = new HashSet<>();
+    private Set<BaseComponentDto> offers = new HashSet<>();
 
 
     public static ComputerDto mapFromEntity(Computer computer) {
@@ -48,7 +48,7 @@ public class ComputerDto {
                 .name(computer.getName())
                 .price(computer.getPrice())
                 .isVisible(computer.getIs_visible())
-                .components(componentDtos)
+                .offers(componentDtos)
                 .build();
     }
 

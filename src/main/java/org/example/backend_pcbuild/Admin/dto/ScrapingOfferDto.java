@@ -14,23 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ScrapingOfferDto {
-    @JsonProperty("components_data")
+    private Long updateId;
+    private String shopName;
     private List<ComponentOfferDto> componentsData;
-
-    @JsonProperty("finished_at")
-    private LocalDateTime finishedAt;
-
-    private String name;
-
-    @JsonProperty("offers_added")
-    private Integer offersAdded;
-
-    @JsonProperty("offers_deleted")
-    private Integer offersDeleted;
-
-    @JsonProperty("offers_updated")
-    private Integer offersUpdated;
-
-    @JsonProperty("started_at")
-    private LocalDateTime startedAt;
 }
