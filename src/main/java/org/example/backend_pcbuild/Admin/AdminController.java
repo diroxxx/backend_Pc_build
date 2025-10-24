@@ -114,13 +114,17 @@ public class AdminController {
         dto.setStartedAt(offerUpdate.getStartedAt());
         dto.getShops().addAll(shopInfos);
 
-        //sending empty structure to front-end
         messagingTemplate.convertAndSend("/topic/offers", dto);
         for (String shop : settings.getShops()){
 
             Shop shopForAdd = shopRepository.findByNameIgnoreCase(shop).orElseThrow();
 
-            ShopOfferUpdate shopOfferUpdate = new ShopOfferUpdate();
+            if (shopOfferUpdateRepository.existsByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateCreated.getId(), shop)) {
+                System.out.println("Duplicate ShopOfferUpdate detected for shop=" + shop + ", skipping.");
+                continue;
+            }
+
+                ShopOfferUpdate shopOfferUpdate = new ShopOfferUpdate();
             shopOfferUpdate.setOfferUpdate(offerUpdateCreated);
             shopOfferUpdate.setShop(shopForAdd);
             ShopOfferUpdate save = shopOfferUpdateRepository.save(shopOfferUpdate);
@@ -237,8 +241,11 @@ public class AdminController {
 //}
 
 
-@RabbitListener(queues = "offersAdded.olx")
-@Transactional
+@RabbitListener(queues = {
+        "offersAdded.olx",
+        "offersAdded.allegro",
+        "offersAdded.allegroLokalnie"
+})@Transactional
 public void handleOffersAdded(Message amqpMessage) {
     try {
         String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
@@ -246,12 +253,13 @@ public void handleOffersAdded(Message amqpMessage) {
 
         Long offerUpdateId = dto.getUpdateId();
         String shopName = dto.getShopName();
+        System.out.println("adding shop offer: " + shopName);
 
         OfferUpdate offerUpdate = offerUpdateRepository.findById(offerUpdateId)
                 .orElseThrow(() -> new IllegalStateException("No OfferUpdate for id=" + offerUpdateId));
 
         ShopOfferUpdate shopOfferUpdate = shopOfferUpdateRepository
-                .findByOfferUpdateIdAndShopName(offerUpdateId, shopName)
+                .findFirstByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateId, shopName)
                 .orElseThrow(() -> new IllegalStateException("No ShopOfferUpdate for OfferUpdate.id=" + offerUpdateId + " and shop=" + shopName));
 
         Map<String, List<Object>> offersByCategory = new HashMap<>();
@@ -339,8 +347,11 @@ public void handleOffersAdded(Message amqpMessage) {
 //    }
 //
 
-    @RabbitListener(queues = "offersDeleted.olx")
-    @Transactional
+    @RabbitListener(queues = {
+            "offersDeleted.olx",
+            "offersDeleted.allegro",
+            "offersDeleted.allegroLokalnie"
+    })    @Transactional
     public void handleOffersDeleted(Message amqpMessage) {
         try {
             String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
@@ -354,6 +365,8 @@ public void handleOffersAdded(Message amqpMessage) {
             Long offerUpdateId = node.get("updateId").asLong();
             String shopName = node.get("shop").asText();
 
+            System.out.println("Deleting shop " + shopName);
+
             List<String> urls = new ArrayList<>();
             if (node.has("urls") && node.get("urls").isArray()) {
                 urls = objectMapper.convertValue(node.get("urls"), new TypeReference<List<String>>() {});
@@ -363,7 +376,7 @@ public void handleOffersAdded(Message amqpMessage) {
                     .orElseThrow(() -> new IllegalStateException("No OfferUpdate for id=" + offerUpdateId));
 
             ShopOfferUpdate shopOfferUpdate = shopOfferUpdateRepository
-                    .findByOfferUpdateIdAndShopName(offerUpdateId, shopName)
+                    .findFirstByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateId, shopName)
                     .orElseThrow(() -> new IllegalStateException("No ShopOfferUpdate for OfferUpdate.id=" + offerUpdateId + " and shop=" + shopName));
 
             offerService.softDeleteByUrls(urls);

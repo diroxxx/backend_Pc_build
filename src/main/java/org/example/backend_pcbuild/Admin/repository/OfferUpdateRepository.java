@@ -10,18 +10,19 @@ import java.util.Optional;
 public interface OfferUpdateRepository extends JpaRepository<OfferUpdate, Long> {
 
     Optional<OfferUpdate> findById(Long id);
-    @Query("""
-        SELECT ou 
-        FROM OfferUpdate ou
-        JOIN ou.shopOfferUpdates sou
-        JOIN sou.shop s
-        JOIN sou.offerShopOfferUpdates osou
-        JOIN osou.offer o
-        WHERE ou.id = :id
-          AND LOWER(s.name) = LOWER(:shopName)
-          AND  o.isVisible = :isVisible
-        """)
-    Optional<OfferUpdate> findByIdAndShopName(Long id, String shopName, boolean isVisible);
+//    @Query("""
+//        SELECT ou
+//        FROM OfferUpdate ou
+//        JOIN ou.shopOfferUpdates sou
+//        JOIN sou.shop s
+//        JOIN sou.offerShopOfferUpdates osou
+//        JOIN osou.offer o
+//        WHERE ou.id = :id
+//          AND LOWER(s.name) = LOWER(:shopName)
+//          AND  o.isVisible = :isVisible
+//        """)
+//    Optional<OfferUpdate> findByIdAndShopName(Long id, String shopName, boolean isVisible);
 
+//    Optional<ShopOfferUpdate> findByOfferUpdate_IdAndShop_NameAndOfferUpdate_IsVisible(Long id, String shopName, boolean visible);
 
 }

@@ -15,6 +15,11 @@ import java.util.Set;
 
 @Entity
 @Data
+@Table(
+        name = "offer",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"shop_id", "website_url"})
+)
+
 public class Offer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

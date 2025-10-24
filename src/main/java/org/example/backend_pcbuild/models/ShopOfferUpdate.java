@@ -11,6 +11,12 @@ import java.util.List;
 
 @Data
 @Entity
+@Table(
+        name = "shop_offer_update",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"offer_update_id", "shop_id"})
+        }
+)
 public class ShopOfferUpdate {
 
     @Id

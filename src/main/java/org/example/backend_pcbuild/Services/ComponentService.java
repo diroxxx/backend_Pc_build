@@ -317,10 +317,10 @@ public class ComponentService {
      * the best matching items when applicable.
      *
      * @param offers a map where the key is the offer category name and the value is the list of
-     *                   offer data objects to be processed and saved
+     *               offer data objects to be processed and saved
      */
     @Transactional
-    public Map<String, Integer> saveAllOffers(Map<String, List<Object>> offers, ShopOfferUpdate update) {
+    public void saveAllOffers(Map<String, List<Object>> offers, ShopOfferUpdate update) {
 
         List<GraphicsCard> graphicsCardList = graphicsCardRepository.findAll();
         List<Processor> processorList = processorRepository.findAll();
@@ -380,7 +380,6 @@ public class ComponentService {
                     if (bestItem != null) {
                         offer.setItem(bestItem);
                         bestItem.getOffers().add(offer);
-                          Item item =  itemRepository.save(bestItem);
 
                           OfferShopOfferUpdate offerUpdate = new OfferShopOfferUpdate();
                           offerUpdate.setOffer(offer);
@@ -389,7 +388,9 @@ public class ComponentService {
                           offer.getOfferShopOfferUpdates().add(offerUpdate);
                           update.getOfferShopOfferUpdates().add(offerUpdate);
 
-                          offerRepository.save(offer);
+
+                          itemRepository.save(bestItem);
+//                          offerRepository.save(offer);
 
                         offersSaved.put(offerCategory, offersSaved.get(offerCategory) + 1);
                         totalSaved++;
@@ -404,7 +405,6 @@ public class ComponentService {
                 }
             }
         }
-        return offersSaved;
     }
 
 
@@ -420,36 +420,25 @@ public class ComponentService {
         Offer offer = new Offer();
 
         String statusString = (String) componentData.get("status");
-        ItemCondition condition = null;
         if (statusString != null) {
             try {
-                condition = ItemCondition.valueOf(statusString);
+                offer.setCondition(ItemCondition.valueOf(statusString));
             } catch (IllegalArgumentException ignored) {}
         }
-        offer.setCondition(condition);
 
-        Object priceObject = componentData.get("price");
-        offer.setPrice(parsePrice(priceObject));
+        offer.setPrice(parsePrice(componentData.get("price")));
+        offer.setPhotoUrl((String) componentData.get("img"));
+        offer.setWebsiteUrl((String) componentData.get("url"));
+        offer.setIsVisible(true);
 
         String shopName = (String) componentData.get("shop");
-        String img = (String) componentData.get("img");
-        String url = (String) componentData.get("url");
-
         if (shopName != null && !shopName.isBlank()) {
             Shop shop = shopRepository.findByNameIgnoreCase(shopName)
-                    .orElseGet(() -> {
-                        Shop s = new Shop();
-                        s.setName(shopName.trim());
-                        return shopRepository.save(s);
-                    });
+                    .orElseThrow(() -> new IllegalStateException("Unknown shop: " + shopName));
             offer.setShop(shop);
+        } else {
+            throw new IllegalArgumentException("Missing shop name in component data");
         }
-
-
-        offer.setPhotoUrl(img);
-        offer.setWebsiteUrl(url);
-        //
-        offer.setIsVisible(true);
 
         return offer;
     }

@@ -1,12 +1,15 @@
 package org.example.backend_pcbuild.Admin.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.dto.OfferShopUpdateInfoDto;
+import org.example.backend_pcbuild.Admin.repository.ShopOfferUpdateRepository;
 import org.example.backend_pcbuild.models.Offer;
 import org.example.backend_pcbuild.models.OfferShopOfferUpdate;
 import org.example.backend_pcbuild.models.OfferUpdate;
 import org.example.backend_pcbuild.models.ShopOfferUpdate;
 import org.example.backend_pcbuild.Admin.repository.OfferUpdateRepository;
+import org.example.backend_pcbuild.repository.OfferRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -16,8 +19,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OfferUpdateService {
     private final OfferUpdateRepository offerUpdateRepository;
+    private final ShopOfferUpdateRepository shopOfferUpdateRepository;
+    private final OfferRepository offerRepository;
 
 
+    @Transactional()
     public List<OfferShopUpdateInfoDto> getOfferUpdates() {
         List<OfferUpdate> all = offerUpdateRepository.findAll();
         List<OfferShopUpdateInfoDto> result = new ArrayList<>();
@@ -33,20 +39,15 @@ public class OfferUpdateService {
                 String shopName = shopOfferUpdate.getShop().getName();
 
                 Map<String, Integer> offersAdded = countOffersByType(shopOfferUpdate, true);
-
                 Map<String, Integer> offersDeleted = countOffersByType(shopOfferUpdate, false);
 
-                Map<String, Integer> totalOffers = new HashMap<>();
-                Set<String> allTypes = new HashSet<>();
-                allTypes.addAll(offersAdded.keySet());
-                allTypes.addAll(offersDeleted.keySet());
+                Map<String, Integer> totalOffers = offerRepository.countVisibleOffersByShop(shopName)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                OfferRepository.OfferTypeCountProjection::getType,
+                                p -> p.getCount().intValue()
+                        ));
 
-                for (String type : allTypes) {
-                    int added = offersAdded.getOrDefault(type, 0);
-                    int deleted = offersDeleted.getOrDefault(type, 0);
-                    int previous = 0;
-                    totalOffers.put(type, previous + added - deleted);
-                }
 
                 OfferShopUpdateInfoDto.ShopUpdateInfoDto shopDto = new OfferShopUpdateInfoDto.ShopUpdateInfoDto();
                 shopDto.setShopName(shopName);
@@ -63,6 +64,7 @@ public class OfferUpdateService {
         return result;
     }
 
+
     private Map<String, Integer> countOffersByType(ShopOfferUpdate shopOfferUpdate, boolean isVisible) {
         return shopOfferUpdate.getOfferShopOfferUpdates().stream()
                 .map(OfferShopOfferUpdate::getOffer)
@@ -73,88 +75,54 @@ public class OfferUpdateService {
                 ));
     }
 
-
-//    public OfferShopUpdateInfoDto.ShopUpdateInfoDto getShopUpdateInfo(String shopName, Long offerUpdateId, boolean isVisible) {
-//        OfferUpdate update = offerUpdateRepository.findByIdAndShopName(offerUpdateId, shopName, isVisible).orElseThrow();
-//
-//        ShopOfferUpdate shopUpdate = update.getShopOfferUpdates().stream()
-//                .filter(sou -> sou.getShop().getName().equalsIgnoreCase(shopName))
-//                .findFirst()
-//                .orElseThrow(() -> new IllegalStateException("No ShopOfferUpdate for shop " + shopName));
-//
-//        List<Offer> offers = shopUpdate.getOfferShopOfferUpdates().stream()
-//                .map(OfferShopOfferUpdate::getOffer)
-//                .filter(offer -> offer.getIsVisible() == isVisible)
-//                .toList();
-//
-//        Map<String, Integer> offersByType = offers.stream()
-//                .collect(Collectors.groupingBy(
-//                        offer -> offer.getItem().getItemType().name(),
-//                        Collectors.summingInt(o -> 1)
-//                ));
-//
-//        OfferShopUpdateInfoDto.ShopUpdateInfoDto dto = new OfferShopUpdateInfoDto.ShopUpdateInfoDto();
-//        dto.setShopName(shopName);
-//
-//        if (isVisible) {
-//            dto.setOffersAdded(offersByType);
-//        } else {
-//            dto.setOffersDeleted(offersByType);
-//        }
-//        return dto;
-//    }
-
     public OfferShopUpdateInfoDto.ShopUpdateInfoDto getShopUpdateInfo(String shopName, Long offerUpdateId, boolean isVisible) {
-        Optional<OfferUpdate> optionalUpdate = offerUpdateRepository.findByIdAndShopName(offerUpdateId, shopName, isVisible);
 
-        if (optionalUpdate.isEmpty()) {
-            System.out.printf("Brak danych dla shop=%s, updateId=%d, visible=%b%n",
-                    shopName, offerUpdateId, isVisible);
 
-            OfferShopUpdateInfoDto.ShopUpdateInfoDto emptyDto = new OfferShopUpdateInfoDto.ShopUpdateInfoDto();
-            emptyDto.setShopName(shopName);
-            emptyDto.setOffersAdded(Collections.emptyMap());
-            emptyDto.setOffersDeleted(Collections.emptyMap());
-            emptyDto.setTotalOffers(Collections.emptyMap());
-            return emptyDto;
-        }
+        ShopOfferUpdate shopOfferUpdate = shopOfferUpdateRepository
+                .findFirstByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateId, shopName)
+                .orElseThrow(() -> new IllegalStateException("No ShopOfferUpdate for OfferUpdate.id=" + offerUpdateId + " and shop=" + shopName));
 
-        OfferUpdate update = optionalUpdate.get();
-
-        ShopOfferUpdate shopUpdate = update.getShopOfferUpdates().stream()
-                .filter(sou -> sou.getShop().getName().equalsIgnoreCase(shopName))
-                .findFirst()
-                .orElse(null);
-
-        if (shopUpdate == null) {
-            OfferShopUpdateInfoDto.ShopUpdateInfoDto emptyDto = new OfferShopUpdateInfoDto.ShopUpdateInfoDto();
-            emptyDto.setShopName(shopName);
-            emptyDto.setOffersAdded(Collections.emptyMap());
-            emptyDto.setOffersDeleted(Collections.emptyMap());
-            emptyDto.setTotalOffers(Collections.emptyMap());
-            return emptyDto;
-        }
-
-        List<Offer> offers = shopUpdate.getOfferShopOfferUpdates().stream()
-                .map(OfferShopOfferUpdate::getOffer)
-                .filter(offer -> offer.getIsVisible() == isVisible)
-                .toList();
-
-        Map<String, Integer> offersByType = offers.stream()
-                .collect(Collectors.groupingBy(
-                        offer -> offer.getItem().getItemType().name(),
-                        Collectors.summingInt(o -> 1)
-                ));
 
         OfferShopUpdateInfoDto.ShopUpdateInfoDto dto = new OfferShopUpdateInfoDto.ShopUpdateInfoDto();
         dto.setShopName(shopName);
+        dto.setTotalOffers(Collections.emptyMap());
+        dto.setOffersAdded(Collections.emptyMap());
+        dto.setOffersDeleted(Collections.emptyMap());
 
-        if (isVisible) {
-            dto.setOffersAdded(offersByType);
-        } else {
-            dto.setOffersDeleted(offersByType);
+        if (shopOfferUpdate == null) {
+            return dto;
         }
 
+        Map<String, Integer> totalByType = offerRepository
+                .countVisibleOffersByShop(shopName)
+                .stream()
+                .collect(Collectors.toMap(
+                        OfferRepository.OfferTypeCountProjection::getType,
+                        p -> p.getCount().intValue()
+                ));
+
+        List<Offer> offersFromUpdate = shopOfferUpdate.getOfferShopOfferUpdates().stream()
+                .map(OfferShopOfferUpdate::getOffer)
+                .filter(o -> o.getItem() != null)
+                .toList();
+
+        Map<String, Integer> addedByType = offersFromUpdate.stream()
+                .filter(o -> Boolean.TRUE.equals(o.getIsVisible()))
+                .collect(Collectors.groupingBy(
+                        o -> o.getItem().getItemType().name(),
+                        Collectors.summingInt(x -> 1)
+                ));
+
+        Map<String, Integer> deletedByType = offersFromUpdate.stream()
+                .filter(o -> Boolean.FALSE.equals(o.getIsVisible()))
+                .collect(Collectors.groupingBy(
+                        o -> o.getItem().getItemType().name(),
+                        Collectors.summingInt(x -> 1)
+                ));
+
+        dto.setTotalOffers(totalByType);
+        dto.setOffersAdded(addedByType);
+        dto.setOffersDeleted(deletedByType);
         return dto;
     }
 
