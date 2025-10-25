@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.Admin;
+package org.example.backend_pcbuild.Admin.controller;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -8,12 +8,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.dto.*;
 import org.example.backend_pcbuild.Admin.repository.OfferUpdateConfigRepository;
-import org.example.backend_pcbuild.Admin.service.OfferService;
 import org.example.backend_pcbuild.Admin.service.OfferUpdateConfigService;
 import org.example.backend_pcbuild.Admin.service.OfferUpdateService;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserMapper;
-import org.example.backend_pcbuild.Services.ComponentService;
+import org.example.backend_pcbuild.Component.ComponentService;
+import org.example.backend_pcbuild.Offer.service.OfferService;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.OfferRepository;
 import org.example.backend_pcbuild.Admin.repository.OfferUpdateRepository;
@@ -45,7 +45,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminController {
 
-    private final ComponentService componentService;
+    private final OfferService offerService;
     private final UserRepository userRepository;
 
     private final ObjectMapper objectMapper;
@@ -65,16 +65,15 @@ public class AdminController {
 
     private final OfferUpdateRepository offerUpdateRepository;
     private final OfferUpdateConfigRepository offerUpdateConfigRepository;
-    private final OfferService offerService;
     private final ShopOfferUpdateRepository shopOfferUpdateRepository;
     private final OfferUpdateService offerUpdateService;
+    private final ComponentService componentService;
 
 
     //TEST
     @GetMapping("/test")
     public ResponseEntity<List<OfferShopUpdateInfoDto>> getUpdateInfo(){
         List<OfferShopUpdateInfoDto> offerUpdates = offerUpdateService.getOfferUpdates();
-
         return ResponseEntity.ok(offerUpdates);
     }
 
@@ -83,9 +82,10 @@ public class AdminController {
     public ResponseEntity<Map<String, List<Object>>> getComponents() {
         Map<String, List<Object>> result = componentService.fetchComponentsAsMap();
         componentService.saveBasedComponents(result);
-
         return ResponseEntity.ok(result);
     }
+
+
     @MessageMapping("/offers")
     @SendTo("/topic/offers")
     @Transactional
@@ -277,7 +277,7 @@ public void handleOffersAdded(Message amqpMessage) {
             }
         }
 
-        componentService.saveAllOffers(offersByCategory, shopOfferUpdate);
+        offerService.saveAllOffers(offersByCategory, shopOfferUpdate);
 
         if (offerUpdate.getStartedAt() == null) {
             offerUpdate.setStartedAt(LocalDateTime.now());

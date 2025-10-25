@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.Components.dto;
+package org.example.backend_pcbuild.Offer.dto;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -27,7 +27,7 @@ import org.example.backend_pcbuild.models.ItemCondition;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class BaseComponentDto {
+public abstract class BaseOfferDto {
     private String brand;
     private String model;
     private ItemCondition condition;
@@ -35,6 +35,4 @@ public abstract class BaseComponentDto {
     private String websiteUrl;
     private Double price;
     private String shop;
-
-    public abstract String getComponentType();
 }

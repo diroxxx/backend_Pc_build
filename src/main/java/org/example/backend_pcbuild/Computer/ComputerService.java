@@ -2,7 +2,7 @@ package org.example.backend_pcbuild.Computer;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.example.backend_pcbuild.Components.dto.BaseComponentDto;
+import org.example.backend_pcbuild.Offer.dto.BaseOfferDto;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.ComputerRepository;
@@ -77,7 +77,7 @@ public class ComputerService {
             computer.getComputer_offer().clear();
         }
 
-        for (BaseComponentDto componentDto : computerDto.getOffers()) {
+        for (BaseOfferDto componentDto : computerDto.getOffers()) {
             offerRepository.findByWebsiteUrl(componentDto.getWebsiteUrl()).ifPresent(offer -> {
                 ComputerOffer computer_offer = new ComputerOffer();
                 computer_offer.setOffer(offer);
@@ -99,7 +99,7 @@ public class ComputerService {
         computer.setIs_visible(computerDto.getIsVisible());
         computer.setUser(user);
 
-        for (BaseComponentDto componentDto : computerDto.getOffers()) {
+        for (BaseOfferDto componentDto : computerDto.getOffers()) {
             offerRepository.findByWebsiteUrl(componentDto.getWebsiteUrl()).ifPresentOrElse(offer -> {
                 System.out.println("znaleziony komp: " + componentDto.getModel());
                 ComputerOffer computer_offer = new ComputerOffer();

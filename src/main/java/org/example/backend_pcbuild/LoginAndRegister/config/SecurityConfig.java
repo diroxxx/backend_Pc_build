@@ -35,6 +35,7 @@ public class SecurityConfig {
                                 .requestMatchers("/offers/**", "/offers").permitAll()
                                 .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/error").permitAll()
                                 .requestMatchers("/community/**").permitAll()
+                                .requestMatchers("/api/components").permitAll()
                                 .requestMatchers("/computerApi/**").permitAll()
 
                         .anyRequest().authenticated()

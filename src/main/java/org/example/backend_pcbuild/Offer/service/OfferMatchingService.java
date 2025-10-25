@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.Services;
+package org.example.backend_pcbuild.Offer.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;

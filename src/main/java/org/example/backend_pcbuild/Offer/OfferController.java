@@ -1,8 +1,8 @@
-package org.example.backend_pcbuild.Components;
+package org.example.backend_pcbuild.Offer;
 
 
 import lombok.AllArgsConstructor;
-import org.example.backend_pcbuild.Services.ComponentService;
+import org.example.backend_pcbuild.Offer.service.OfferService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,14 +15,14 @@ import java.util.Map;
 @RestController
 @CrossOrigin("http://127.0.0.1:5000")
 @AllArgsConstructor
-@RequestMapping("/components")
-public class ComponentController {
+@RequestMapping("/offers")
+public class OfferController {
 
-    private final ComponentService componentService;
+    private final OfferService offerService;
 
     @GetMapping()
 //    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Map<String,List<?>>> getAllComponents() {
+    public ResponseEntity<Map<String,List<?>>> getAllOffers() {
 //        for (String key : componentService.getAllComponents().keySet())
 //        {
 //            System.out.println(key);
@@ -30,6 +30,6 @@ public class ComponentController {
 //            System.out.println("---");
 
 //        }
-        return ResponseEntity.ok(componentService.getAllOffers());
+        return ResponseEntity.ok(offerService.getAllOffers());
     }
 }

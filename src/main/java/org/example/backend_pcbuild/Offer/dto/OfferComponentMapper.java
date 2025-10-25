@@ -1,10 +1,10 @@
-package org.example.backend_pcbuild.Components.dto;
+package org.example.backend_pcbuild.Offer.dto;
 
 import org.example.backend_pcbuild.models.*;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ComponentMapper {
+public class OfferComponentMapper {
 
     public static ProcessorDto toDto(Processor entity, Offer offer) {
         ProcessorDto dto = new ProcessorDto();
