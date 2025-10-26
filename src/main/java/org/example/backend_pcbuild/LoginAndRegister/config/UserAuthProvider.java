@@ -32,7 +32,7 @@ public class UserAuthProvider {
     @Value("${security.jwt.token.secret-key:secret-value}")
     private String secretKey;
 
-    @Value("${security.jwt.refresh-token.expiration:604800000}") // np. 7 dni w ms
+    @Value("${security.jwt.refresh-token.expiration:604800000}")
     private long refreshTokenExpiration;
 
     @PostConstruct
@@ -63,14 +63,13 @@ public class UserAuthProvider {
                 .withSubject(login.getEmail())
                 .withIssuedAt(now)
                 .withExpiresAt(validity)
-                .withClaim("username", login.getUsername()) // Dodaj username
+                .withClaim("username", login.getUsername())
 
                 .sign(Algorithm.HMAC256(secretKey));
 
-        // Zapisz refresh token w bazie
         RefreshToken byEmail = refreshTokenRepository.findByEmail(login.getEmail());
         if (byEmail != null) {
-            refreshTokenRepository.deleteByEmail(login.getEmail()); // Usuń stare tokeny
+            refreshTokenRepository.deleteByEmail(login.getEmail());
 
         }
         RefreshToken tokenEntity = new RefreshToken();
