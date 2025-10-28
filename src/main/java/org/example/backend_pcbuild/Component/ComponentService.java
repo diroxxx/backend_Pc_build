@@ -8,9 +8,14 @@ import org.example.backend_pcbuild.Component.dto.ItemComponentMapper;
 import org.example.backend_pcbuild.Offer.dto.BaseOfferDto;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.*;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+
 
 import java.util.*;
 
@@ -37,6 +42,13 @@ public class ComponentService {
                 .filter(Objects::nonNull)
                 .toList();
     }
+
+    public Page<BaseItemDto> getComponents(Pageable pageable) {
+        Page<Item> itemsPage = itemRepository.findAll(pageable);
+
+        return itemsPage.map(this::mapToDto);
+    }
+
 
     private BaseItemDto mapToDto(Item item) {
         if (item == null || item.getItemType() == null) return null;

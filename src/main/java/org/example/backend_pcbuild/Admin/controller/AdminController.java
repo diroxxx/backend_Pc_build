@@ -183,64 +183,6 @@ public class AdminController {
         return map;
     }
 
-//@RabbitListener(queues = "offersAdded.olx")
-//@Transactional
-//public void handleOffersAdded(Message amqpMessage) {
-//    try {
-//        String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
-//        ScrapingOfferDto dto = objectMapper.readValue(json, ScrapingOfferDto.class);
-//
-//        Long offerUpdateId = dto.getUpdateId();
-//        String shopName = dto.getShopName();
-//
-//        OfferUpdate offerUpdate = offerUpdateRepository.findById(offerUpdateId)
-//                .orElseThrow(() -> new IllegalStateException("No OfferUpdate for id=" + offerUpdateId));
-//
-//
-//        ShopOfferUpdate shopOfferUpdate = shopOfferUpdateRepository.findById(offerUpdateId)
-//                .orElseThrow(() -> new IllegalStateException("No ShopOfferUpdate for " + offerUpdateId));
-//
-////        ShopOfferUpdate shopOfferUpdate = shopOfferUpdateRepository
-////                .findByOfferUpdateIdAndShopName(offerUpdateId, shopName)
-////                .orElseThrow(() -> new IllegalStateException("No ShopOfferUpdate for OfferUpdate.id=" + offerUpdateId + " and shop=" + shopName));
-//
-//        Map<String, List<Object>> offersByCategory = new HashMap<>();
-//
-//            if (dto.getComponentsData() != null) {
-//                for (ComponentOfferDto offer : dto.getComponentsData()) {
-//                    String category = offer.getCategory();
-//                    if (category == null) continue;
-//
-//                    Map<String, Object> offerMap = convertOfferDtoToMap(offer);
-//
-//                    offersByCategory
-//                            .computeIfAbsent(category, k -> new java.util.ArrayList<>())
-//                            .add(offerMap);
-//
-//                }
-//            }
-//           componentService.saveAllOffers(offersByCategory, shopOfferUpdate);
-//        OfferUpdate parentUpdate = shopOfferUpdate.getOfferUpdate();
-//        parentUpdate.setFinishedAt(LocalDateTime.now());
-//
-//        if (shopOfferUpdate.getOfferUpdate().getStartedAt() == null) {
-//            shopOfferUpdate.getOfferUpdate().setStartedAt(LocalDateTime.now());
-//        }
-//        if (shopOfferUpdate.getOfferUpdate().getFinishedAt() == null && shopOfferUpdate.getOfferUpdate().getStartedAt() != null) {
-//            shopOfferUpdate.getOfferUpdate().setFinishedAt(LocalDateTime.now());
-//        }
-//        offerUpdateRepository.save(parentUpdate);
-//
-//
-//        OfferShopUpdateInfoDto.ShopUpdateInfoDto shopUpdateInfo = offerUpdateService.getShopUpdateInfo(shopOfferUpdate.getShop().getName(), shopOfferUpdate.getOfferUpdate().getId(), true);
-//        System.out.println("dodawanie: " + shopUpdateInfo.toString());
-//        messagingTemplate.convertAndSend("/topic/offers/" + offerUpdateId, shopUpdateInfo);
-//    } catch (Exception e) {
-//        throw new AmqpRejectAndDontRequeueException(e);
-//    }
-//}
-
-
 @RabbitListener(queues = {
         "offersAdded.olx",
         "offersAdded.allegro",
@@ -296,56 +238,6 @@ public void handleOffersAdded(Message amqpMessage) {
         throw new AmqpRejectAndDontRequeueException(e);
     }
 }
-
-//    @RabbitListener(queues = "offersDeleted.olx")
-//    @Transactional
-//    public void handleOffersDeleted(Message amqpMessage) {
-//        try {
-//            String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
-//            JsonNode node = objectMapper.readTree(json);
-//            if (!node.has("updateId")) {
-//                System.out.println("Brak pola updateId w wiadomości: {} "+ json);
-//                return;
-//            }
-//
-//            Long updateId = node.get("updateId").asLong();
-//
-//            List<String> urls = new ArrayList<>();
-//            if (node.has("urls") && node.get("urls").isArray()) {
-//                urls = objectMapper.convertValue(node.get("urls"), new TypeReference<List<String>>() {});
-//            }
-//
-//            ShopOfferUpdate update = shopOfferUpdateRepository.findById(updateId)
-//                    .orElseThrow(() -> new IllegalStateException("No ShopOfferUpdate for " + updateId));
-//
-//            Map<String,Integer> deletedSummary = offerService.softDeleteByUrls(urls);
-//
-//            if (update.getOfferUpdate().getStartedAt() == null) {
-//                update.getOfferUpdate().setStartedAt(LocalDateTime.now());
-//            }
-//            if (update.getOfferUpdate().getFinishedAt() == null && update.getOfferUpdate().getStartedAt() != null) {
-//                update.getOfferUpdate().setFinishedAt(LocalDateTime.now());
-//            }
-//            OfferUpdate parentUpdate = update.getOfferUpdate();
-//            parentUpdate.setFinishedAt(LocalDateTime.now());
-//            offerUpdateRepository.save(parentUpdate);
-//
-//            shopOfferUpdateRepository.save(update);
-//            if (!offerUpdateRepository.existsById(update.getOfferUpdate().getId())) {
-//                System.out.println("OfferUpdate {} jeszcze nie istnieje — pomijam "+ update.getOfferUpdate().getId());
-//                return;
-//            }
-//
-//            OfferShopUpdateInfoDto.ShopUpdateInfoDto shopUpdateInfo = offerUpdateService.getShopUpdateInfo(update.getShop().getName(), update.getOfferUpdate().getId(), false);
-//            System.out.println("usuwanie ofert: " + shopUpdateInfo.toString());
-//
-//            messagingTemplate.convertAndSend("/topic/offers/" + updateId, shopUpdateInfo);
-//
-//        } catch (Exception e) {
-//            throw new AmqpRejectAndDontRequeueException(e);
-//        }
-//    }
-//
 
     @RabbitListener(queues = {
             "offersDeleted.olx",
