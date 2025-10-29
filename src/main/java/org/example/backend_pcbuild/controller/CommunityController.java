@@ -13,6 +13,7 @@ import org.example.backend_pcbuild.Community.Service.CommunityService;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -47,14 +48,34 @@ public class CommunityController {
 
 
     @PostMapping("/posts")
-//    public Post createPost(@RequestBody Post post) {
+
+//    public Post createPost(@RequestBody CreatePostDTO dto) {
+//        User user = userRepository.findById(dto.getUserId())
+//                .orElseThrow(() -> new RuntimeException("User not found"));
+//
+//        Category category = categoryRepository.findById(dto.getCategoryId())
+//                .orElseThrow(() -> new RuntimeException("Category not found"));
+//
+//        Post post = new Post();
+//        post.setTitle(dto.getTitle());
+//        post.setContent(dto.getContent());
+//        post.setUser(user);
+//        post.setCategory(category);
 //        post.setCreatedAt(LocalDateTime.now());
+//
 //        return postRepository.save(post);
 //    }
+    public Post createPost(@RequestBody CreatePostDTO dto, @AuthenticationPrincipal User currentUser) {
 
-    public Post createPost(@RequestBody CreatePostDTO dto) {
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        // ⚠️ Krok 1: Weryfikacja zalogowanego użytkownika
+        if (currentUser == null) {
+            // Zabezpieczenie na wypadek, gdyby Security nie zadziałało poprawnie,
+            // ale standardowo powinno to być zablokowane filtrem JWT/Security.
+            throw new RuntimeException("Unauthorized: User not logged in.");
+        }
+
+        // ⚠️ Krok 2: Używamy obiektu Usera z Security zamiast z DTO
+        User user = currentUser;
 
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
@@ -62,13 +83,12 @@ public class CommunityController {
         Post post = new Post();
         post.setTitle(dto.getTitle());
         post.setContent(dto.getContent());
-        post.setUser(user);
+        post.setUser(user); // Ustawiamy Usera pobranego z Security
         post.setCategory(category);
         post.setCreatedAt(LocalDateTime.now());
 
         return postRepository.save(post);
     }
-
     @GetMapping("/posts/{id}")
     public Optional<Post> getPostById(@PathVariable Integer id) {
         return postRepository.findById(id);
