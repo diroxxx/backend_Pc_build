@@ -7,9 +7,15 @@ import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.example.backend_pcbuild.Offer.dto.*;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -112,6 +118,122 @@ public class OfferService {
         result.put("cases", casesPc);
 
         return result;
+    }
+
+    public Page<BaseOfferDto> getAllOffersV2(Pageable pageable,
+                                             ItemType itemType,
+                                             String brand,
+                                             Double minPrize,
+                                             Double maxPrize,
+                                             ItemCondition itemCondition,
+                                             String shopName) {
+        List<BaseOfferDto> result = new ArrayList<>();
+        Specification<Offer> spec = Specification.not(null);
+
+         spec = spec.and((root, query, cb) -> cb.equal(root.get("isVisible"), true));
+
+        if(itemType == null || itemType == ItemType.GRAPHICS_CARD) {
+            List<GraphicsCardDto> gpus = graphicsCardRepository.findAll().stream()
+                    .flatMap(gc -> gc.getItem().getOffers().stream()
+                            .filter(Offer::getIsVisible)
+                            .map(offer -> OfferComponentMapper.toDto(gc, offer)))
+                    . toList();
+            result.addAll(gpus);
+        }
+
+        if(itemType == null || itemType == ItemType.PROCESSOR) {
+            List<ProcessorDto> processors = processorRepository.findAll().stream()
+                    .flatMap(cpu -> cpu.getItem().getOffers().stream()
+                            .filter(Offer::getIsVisible)
+                            .map(offer -> OfferComponentMapper.toDto(cpu, offer)))
+                    .toList();
+            result.addAll(processors);
+        }
+
+        if (itemType == null || itemType == ItemType.CPU_COOLER) {
+            List<CoolerDto> coolers = coolerRepository.findAll().stream()
+                    .flatMap(c -> c.getItem().getOffers().stream()
+                            .filter(Offer::getIsVisible)
+                            .map(offer -> OfferComponentMapper.toDto(c, offer)))
+                    .toList();
+            result.addAll(coolers);
+        }
+
+        if (itemType == null || itemType == ItemType.MEMORY) {
+            List<MemoryDto> memories = memoryRepository.findAll().stream()
+                    .flatMap(m -> m.getItem().getOffers().stream()
+                            .filter(Offer::getIsVisible)
+                            .map(offer -> OfferComponentMapper.toDto(m, offer)))
+                    .toList();
+            result.addAll(memories);
+        }
+
+        if (itemType == null || itemType == ItemType.MOTHERBOARD) {
+            List<MotherboardDto> motherboards = motherboardRepository.findAll().stream()
+                    .flatMap(mb -> mb.getItem().getOffers().stream()
+                            .filter(Offer::getIsVisible)
+                            .map(offer -> OfferComponentMapper.toDto(mb, offer)))
+                    .toList();
+            result.addAll(motherboards);
+        }
+
+        if (itemType == null || itemType == ItemType.POWER_SUPPLY) {
+        List<PowerSupplyDto> powerSupplies = powerSupplyRepository.findAll().stream()
+                .flatMap(ps -> ps.getItem().getOffers().stream()
+                        .filter(Offer::getIsVisible)
+                        .map(offer -> OfferComponentMapper.toDto(ps, offer)))
+                .toList();
+        result.addAll(powerSupplies);
+        }
+
+        if (itemType == null || itemType == ItemType.STORAGE) {
+        List<StorageDto> storages = storageRepository.findAll().stream()
+                .flatMap(s -> s.getItem().getOffers().stream()
+                        .filter(Offer::getIsVisible)
+                        .map(offer -> OfferComponentMapper.toDto(s, offer)))
+                .toList();
+        result.addAll(storages);
+        }
+
+        if (itemType == null || itemType == ItemType.CASE_PC) {
+
+            List<CaseDto> casesPc = caseRepository.findAll().stream()
+                    .flatMap(c -> c.getItem().getOffers().stream()
+                            .filter(Offer::getIsVisible)
+                            .map(offer -> OfferComponentMapper.toDto(c, offer)))
+                    .toList();
+            result.addAll(casesPc);
+        }
+
+        Stream<BaseOfferDto> stream = result.stream();
+        if (brand != null && !brand.isBlank()) {
+            stream = stream.filter(o -> o.getBrand() != null && o.getBrand().equalsIgnoreCase(brand));
+        }
+
+        if (shopName != null && !shopName.isBlank()) {
+            stream = stream.filter(o -> o.getShop() != null && o.getShop().equalsIgnoreCase(shopName));
+        }
+
+        if (minPrize != null) {
+            stream = stream.filter(o -> o.getPrice() >= minPrize);
+        }
+
+        if (maxPrize != null) {
+            stream = stream.filter(o -> o.getPrice() <= maxPrize);
+        }
+
+        if (itemCondition != null) {
+            stream = stream.filter(o -> o.getCondition() == itemCondition);
+        }
+
+        List<BaseOfferDto> filtered = stream.toList();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+
+        List<BaseOfferDto> pagedList = filtered.subList(start, end);
+
+        return new PageImpl<>(pagedList, pageable, filtered.size());
     }
 
     private static final JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();

@@ -4,12 +4,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.backend_pcbuild.Component.dto.BaseItemDto;
+import org.example.backend_pcbuild.Component.dto.BrandDto;
 import org.example.backend_pcbuild.Component.dto.ItemComponentMapper;
 import org.example.backend_pcbuild.Offer.dto.BaseOfferDto;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.*;
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.data.domain.Page;
@@ -43,8 +45,17 @@ public class ComponentService {
                 .toList();
     }
 
-    public Page<BaseItemDto> getComponents(Pageable pageable) {
-        Page<Item> itemsPage = itemRepository.findAll(pageable);
+    public Page<BaseItemDto> getComponents(Pageable pageable, ItemType type, String brand) {
+        Specification<Item> spec = Specification.not(null);
+
+        if (type != null) {
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("itemType")), "%" + type.name().toLowerCase() + "%"));
+        }
+        if (brand != null && !brand.isEmpty()) {
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("brand")), "%" + brand.toLowerCase() + "%"));
+        }
+
+        Page<Item> itemsPage = itemRepository.findAll(spec, pageable);
 
         return itemsPage.map(this::mapToDto);
     }
@@ -82,6 +93,12 @@ public class ComponentService {
                 return null;
             }
         }
+    }
+
+    public List<String> getAllBrands() {
+        return itemRepository.findDistinctBrands();
+
+
     }
 
 
