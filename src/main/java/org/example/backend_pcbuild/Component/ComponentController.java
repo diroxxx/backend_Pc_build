@@ -56,7 +56,7 @@ public class ComponentController {
     }
 
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/brands")
     public ResponseEntity<List<String>> getBrands() {
         List<String> allBrands = componentService.getAllBrands();

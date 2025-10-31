@@ -4,6 +4,7 @@ package org.example.backend_pcbuild.Admin.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.security.auth.UserPrincipal;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.dto.*;
@@ -30,6 +31,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
@@ -292,7 +294,7 @@ public void handleOffersAdded(Message amqpMessage) {
     }
 
 
-    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping("/OfferUpdateConfig")
     public ResponseEntity<?> updateOfferConfig(@RequestBody OfferUpdateConfigDto offerUpdateConfigDto) {
 
@@ -305,8 +307,10 @@ public void handleOffersAdded(Message amqpMessage) {
         return ResponseEntity.ok(Map.of("message", "Offer update config updated"));
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+//    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/users")
+//    public ResponseEntity<List<UserDto>> getUsers(@AuthenticationPrincipal org.example.backend_pcbuild.LoginAndRegister.dto.UserDto userPrincipal) {
     public ResponseEntity<List<UserDto>> getUsers() {
         List<UserDto> users = userRepository.findAll().stream()
                 .map(userMapper::toUserDto)

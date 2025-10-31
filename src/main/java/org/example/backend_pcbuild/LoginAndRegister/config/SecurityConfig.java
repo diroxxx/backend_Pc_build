@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @RequiredArgsConstructor
@@ -23,15 +24,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.addFilterBefore(new JwtAuthFilter(userAuthProvider), BasicAuthenticationFilter.class)
+        http.addFilterBefore(new JwtAuthFilter(userAuthProvider), UsernamePasswordAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**", "/collectData","/components/**", "/admin/**").permitAll()
+                        .requestMatchers("/h2-console/**", "/collectData","/components/**").permitAll()
 //                        .requestMatchers("/auth/**", "/error").permitAll() // jeśli masz login/register endpointy
+//                                .requestMatchers("/admin/**").authenticated()
+                                .requestMatchers("/admin/**").permitAll()
                                 .requestMatchers("/offers/**", "/offers").permitAll()
                                 .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/error").permitAll()
                                 .requestMatchers("/community/**").permitAll()

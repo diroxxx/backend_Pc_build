@@ -3,6 +3,7 @@ package org.example.backend_pcbuild.LoginAndRegister.config;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.annotation.PostConstruct;
@@ -17,6 +18,7 @@ import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -86,18 +88,23 @@ public class UserAuthProvider {
         try {
             JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secretKey)).build();
             DecodedJWT decodedJWT = verifier.verify(token);
-            UserDto user = userService.findByLogin(decodedJWT.getSubject());
+
+            String email = decodedJWT.getSubject();
+            UserDto user = userService.findByLogin(email);
             if (user == null) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token or user not found");
             }
 
-
-            return new UsernamePasswordAuthenticationToken(user, null, Collections.singletonList(user.getRole()));
-        } catch (TokenExpiredException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token has expired", e);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token", e);}
+            return new UsernamePasswordAuthenticationToken(
+                    user,
+                    null,
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
+            );
+        } catch (JWTVerificationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
+        }
     }
+
 
     public String validateRefreshToken(String refreshToken) {
         System.out.println("Validating refresh token: " + refreshToken);
