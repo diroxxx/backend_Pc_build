@@ -310,8 +310,9 @@ public void handleOffersAdded(Message amqpMessage) {
 //    @PreAuthorize("hasAuthority('ADMIN')")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/users")
-//    public ResponseEntity<List<UserDto>> getUsers(@AuthenticationPrincipal org.example.backend_pcbuild.LoginAndRegister.dto.UserDto userPrincipal) {
+//    public ResponseEntity<List<UserDto>> getUsers(@AuthenticationPrincipal UserDto userPrincipal) {
     public ResponseEntity<List<UserDto>> getUsers() {
+//        System.out.println(userPrincipal.getEmail());
         List<UserDto> users = userRepository.findAll().stream()
                 .map(userMapper::toUserDto)
                 .toList();

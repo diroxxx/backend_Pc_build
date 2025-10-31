@@ -17,7 +17,7 @@ public class ComputerController {
 
     private final ComputerService computerService;
 
-    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
 @GetMapping("/user/{email}/computers")
 public ResponseEntity<List<ComputerDto>> getAllComputersByUserEmail(@PathVariable String email) {
     List<ComputerDto> allComputersByUserEmail = computerService.getAllComputersByUserEmail(email);
@@ -30,7 +30,7 @@ public ResponseEntity<List<ComputerDto>> getAllComputersByUserEmail(@PathVariabl
     return ResponseEntity.ok(allComputersByUserEmail);
 }
 
-    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @PostMapping("/user/{email}/computers")
     public ResponseEntity<?> saveComputersByUserEmail(@PathVariable String email, @RequestBody List<ComputerDto> computers) {
 

@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public class OfferController {
     ) {}
 
     @GetMapping("/v2")
-//    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<OffersPageResponse> getAllOffersV2(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -62,5 +63,12 @@ public class OfferController {
 
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/count")
+    public ResponseEntity<Long> getOffersCount() {
+        long count = offerService.countAllVisibleOffers();
+        return ResponseEntity.ok(count);
+    }
+
+
 
 }

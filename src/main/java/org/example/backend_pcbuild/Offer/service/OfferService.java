@@ -42,6 +42,11 @@ public class OfferService {
         offerRepository.deleteByWebsiteUrlIn(urls);
     }
 
+    public Long countAllVisibleOffers() {
+       return offerRepository.countOffersByIsVisibleTrue();
+    }
+
+
     public void softDeleteByUrls(List<String> urls) {
         if (urls == null || urls.isEmpty()) return;
         List<Offer> offersToDelete = offerRepository.findAllByWebsiteUrlIn(urls);
