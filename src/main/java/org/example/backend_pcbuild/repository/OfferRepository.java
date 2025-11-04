@@ -37,4 +37,8 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
 
     Long countOffersByIsVisibleTrue();
 
+    @Query("SELECT DISTINCT o.shop.name FROM Offer o")
+    List<String> findDistinctShopNames();
+
+
 }

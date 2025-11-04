@@ -8,6 +8,7 @@ public class OfferComponentMapper {
 
     public static ProcessorDto toDto(Processor entity, Offer offer) {
         ProcessorDto dto = new ProcessorDto();
+        dto.setTitle(offer.getTitle());
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setCondition(offer.getCondition());
@@ -25,6 +26,7 @@ public class OfferComponentMapper {
 
     public static GraphicsCardDto toDto(GraphicsCard entity, Offer offer) {
         GraphicsCardDto dto = new GraphicsCardDto();
+        dto.setTitle(offer.getTitle());
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setCondition(offer.getCondition());
@@ -41,6 +43,7 @@ public class OfferComponentMapper {
 
     public static MemoryDto toDto(Memory entity, Offer offer) {
         MemoryDto dto = new MemoryDto();
+        dto.setTitle(offer.getTitle());
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setCondition(offer.getCondition());
@@ -58,6 +61,7 @@ public class OfferComponentMapper {
 
     public static MotherboardDto toDto(Motherboard entity, Offer offer) {
         MotherboardDto dto = new MotherboardDto();
+        dto.setTitle(offer.getTitle());
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setCondition(offer.getCondition());
@@ -65,7 +69,6 @@ public class OfferComponentMapper {
         dto.setWebsiteUrl(offer.getWebsiteUrl());
         dto.setPrice(offer.getPrice());
         dto.setShop(offer.getShop() != null ? offer.getShop().getName() : null);
-
         dto.setChipset(entity.getChipset());
         dto.setFormat(entity.getFormat());
         dto.setMemoryType(entity.getMemoryType());
@@ -77,6 +80,7 @@ public class OfferComponentMapper {
 
     public static PowerSupplyDto toDto(PowerSupply entity, Offer offer) {
         PowerSupplyDto dto = new PowerSupplyDto();
+        dto.setTitle(offer.getTitle());
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setCondition(offer.getCondition());
@@ -91,6 +95,7 @@ public class OfferComponentMapper {
 
     public static StorageDto toDto(Storage entity, Offer offer) {
         StorageDto dto = new StorageDto();
+        dto.setTitle(offer.getTitle());
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setCondition(offer.getCondition());
@@ -105,6 +110,7 @@ public class OfferComponentMapper {
 
     public static CaseDto toDto(Case entity, Offer offer) {
         CaseDto dto = new CaseDto();
+        dto.setTitle(offer.getTitle());
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setCondition(offer.getCondition());
@@ -119,6 +125,7 @@ public class OfferComponentMapper {
 
     public static CoolerDto toDto(Cooler entity, Offer offer) {
         CoolerDto dto = new CoolerDto();
+        dto.setTitle(offer.getTitle());
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setCondition(offer.getCondition());

@@ -32,6 +32,11 @@ public class OfferController {
         return ResponseEntity.ok(offerService.getAllOffers());
     }
 
+    @GetMapping("/shops")
+    public ResponseEntity<List<String>> getAllShops() {
+        return ResponseEntity.ok(offerService.getAllOfferNames());
+    }
+
     public record OffersPageResponse(
             List<BaseOfferDto> offers,
             boolean hasMore,
@@ -40,7 +45,7 @@ public class OfferController {
     ) {}
 
     @GetMapping("/v2")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<OffersPageResponse> getAllOffersV2(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

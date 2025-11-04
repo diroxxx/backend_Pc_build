@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.LoginAndRegister.config;
+package org.example.backend_pcbuild.configuration.JwtConfig;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

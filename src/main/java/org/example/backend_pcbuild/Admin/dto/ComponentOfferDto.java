@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ComponentOfferDto {
+    private String title;
     private String brand;
     private String category;
     private String img;

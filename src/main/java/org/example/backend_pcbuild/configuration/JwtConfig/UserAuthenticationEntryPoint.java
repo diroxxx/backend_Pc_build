@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.LoginAndRegister.config;
+package org.example.backend_pcbuild.configuration.JwtConfig;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;

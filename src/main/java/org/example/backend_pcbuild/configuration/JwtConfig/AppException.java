@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.LoginAndRegister.config;
+package org.example.backend_pcbuild.configuration.JwtConfig;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

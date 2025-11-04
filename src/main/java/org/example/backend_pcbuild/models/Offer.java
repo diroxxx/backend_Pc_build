@@ -25,6 +25,10 @@ public class Offer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+    @NotNull
+    private String title;
+
     @NotNull
     @Column(length = 1000)
     private String photoUrl;
@@ -56,7 +60,7 @@ public class Offer {
     @ToString.Exclude
     private Item item;
 
-    @OneToMany(mappedBy = "offer")
+    @OneToMany(mappedBy = "offer",cascade = CascadeType.ALL)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JsonIgnore

@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.LoginAndRegister.config;
+package org.example.backend_pcbuild.configuration.JwtConfig;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +11,6 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @RequiredArgsConstructor
 @Configuration
@@ -34,11 +33,11 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**", "/collectData","/components/**").permitAll()
 //                        .requestMatchers("/auth/**", "/error").permitAll() // jeśli masz login/register endpointy
 //                                .requestMatchers("/admin/**").authenticated()
-                                .requestMatchers("/admin/**").permitAll()
                                 .requestMatchers("/offers/**", "/offers").permitAll()
-                                .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/error").permitAll()
-                                .requestMatchers("/community/**").permitAll()
+                                .requestMatchers("/auth/**",  "/error").permitAll()
                                 // for tests
+                                .requestMatchers("/community/**").permitAll()
+                                .requestMatchers("/admin/**").permitAll()
                                 .requestMatchers("/api/components/**").permitAll()
                                 .requestMatchers("/offers/**").permitAll()
                                 .requestMatchers("/computerApi/**").permitAll()

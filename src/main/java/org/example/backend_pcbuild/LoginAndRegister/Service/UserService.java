@@ -4,7 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserMapper;
-import org.example.backend_pcbuild.LoginAndRegister.config.AppException;
+import org.example.backend_pcbuild.configuration.JwtConfig.AppException;
 import org.example.backend_pcbuild.models.User;
 import org.example.backend_pcbuild.LoginAndRegister.dto.CredentialsDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.SignUpDto;
@@ -30,9 +30,9 @@ public class UserService {
         return  userMapper.toDto(user);
     }
 
-    public UserDto login(CredentialsDto credentials) {
-        System.out.println(credentials);
-        User user = userRepository.findByEmail(credentials.getLogin())
+    public UserDto login(CredentialsDto credentials, UserRole userRole) {
+
+        User user = userRepository.findByEmailAndRole(credentials.getLogin(), userRole)
                 .orElseThrow(() -> new AppException("User not found", HttpStatus.NOT_FOUND));
 
         if(!passwordEncoder.matches(CharBuffer.wrap(credentials.getPassword()), user.getPassword())) {

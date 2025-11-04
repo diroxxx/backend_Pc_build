@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.LoginAndRegister.config;
+package org.example.backend_pcbuild.configuration.JwtConfig;
 
 import org.example.backend_pcbuild.LoginAndRegister.dto.ErrorDto;
 import org.springframework.http.ResponseEntity;

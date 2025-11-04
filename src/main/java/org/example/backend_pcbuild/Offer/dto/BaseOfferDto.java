@@ -12,7 +12,7 @@ import org.example.backend_pcbuild.models.ItemCondition;
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
-        property = "type"
+        property = "componentType"
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ProcessorDto.class, name = "processor"),
@@ -28,6 +28,7 @@ import org.example.backend_pcbuild.models.ItemCondition;
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class BaseOfferDto {
+    private String title;
     private String brand;
     private String model;
     private ItemCondition condition;

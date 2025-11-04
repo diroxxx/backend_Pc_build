@@ -94,7 +94,6 @@ public class AdminController {
 //    @PreAuthorize("hasAuthority('ADMIN')")
     public void sendRequestToScraper(@Payload ManualFetchOffersSettingsDto settings) {
         System.out.println(settings.getShops());
-        //create OffersUpdate empty structure
         OfferUpdate offerUpdate = new OfferUpdate();
         offerUpdate.setStartedAt(LocalDateTime.now());
         OfferUpdate offerUpdateCreated = offerUpdateRepository.save(offerUpdate);
@@ -177,6 +176,7 @@ public class AdminController {
         map.put("brand", dto.getBrand());
         map.put("category", dto.getCategory());
         map.put("img", dto.getImg());
+        map.put("title", dto.getTitle());
         map.put("model", dto.getModel());
         map.put("price", dto.getPrice());
         map.put("shop", dto.getShop());
@@ -194,7 +194,6 @@ public void handleOffersAdded(Message amqpMessage) {
     try {
         String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
         ScrapingOfferDto dto = objectMapper.readValue(json, ScrapingOfferDto.class);
-
         Long offerUpdateId = dto.getUpdateId();
         String shopName = dto.getShopName();
         System.out.println("adding shop offer: " + shopName);

@@ -42,6 +42,10 @@ public class OfferService {
         offerRepository.deleteByWebsiteUrlIn(urls);
     }
 
+    public List<String> getAllOfferNames() {
+        return offerRepository.findDistinctShopNames();
+    }
+
     public Long countAllVisibleOffers() {
        return offerRepository.countOffersByIsVisibleTrue();
     }
@@ -347,8 +351,10 @@ public class OfferService {
         offer.setPhotoUrl((String) componentData.get("img"));
         offer.setWebsiteUrl((String) componentData.get("url"));
         offer.setIsVisible(true);
-
+        offer.setTitle((String) componentData.get("title"));
         String shopName = (String) componentData.get("shop");
+
+
         if (shopName != null && !shopName.isBlank()) {
             Shop shop = shopRepository.findByNameIgnoreCase(shopName)
                     .orElseThrow(() -> new IllegalStateException("Unknown shop: " + shopName));
