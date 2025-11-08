@@ -40,9 +40,9 @@ public class SecurityConfig {
                                 .requestMatchers("/admin/**").permitAll()
                                 .requestMatchers("/api/components/**").permitAll()
                                 .requestMatchers("/offers/**").permitAll()
-                                .requestMatchers("/computerApi/**").permitAll()
+                                .requestMatchers("/api/computers/users/**").permitAll()
 
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 );
         return http.build();
     }

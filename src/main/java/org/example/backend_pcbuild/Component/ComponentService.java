@@ -4,19 +4,15 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.backend_pcbuild.Component.dto.BaseItemDto;
-import org.example.backend_pcbuild.Component.dto.BrandDto;
 import org.example.backend_pcbuild.Component.dto.ItemComponentMapper;
-import org.example.backend_pcbuild.Offer.dto.BaseOfferDto;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.*;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
 
 
 import java.util.*;
@@ -45,7 +41,7 @@ public class ComponentService {
                 .toList();
     }
 
-    public Page<BaseItemDto> getComponents(Pageable pageable, ItemType type, String brand) {
+    public Page<BaseItemDto> getComponents(Pageable pageable, ComponentType type, String brand) {
         Specification<Item> spec = Specification.not(null);
 
         if (type != null) {
@@ -62,9 +58,9 @@ public class ComponentService {
 
 
     private BaseItemDto mapToDto(Item item) {
-        if (item == null || item.getItemType() == null) return null;
+        if (item == null || item.getComponentType() == null) return null;
 
-        switch (item.getItemType()) {
+        switch (item.getComponentType()) {
             case PROCESSOR -> {
                 return itemComponentMapper.toDto(item.getProcessor());
             }
@@ -141,7 +137,7 @@ public class ComponentService {
                             p.setSocket_type(getStringValue(data, "socket"));
                             p.setBase_clock(getStringValue(data, "base_clock"));
                             p.setItem(item);
-                            item.setItemType(ItemType.PROCESSOR);
+                            item.setComponentType(ComponentType.PROCESSOR);
                             item.setProcessor(p);
 //                            processorRepository.save(p);
                             itemRepository.save(item);
@@ -153,7 +149,7 @@ public class ComponentService {
                             s.setCapacity(getDoubleValue(data, "capacity"));
                             s.setItem(item);
                             item.setStorage(s);
-                            item.setItemType(ItemType.STORAGE);
+                            item.setComponentType(ComponentType.STORAGE);
 //                            storageRepository.save(s);
                             itemRepository.save(item);
 
@@ -170,7 +166,7 @@ public class ComponentService {
                             mb.setRamCapacity(getIntegerValue(data, "memory_capacity"));
                             mb.setItem(item);
                             item.setMotherboard(mb);
-                            item.setItemType(ItemType.MOTHERBOARD);
+                            item.setComponentType(ComponentType.MOTHERBOARD);
 //                            motherboardRepository.save(mb);
                             itemRepository.save(item);
 
@@ -184,7 +180,7 @@ public class ComponentService {
                             ps.setMaxPowerWatt(maxW);
                             ps.setItem(item);
                             item.setPowerSupply(ps);
-                            item.setItemType(ItemType.POWER_SUPPLY);
+                            item.setComponentType(ComponentType.POWER_SUPPLY);
 //                            powerSupplyRepository.save(ps);
                             itemRepository.save(item);
 
@@ -207,7 +203,7 @@ public class ComponentService {
                             }
                             cooler.setItem(item);
                             item.setCooler(cooler);
-                            item.setItemType(ItemType.CPU_COOLER);
+                            item.setComponentType(ComponentType.CPU_COOLER);
 //                            coolerRepository.save(cooler);
                             itemRepository.save(item);
 
@@ -221,7 +217,7 @@ public class ComponentService {
                             g.setVram(getIntegerValue(data, "vram"));
                             g.setItem(item);
                             item.setGraphicsCard(g);
-                            item.setItemType(ItemType.GRAPHICS_CARD);
+                            item.setComponentType(ComponentType.GRAPHICS_CARD);
 //                            graphicsCardRepository.save(g);
                             itemRepository.save(item);
 
@@ -233,7 +229,7 @@ public class ComponentService {
                             c.setFormat(getStringValue(data, "format"));
                             c.setItem(item);
                             item.setCase_(c);
-                            item.setItemType(ItemType.CASE_PC);
+                            item.setComponentType(ComponentType.CASE_PC);
                             itemRepository.save(item);
 //                            caseRepository.save(c);
                             break;
@@ -247,7 +243,7 @@ public class ComponentService {
                             m.setLatency(getStringValue(data, "latency"));
                             m.setItem(item);
                             item.setMemory(m);
-                            item.setItemType(ItemType.MEMORY);
+                            item.setComponentType(ComponentType.MEMORY);
 //                            memoryRepository.save(m);
                             itemRepository.save(item);
                             break;

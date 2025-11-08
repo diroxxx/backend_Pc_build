@@ -8,9 +8,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/computerApi")
+@RequestMapping("api")
 @RequiredArgsConstructor
 @Slf4j
 public class ComputerController {
@@ -18,34 +19,30 @@ public class ComputerController {
     private final ComputerService computerService;
 
     @PreAuthorize("hasAuthority('ROLE_USER')")
-@GetMapping("/user/{email}/computers")
-public ResponseEntity<List<ComputerDto>> getAllComputersByUserEmail(@PathVariable String email) {
-    List<ComputerDto> allComputersByUserEmail = computerService.getAllComputersByUserEmail(email);
-        System.out.println(allComputersByUserEmail.size());
-        for (ComputerDto computer : allComputersByUserEmail) {
-            System.out.println(computer.getName());
-            System.out.println(computer.getOffers().size());
-            System.out.println("-".repeat(100));
-        }
-    return ResponseEntity.ok(allComputersByUserEmail);
-}
+    @GetMapping("/users/{email}/computers")
+    public ResponseEntity<List<ComputerDto>> getAllComputersByUserEmail(@PathVariable String email) {
+        List<ComputerDto> allComputersByUserEmail = computerService.getAllComputersByUserEmail(email);
+
+//            System.out.println(allComputersByUserEmail.size());
+            for (ComputerDto computer : allComputersByUserEmail) {
+                System.out.println(computer.getName());
+                System.out.println(computer.getOffers().size());
+                System.out.println("-".repeat(100));
+            }
+        return ResponseEntity.ok(allComputersByUserEmail);
+    }
 
     @PreAuthorize("hasAuthority('ROLE_USER')")
-    @PostMapping("/user/{email}/computers")
-    public ResponseEntity<?> saveComputersByUserEmail(@PathVariable String email, @RequestBody List<ComputerDto> computers) {
+    @PostMapping("/users/{email}/computers")
+    public ResponseEntity<?> saveComputersByUserEmail(@PathVariable String email, @RequestBody ComputerDto computer) {
 
-        System.out.println(computers.size());
-        for (ComputerDto computer : computers) {
-            System.out.println(computer.getName());
-//            System.out.println(computer.getComponents().size());
-            System.out.println("-".repeat(100));
-        }
+//        System.out.println(computer.toString());
         if (email == null || email.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Email cannot be null or empty.");
         }
         try {
-            computerService.saveComputersByUserEmail(email, computers);
-            return ResponseEntity.ok("Computers have been successfully saved or updated for user with email: " + email);
+            computerService.saveComputerByUserEmail(email, computer);
+            return ResponseEntity.ok("Computer has been successfully saved" + email);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -59,6 +56,32 @@ public ResponseEntity<List<ComputerDto>> getAllComputersByUserEmail(@PathVariabl
                     .body("Error: " + e.getMessage());
         }
     }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PutMapping("/computers/{computerId}/offers")
+    public ResponseEntity<?> updateComputerByUserEmail(@PathVariable Long computerId, @RequestBody String offerUrl) {
+
+        computerService.updateComputerFromDto(computerId, offerUrl);
+        return ResponseEntity.ok("Computer has been successfully updated");
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @DeleteMapping("computers/{computerId}")
+    public ResponseEntity<?> deleteComputerByUserEmail(@PathVariable Long computerId) {
+        computerService.deleteComputer(computerId);
+        return ResponseEntity.ok("Computer has been successfully deleted");
+    }
+
+
+    @PutMapping("/computers/{computerId}/name")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> updateComputerName(@PathVariable Long computerId, @RequestBody Map<String, String> body) {
+        String newName = body.get("name").trim();
+
+        computerService.updateComputerName(newName, computerId);
+        return ResponseEntity.ok("Computer has been successfully updated");
+    }
+
 
 
 

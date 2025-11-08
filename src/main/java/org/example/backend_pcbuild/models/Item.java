@@ -1,9 +1,6 @@
 package org.example.backend_pcbuild.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.HashSet;
@@ -26,7 +23,7 @@ public class Item {
     private String model;
 
     @Enumerated(EnumType.STRING)
-    private ItemType itemType;
+    private ComponentType componentType;
 
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
     private Set<Offer> offers = new HashSet<Offer>();

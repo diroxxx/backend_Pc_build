@@ -11,7 +11,12 @@ import java.util.Optional;
 
 @Repository
 public interface OfferRepository extends JpaRepository<Offer, Long> {
-    Optional<Offer> findByWebsiteUrl(String website_url);
+//    Optional<Offer> findByWebsiteUrl(String website_url);
+
+    @Query("SELECT o FROM Offer o WHERE TRIM(LOWER(o.websiteUrl)) = TRIM(LOWER(:url))")
+    Optional<Offer> findByWebsiteUrl(@Param("url") String url);
+
+
 
     List<Offer> findAllByWebsiteUrlIn(List<String> urls);
 
@@ -21,12 +26,12 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
 
 
     @Query("""
-    SELECT o.item.itemType as type, COUNT(o) as count
+    SELECT o.item.componentType as type, COUNT(o) as count
     FROM Offer o
     WHERE o.shop.name = :shopName
       AND o.isVisible = true
       AND o.item IS NOT NULL
-    GROUP BY o.item.itemType
+    GROUP BY o.item.componentType
 """)
     List<OfferTypeCountProjection> countVisibleOffersByShop(@Param("shopName") String shopName);
 

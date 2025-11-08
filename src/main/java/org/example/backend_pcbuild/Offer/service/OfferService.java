@@ -12,7 +12,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -34,6 +33,7 @@ public class OfferService {
     private final OfferRepository offerRepository;
     private final OfferMatchingService offerMatchingService;
     private final ShopRepository shopRepository;
+    private static final JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
 
 
     @Transactional
@@ -130,18 +130,34 @@ public class OfferService {
     }
 
     public Page<BaseOfferDto> getAllOffersV2(Pageable pageable,
-                                             ItemType itemType,
+                                             ComponentType componentType,
                                              String brand,
                                              Double minPrize,
                                              Double maxPrize,
                                              ItemCondition itemCondition,
-                                             String shopName) {
+                                             String shopName,
+                                             SortByOffers sortBy,
+                                             String querySearch) {
+
+
+
+//        Sort sort = Sort.unsorted();
+//
+//        if (sortBy == SortByOffers.CHEAPEST)
+//            sort = Sort.by("price").ascending();
+//        else if (sortBy == SortByOffers.EXPENSIVE)
+//            sort = Sort.by("price").descending();
+//        else if (sortBy == SortByOffers.NEWEST)
+//            sort = Sort.by("createdAt").descending();
+
+
         List<BaseOfferDto> result = new ArrayList<>();
         Specification<Offer> spec = Specification.not(null);
 
          spec = spec.and((root, query, cb) -> cb.equal(root.get("isVisible"), true));
 
-        if(itemType == null || itemType == ItemType.GRAPHICS_CARD) {
+
+        if(componentType == null || componentType == ComponentType.GRAPHICS_CARD) {
             List<GraphicsCardDto> gpus = graphicsCardRepository.findAll().stream()
                     .flatMap(gc -> gc.getItem().getOffers().stream()
                             .filter(Offer::getIsVisible)
@@ -150,7 +166,7 @@ public class OfferService {
             result.addAll(gpus);
         }
 
-        if(itemType == null || itemType == ItemType.PROCESSOR) {
+        if(componentType == null || componentType == ComponentType.PROCESSOR) {
             List<ProcessorDto> processors = processorRepository.findAll().stream()
                     .flatMap(cpu -> cpu.getItem().getOffers().stream()
                             .filter(Offer::getIsVisible)
@@ -159,7 +175,7 @@ public class OfferService {
             result.addAll(processors);
         }
 
-        if (itemType == null || itemType == ItemType.CPU_COOLER) {
+        if (componentType == null || componentType == ComponentType.CPU_COOLER) {
             List<CoolerDto> coolers = coolerRepository.findAll().stream()
                     .flatMap(c -> c.getItem().getOffers().stream()
                             .filter(Offer::getIsVisible)
@@ -168,7 +184,7 @@ public class OfferService {
             result.addAll(coolers);
         }
 
-        if (itemType == null || itemType == ItemType.MEMORY) {
+        if (componentType == null || componentType == ComponentType.MEMORY) {
             List<MemoryDto> memories = memoryRepository.findAll().stream()
                     .flatMap(m -> m.getItem().getOffers().stream()
                             .filter(Offer::getIsVisible)
@@ -177,7 +193,7 @@ public class OfferService {
             result.addAll(memories);
         }
 
-        if (itemType == null || itemType == ItemType.MOTHERBOARD) {
+        if (componentType == null || componentType == ComponentType.MOTHERBOARD) {
             List<MotherboardDto> motherboards = motherboardRepository.findAll().stream()
                     .flatMap(mb -> mb.getItem().getOffers().stream()
                             .filter(Offer::getIsVisible)
@@ -186,7 +202,7 @@ public class OfferService {
             result.addAll(motherboards);
         }
 
-        if (itemType == null || itemType == ItemType.POWER_SUPPLY) {
+        if (componentType == null || componentType == ComponentType.POWER_SUPPLY) {
         List<PowerSupplyDto> powerSupplies = powerSupplyRepository.findAll().stream()
                 .flatMap(ps -> ps.getItem().getOffers().stream()
                         .filter(Offer::getIsVisible)
@@ -195,7 +211,7 @@ public class OfferService {
         result.addAll(powerSupplies);
         }
 
-        if (itemType == null || itemType == ItemType.STORAGE) {
+        if (componentType == null || componentType == ComponentType.STORAGE) {
         List<StorageDto> storages = storageRepository.findAll().stream()
                 .flatMap(s -> s.getItem().getOffers().stream()
                         .filter(Offer::getIsVisible)
@@ -204,7 +220,7 @@ public class OfferService {
         result.addAll(storages);
         }
 
-        if (itemType == null || itemType == ItemType.CASE_PC) {
+        if (componentType == null || componentType == ComponentType.CASE_PC) {
 
             List<CaseDto> casesPc = caseRepository.findAll().stream()
                     .flatMap(c -> c.getItem().getOffers().stream()
@@ -235,6 +251,26 @@ public class OfferService {
             stream = stream.filter(o -> o.getCondition() == itemCondition);
         }
 
+        if (querySearch != null && !querySearch.isBlank()) {
+            String query = querySearch.toLowerCase().replaceAll("[^a-z0-9 ]", " ");
+            stream = stream.filter(o -> {
+                String title = o.getTitle().toLowerCase().replaceAll("[^a-z0-9 ]", " ");
+                return Arrays.stream(title.split("\\s+"))
+                        .anyMatch(word -> similarity.apply(word, query) > 0.85)
+                        || similarity.apply(title, query) > 0.85;
+            });
+        }
+
+
+        if (sortBy == SortByOffers.CHEAPEST)
+            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getPrice));
+        else if (sortBy == SortByOffers.EXPENSIVE)
+            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getPrice).reversed());
+        else if (sortBy == SortByOffers.NEWEST)
+            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getId).reversed());
+
+
+
         List<BaseOfferDto> filtered = stream.toList();
 
         int start = (int) pageable.getOffset();
@@ -245,7 +281,6 @@ public class OfferService {
         return new PageImpl<>(pagedList, pageable, filtered.size());
     }
 
-    private static final JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
 
 
     @Transactional

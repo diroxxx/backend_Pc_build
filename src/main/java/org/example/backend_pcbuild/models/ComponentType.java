@@ -1,6 +1,6 @@
 package org.example.backend_pcbuild.models;
 
-public enum ItemType {
+public enum ComponentType {
     GRAPHICS_CARD,
     PROCESSOR,
     MEMORY,

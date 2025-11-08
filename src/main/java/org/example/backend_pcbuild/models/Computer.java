@@ -34,7 +34,7 @@ public class Computer {
     @ToString.Exclude
     private User user;
 
-    @OneToMany(mappedBy = "computer", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "computer", cascade = CascadeType.ALL, orphanRemoval = true)
 //    @EqualsAndHashCode.Exclude
     private List<ComputerOffer> computer_offer = new ArrayList<>();
 

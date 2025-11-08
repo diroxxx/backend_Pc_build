@@ -70,7 +70,7 @@ public class OfferUpdateService {
                 .map(OfferShopOfferUpdate::getOffer)
                 .filter(offer -> offer.getIsVisible() == isVisible)
                 .collect(Collectors.groupingBy(
-                        offer -> offer.getItem().getItemType().name(),
+                        offer -> offer.getItem().getComponentType().name(),
                         Collectors.summingInt(o -> 1)
                 ));
     }
@@ -107,14 +107,14 @@ public class OfferUpdateService {
         Map<String, Integer> addedByType = offersFromUpdate.stream()
                 .filter(o -> Boolean.TRUE.equals(o.getIsVisible()))
                 .collect(Collectors.groupingBy(
-                        o -> o.getItem().getItemType().name(),
+                        o -> o.getItem().getComponentType().name(),
                         Collectors.summingInt(x -> 1)
                 ));
 
         Map<String, Integer> deletedByType = offersFromUpdate.stream()
                 .filter(o -> Boolean.FALSE.equals(o.getIsVisible()))
                 .collect(Collectors.groupingBy(
-                        o -> o.getItem().getItemType().name(),
+                        o -> o.getItem().getComponentType().name(),
                         Collectors.summingInt(x -> 1)
                 ));
 

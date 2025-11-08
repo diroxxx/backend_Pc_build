@@ -1,7 +1,9 @@
 package org.example.backend_pcbuild.Computer;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.example.backend_pcbuild.Offer.dto.BaseOfferDto;
 import org.example.backend_pcbuild.Offer.dto.OfferComponentMapper;
 import org.example.backend_pcbuild.models.*;
@@ -11,7 +13,10 @@ import java.util.Set;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ComputerDto {
+    private Long id;
     private String name;
     private Double price;
     private Boolean isVisible;
@@ -45,6 +50,7 @@ public class ComputerDto {
             }
         }
         return ComputerDto.builder()
+                .id(computer.getId())
                 .name(computer.getName())
                 .price(computer.getPrice())
                 .isVisible(computer.getIs_visible())

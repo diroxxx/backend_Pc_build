@@ -1,6 +1,5 @@
 package org.example.backend_pcbuild.Component.dto;
 
-import org.example.backend_pcbuild.Offer.dto.*;
 import org.example.backend_pcbuild.models.*;
 import org.springframework.stereotype.Component;
 
@@ -10,7 +9,7 @@ public class ItemComponentMapper {
     public ProcessorItemDto toDto(Processor entity) {
         ProcessorItemDto dto = new ProcessorItemDto();
         dto.setId(entity.getId());
-        dto.setComponentType(ItemType.PROCESSOR);
+        dto.setComponentType(ComponentType.PROCESSOR);
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setSocketType(entity.getSocket_type());
@@ -23,7 +22,7 @@ public class ItemComponentMapper {
     public GraphicsCardItemDto toDto(GraphicsCard entity) {
         GraphicsCardItemDto dto = new GraphicsCardItemDto();
         dto.setId(entity.getId());
-        dto.setComponentType(ItemType.GRAPHICS_CARD);
+        dto.setComponentType(ComponentType.GRAPHICS_CARD);
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setVram(entity.getVram());
@@ -35,7 +34,7 @@ public class ItemComponentMapper {
     public MemoryItemDto toDto(Memory entity) {
         MemoryItemDto dto = new MemoryItemDto();
         dto.setId(entity.getId());
-        dto.setComponentType(ItemType.MEMORY);
+        dto.setComponentType(ComponentType.MEMORY);
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setCapacity(entity.getCapacity());
@@ -48,7 +47,7 @@ public class ItemComponentMapper {
     public MotherboardItemDto toDto(Motherboard entity) {
         MotherboardItemDto dto = new MotherboardItemDto();
         dto.setId(entity.getId());
-        dto.setComponentType(ItemType.MOTHERBOARD);
+        dto.setComponentType(ComponentType.MOTHERBOARD);
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setChipset(entity.getChipset());
@@ -63,7 +62,7 @@ public class ItemComponentMapper {
     public PowerSupplyItemDto toDto(PowerSupply entity) {
         PowerSupplyItemDto dto = new PowerSupplyItemDto();
         dto.setId(entity.getId());
-        dto.setComponentType(ItemType.POWER_SUPPLY);
+        dto.setComponentType(ComponentType.POWER_SUPPLY);
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setMaxPowerWatt(entity.getMaxPowerWatt());
@@ -73,7 +72,7 @@ public class ItemComponentMapper {
     public StorageItemDto toDto(Storage entity) {
         StorageItemDto dto = new StorageItemDto();
         dto.setId(entity.getId());
-        dto.setComponentType(ItemType.STORAGE);
+        dto.setComponentType(ComponentType.STORAGE);
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setCapacity(entity.getCapacity());
@@ -83,7 +82,7 @@ public class ItemComponentMapper {
     public CaseItemDto toDto(Case entity) {
         CaseItemDto dto = new CaseItemDto();
         dto.setId(entity.getId());
-        dto.setComponentType(ItemType.CASE_PC);
+        dto.setComponentType(ComponentType.CASE_PC);
         dto.setBrand(entity.getItem().getBrand());
         dto.setModel(entity.getItem().getModel());
         dto.setFormat(entity.getFormat());
@@ -92,7 +91,7 @@ public class ItemComponentMapper {
     public CoolerItemDto toDto(Cooler entity) {
         CoolerItemDto dto = new CoolerItemDto();
         dto.setId(entity.getId());
-        dto.setComponentType(ItemType.CPU_COOLER);
+        dto.setComponentType(ComponentType.CPU_COOLER);
         dto.setBrand(entity.getItem().getBrand());
         dto.setCoolerSocketsType(entity.getSocketTypes());
         return dto;

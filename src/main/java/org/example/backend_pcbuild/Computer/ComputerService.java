@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Offer.dto.BaseOfferDto;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.models.*;
+import org.example.backend_pcbuild.repository.ComputerOfferRepository;
 import org.example.backend_pcbuild.repository.ComputerRepository;
 import org.example.backend_pcbuild.repository.OfferRepository;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class ComputerService {
     private final ComputerRepository computerRepository;
     private final UserRepository userRepository;
     private final OfferRepository offerRepository;
-
+    private final ComputerOfferRepository computerOfferRepository;
     public List<ComputerDto> getAllComputersByUserEmail(String email) {
 
         if (email == null || email.isBlank()) {
@@ -34,35 +35,21 @@ public class ComputerService {
     }
 
     @Transactional
-    public void saveComputersByUserEmail(String email, List<ComputerDto> computers) {
+    public void saveComputerByUserEmail(String email, ComputerDto computer) {
         Optional<User> userOptional = userRepository.findByEmail(email);
         List<Computer> computerList = computerRepository.findAllByUserEmail(email);
-
+//        System.out.println(computer.toString());
         if (userOptional.isPresent()) {
             User user = userOptional.get();
 
             List<Computer> computersToSave = new ArrayList<>();
 
-            HashSet<String> incomingComputerNames = new HashSet<>();
-
-            for (ComputerDto computerDto : computers) {
-                incomingComputerNames.add(computerDto.getName());
-
-                computerList.stream().filter(c -> c.getName().equals(computerDto.getName())).findFirst().ifPresentOrElse(computer -> {
-                    prepareComputerForUpdate(computer, computerDto);
-                    computersToSave.add(computer);
+            computerList.stream().filter(c -> c.getName().equals(computer.getName())).findFirst().ifPresentOrElse(computer1 -> {
                 }, () -> {
-                    Computer newComputer = createNewComputer(computerDto, user);
-                    computersToSave.add(newComputer);
+                    Computer newComputer = createNewComputer(computer, user);
+                    computerRepository.save(newComputer);
                         }
                         );
-            }
-            for (Computer existingComputer : computerList) {
-                if (!incomingComputerNames.contains(existingComputer.getName())) {
-                    user.getComputers().remove(existingComputer);
-                    computerRepository.delete(existingComputer);
-                }
-            }
 
             computerRepository.saveAll(computersToSave);
         } else {
@@ -70,25 +57,56 @@ public class ComputerService {
         }
     }
 
-    private void prepareComputerForUpdate(Computer computer, ComputerDto computerDto) {
-        if (computer.getComputer_offer() == null) {
-            computer.setComputer_offer(new ArrayList<>());
-        } else {
-            computer.getComputer_offer().clear();
+    @Transactional
+    public void updateComputerFromDto(Long computerId, String offerUrl) {
+        offerUrl = offerUrl.trim().replace("\"", "");
+
+        Computer computer = computerRepository.findById(computerId)
+                .orElseThrow(() -> new IllegalArgumentException("Computer with ID " + computerId + " not found."));
+
+        String finalOfferUrl = offerUrl;
+        Offer offer = offerRepository.findByWebsiteUrl(offerUrl)
+                .orElseThrow(() -> new IllegalArgumentException("Offer with URL " + finalOfferUrl + " not found."));
+
+        ComponentType newType = offer.getItem().getComponentType();
+
+        ComputerOffer existingOffer = computer.getComputer_offer().stream()
+                .filter(co -> {
+                    ComponentType existingType = co.getOffer().getItem().getComponentType();
+                    System.out.printf("Comparing existing=%s vs new=%s%n", existingType, newType);
+
+                    return existingType != null && existingType.equals(newType);
+                })
+                .findFirst()
+                .orElse(null);
+
+        if (existingOffer != null) {
+            System.out.println("🗑 Removing old " + newType + " from " + computer.getName());
+            computer.getComputer_offer().remove(existingOffer);
+            existingOffer.setComputer(null);
         }
 
-        for (BaseOfferDto componentDto : computerDto.getOffers()) {
-            offerRepository.findByWebsiteUrl(componentDto.getWebsiteUrl()).ifPresent(offer -> {
-                ComputerOffer computer_offer = new ComputerOffer();
-                computer_offer.setOffer(offer);
-                computer_offer.setComputer(computer);
-                computer.getComputer_offer().add(computer_offer);
-            });
-        }
+        ComputerOffer newComputerOffer = new ComputerOffer();
+        newComputerOffer.setComputer(computer);
+        newComputerOffer.setOffer(offer);
+        computer.getComputer_offer().add(newComputerOffer);
 
-        computer.setName(computerDto.getName());
-        computer.setPrice(computerDto.getPrice());
-        computer.setIs_visible(computerDto.getIsVisible());
+        double totalPrice = computer.getComputer_offer().stream()
+                .mapToDouble(co -> co.getOffer().getPrice())
+                .sum();
+        computer.setPrice(totalPrice);
+
+        computerRepository.save(computer);
+
+        System.out.printf("Added %s (%s). New total price: %.2f%n",
+                newType, offer.getItem().getModel(), totalPrice);
+    }
+
+    public void updateComputerName(String name, Long computerId) {
+        Computer computer = computerRepository.findById(computerId)
+                .orElseThrow(() -> new IllegalArgumentException("Computer with ID " + computerId + " not found."));
+        computer.setName(name);
+        computerRepository.save(computer);
     }
 
     private Computer createNewComputer(ComputerDto computerDto, User user) {
@@ -99,20 +117,40 @@ public class ComputerService {
         computer.setIs_visible(computerDto.getIsVisible());
         computer.setUser(user);
 
-        for (BaseOfferDto componentDto : computerDto.getOffers()) {
-            offerRepository.findByWebsiteUrl(componentDto.getWebsiteUrl()).ifPresentOrElse(offer -> {
-                System.out.println("znaleziony komp: " + componentDto.getModel());
-                ComputerOffer computer_offer = new ComputerOffer();
-                computer_offer.setOffer(offer);
-                offer.getComputerOffers().add(computer_offer);
-                computer_offer.setComputer(computer);
-                computer.getComputer_offer().add(computer_offer);
-                System.out.println("Added ComputerOffer. Total now: " + computer.getComputer_offer().size());
 
-            }, () -> {
-                System.out.println(" nie znaleziony komp: " + componentDto.getModel());
-            });
+        if (computerDto.getOffers() != null) {
+            for (BaseOfferDto componentDto : computerDto.getOffers()) {
+                offerRepository.findByWebsiteUrl(componentDto.getWebsiteUrl()).ifPresentOrElse(offer -> {
+                    System.out.println("znaleziony komp: " + componentDto.getModel());
+                    ComputerOffer computer_offer = new ComputerOffer();
+                    computer_offer.setOffer(offer);
+                    offer.getComputerOffers().add(computer_offer);
+                    computer_offer.setComputer(computer);
+                    computer.getComputer_offer().add(computer_offer);
+                    System.out.println("Added ComputerOffer. Total now: " + computer.getComputer_offer().size());
+
+                }, () -> {
+                    System.out.println(" nie znaleziony komp: " + componentDto.getModel());
+                });
+            }
         }
+
         return computer;
+    }
+
+    @Transactional
+    public void deleteComputer(Long computerId) {
+
+        Computer computer = computerRepository.findById(computerId)
+                .orElseThrow(() -> new IllegalArgumentException("Computer with ID " + computerId + " not found."));
+
+        if (!computer.getComputer_offer().isEmpty()) {
+            computerOfferRepository.deleteAll(new HashSet<>(computer.getComputer_offer()));
+            computer.getComputer_offer().clear();
+        }
+
+        computerRepository.delete(computer);
+        System.out.println("🗑️ Deleted computer: " + computer.getName() + " (ID: " + computerId + ")");
+
     }
 }
