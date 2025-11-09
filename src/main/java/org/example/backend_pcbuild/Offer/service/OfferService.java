@@ -139,18 +139,6 @@ public class OfferService {
                                              SortByOffers sortBy,
                                              String querySearch) {
 
-
-
-//        Sort sort = Sort.unsorted();
-//
-//        if (sortBy == SortByOffers.CHEAPEST)
-//            sort = Sort.by("price").ascending();
-//        else if (sortBy == SortByOffers.EXPENSIVE)
-//            sort = Sort.by("price").descending();
-//        else if (sortBy == SortByOffers.NEWEST)
-//            sort = Sort.by("createdAt").descending();
-
-
         List<BaseOfferDto> result = new ArrayList<>();
         Specification<Offer> spec = Specification.not(null);
 
@@ -236,7 +224,7 @@ public class OfferService {
         }
 
         if (shopName != null && !shopName.isBlank()) {
-            stream = stream.filter(o -> o.getShop() != null && o.getShop().equalsIgnoreCase(shopName));
+            stream = stream.filter(o -> o.getShopName() != null && o.getShopName().equalsIgnoreCase(shopName));
         }
 
         if (minPrize != null) {
@@ -371,6 +359,24 @@ public class OfferService {
         }
     }
 
+    public  List<ComponentStatsDto>  getCountsOffersByComponents() {
+        var totals = offerRepository.getOfferStatsTotal();
+        var details = offerRepository.getOfferStatsByComponentAndShop();
+
+        Map<String, Map<String, Long>> byType = new HashMap<>();
+        for (var d : details) {
+            byType.computeIfAbsent(d.getComponentType(), k -> new HashMap<>())
+                    .put(d.getShopName(), d.getCount());
+        }
+
+        return totals.stream()
+                .map(t -> new ComponentStatsDto(
+                        t.getComponentType(),
+                        t.getTotal(),
+                        byType.getOrDefault(t.getComponentType(), Map.of())
+                ))
+                .toList();
+    }
 
     private Offer buildOfferFromData(Map<String, Object> componentData) {
         Offer offer = new Offer();

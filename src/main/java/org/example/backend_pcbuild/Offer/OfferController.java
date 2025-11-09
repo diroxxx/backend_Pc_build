@@ -3,6 +3,7 @@ package org.example.backend_pcbuild.Offer;
 
 import lombok.AllArgsConstructor;
 import org.example.backend_pcbuild.Offer.dto.BaseOfferDto;
+import org.example.backend_pcbuild.Offer.dto.ComponentStatsDto;
 import org.example.backend_pcbuild.Offer.service.OfferService;
 import org.example.backend_pcbuild.models.ItemCondition;
 import org.example.backend_pcbuild.models.ComponentType;
@@ -33,6 +34,13 @@ public class OfferController {
     @GetMapping("/shops")
     public ResponseEntity<List<String>> getAllShops() {
         return ResponseEntity.ok(offerService.getAllOfferNames());
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<List<ComponentStatsDto>> getCountsOffersByComponents() {
+
+        List<ComponentStatsDto> countsOffersByComponents = offerService.getCountsOffersByComponents();
+        return ResponseEntity.ok(countsOffersByComponents);
     }
 
     public record OffersPageResponse(

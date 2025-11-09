@@ -16,7 +16,7 @@ public class OfferComponentMapper {
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
         dto.setPrice(offer.getPrice());
-        dto.setShop(offer.getShop() != null ? offer.getShop().getName() : null);
+        dto.setShopName(offer.getShop() != null ? offer.getShop().getName() : null);
 
         dto.setSocketType(entity.getSocket_type());
         dto.setBaseClock(entity.getBase_clock());
@@ -35,7 +35,7 @@ public class OfferComponentMapper {
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
         dto.setPrice(offer.getPrice());
-        dto.setShop(offer.getShop() != null ? offer.getShop().getName() : null);
+        dto.setShopName(offer.getShop() != null ? offer.getShop().getName() : null);
 
         dto.setVram(entity.getVram());
         dto.setGddr(entity.getGddr());
@@ -53,7 +53,7 @@ public class OfferComponentMapper {
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
         dto.setPrice(offer.getPrice());
-        dto.setShop(offer.getShop() != null ? offer.getShop().getName() : null);
+        dto.setShopName(offer.getShop() != null ? offer.getShop().getName() : null);
 
         dto.setCapacity(entity.getCapacity());
         dto.setType(entity.getType());
@@ -72,7 +72,7 @@ public class OfferComponentMapper {
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
         dto.setPrice(offer.getPrice());
-        dto.setShop(offer.getShop() != null ? offer.getShop().getName() : null);
+        dto.setShopName(offer.getShop() != null ? offer.getShop().getName() : null);
         dto.setChipset(entity.getChipset());
         dto.setFormat(entity.getFormat());
         dto.setMemoryType(entity.getMemoryType());
@@ -92,7 +92,7 @@ public class OfferComponentMapper {
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
         dto.setPrice(offer.getPrice());
-        dto.setShop(offer.getShop() != null ? offer.getShop().getName() : null);
+        dto.setShopName(offer.getShop() != null ? offer.getShop().getName() : null);
 
         dto.setMaxPowerWatt(entity.getMaxPowerWatt());
         return dto;
@@ -108,7 +108,7 @@ public class OfferComponentMapper {
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
         dto.setPrice(offer.getPrice());
-        dto.setShop(offer.getShop() != null ? offer.getShop().getName() : null);
+        dto.setShopName(offer.getShop() != null ? offer.getShop().getName() : null);
 
         dto.setCapacity(entity.getCapacity());
         return dto;
@@ -124,7 +124,7 @@ public class OfferComponentMapper {
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
         dto.setPrice(offer.getPrice());
-        dto.setShop(offer.getShop() != null ? offer.getShop().getName() : null);
+        dto.setShopName(offer.getShop() != null ? offer.getShop().getName() : null);
 
         dto.setFormat(entity.getFormat());
         return dto;
@@ -140,7 +140,7 @@ public class OfferComponentMapper {
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
         dto.setPrice(offer.getPrice());
-        dto.setShop(offer.getShop() != null ? offer.getShop().getName() : null);
+        dto.setShopName(offer.getShop() != null ? offer.getShop().getName() : null);
 
         dto.setCoolerSocketsType(entity.getSocketTypes());
         return dto;

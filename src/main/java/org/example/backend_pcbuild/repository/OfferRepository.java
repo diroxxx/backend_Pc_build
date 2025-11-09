@@ -11,19 +11,13 @@ import java.util.Optional;
 
 @Repository
 public interface OfferRepository extends JpaRepository<Offer, Long> {
-//    Optional<Offer> findByWebsiteUrl(String website_url);
 
     @Query("SELECT o FROM Offer o WHERE TRIM(LOWER(o.websiteUrl)) = TRIM(LOWER(:url))")
     Optional<Offer> findByWebsiteUrl(@Param("url") String url);
 
-
-
     List<Offer> findAllByWebsiteUrlIn(List<String> urls);
 
     void deleteByWebsiteUrlIn(List<String> urls);
-
-    List<Offer> findByShop_NameIgnoreCaseAndIsVisibleTrue(String shopName);
-
 
     @Query("""
     SELECT o.item.componentType as type, COUNT(o) as count
@@ -35,7 +29,7 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
 """)
     List<OfferTypeCountProjection> countVisibleOffersByShop(@Param("shopName") String shopName);
 
-    public interface OfferTypeCountProjection {
+    interface OfferTypeCountProjection {
         String getType();
         Long getCount();
     }
@@ -44,6 +38,27 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
 
     @Query("SELECT DISTINCT o.shop.name FROM Offer o")
     List<String> findDistinctShopNames();
+
+    @Query("SELECT i.componentType AS componentType, s.name AS shopName, COUNT(o) AS count " +
+            "FROM Offer o join Item i on o.item= i join Shop s on o.shop = s GROUP BY i.componentType, s.name")
+    List<ComponentShopCountProjection> getOfferStatsByComponentAndShop();
+
+    @Query("SELECT i.componentType AS componentType, COUNT(o) AS total " +
+            "FROM Offer o join Item i on o.item = i GROUP BY i.componentType")
+    List<ComponentTotalProjection> getOfferStatsTotal();
+
+
+    public interface ComponentShopCountProjection {
+        String getComponentType();
+        String getShopName();
+        Long getCount();
+    }
+
+    public interface ComponentTotalProjection {
+        String getComponentType();
+        Long getTotal();
+    }
+
 
 
 }

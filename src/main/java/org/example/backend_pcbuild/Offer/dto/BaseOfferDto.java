@@ -38,7 +38,7 @@ public abstract class BaseOfferDto {
     private String photoUrl;
     private String websiteUrl;
     private Double price;
-    private String shop;
+    private String shopName;
     private ComponentType componentType;
 
 

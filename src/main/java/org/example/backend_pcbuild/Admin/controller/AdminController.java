@@ -61,9 +61,7 @@ public class AdminController {
 
     private final OfferRepository offerRepository;
 
-//    private final OfferUpdateBufferService bufferService;
     private final ShopRepository shopRepository;
-
 
     private final OfferUpdateRepository offerUpdateRepository;
     private final OfferUpdateConfigRepository offerUpdateConfigRepository;
@@ -150,16 +148,13 @@ public class AdminController {
                     }
 
                     Map<String, Object> checkingPayload = Map.of(
-//                            "updateId", (save.getId()),
                             "updateId", (offerUpdate.getId()),
                             "shop", shop,
                             "urls", listOfUrls
                     );
                     rabbitTemplate.convertAndSend("checkOffers." + shop, checkingPayload);
-//                    rabbitTemplate.convertAndSend("checkOffers.olx", checkingPayload);
 
                     Map<String, Object> scrapingPayload = Map.of(
-//                            "updateId", (save.getId()),
                             "updateId", (offerUpdate.getId()),
                             "shop", shop
                     );
@@ -306,7 +301,6 @@ public void handleOffersAdded(Message amqpMessage) {
         return ResponseEntity.ok(Map.of("message", "Offer update config updated"));
     }
 
-//    @PreAuthorize("hasAuthority('ADMIN')")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/users")
 //    public ResponseEntity<List<UserDto>> getUsers(@AuthenticationPrincipal UserDto userPrincipal) {
