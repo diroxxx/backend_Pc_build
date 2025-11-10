@@ -35,6 +35,7 @@ public class ComponentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) ComponentType componentType,
+            @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) String brand, HttpServletRequest request) {
 //        System.out.println(itemType);
 //        System.out.println("=== Request Parameters ===");
@@ -42,7 +43,7 @@ public class ComponentController {
 //            System.out.println(key + " = " + Arrays.toString(values));
 //        });
         Pageable pageable = PageRequest.of(page, size);
-        Page<BaseItemDto> componentsPage = componentService.getComponents(pageable, componentType, brand);
+        Page<BaseItemDto> componentsPage = componentService.getComponents(pageable, componentType, brand, searchTerm);
 
         ComponentsPageResponse response = new ComponentsPageResponse(
                 componentsPage.getContent(),

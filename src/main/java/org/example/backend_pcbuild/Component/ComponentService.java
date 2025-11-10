@@ -1,5 +1,8 @@
 package org.example.backend_pcbuild.Component;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,14 +44,33 @@ public class ComponentService {
                 .toList();
     }
 
-    public Page<BaseItemDto> getComponents(Pageable pageable, ComponentType type, String brand) {
+    public Page<BaseItemDto> getComponents(Pageable pageable, ComponentType type, String brand, String searchTerm) {
         Specification<Item> spec = Specification.not(null);
 
         if (type != null) {
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("itemType")), "%" + type.name().toLowerCase() + "%"));
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("componentType")), "%" + type.name().toLowerCase() + "%"));
         }
         if (brand != null && !brand.isEmpty()) {
             spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("brand")), "%" + brand.toLowerCase() + "%"));
+        }
+        if (searchTerm != null && !searchTerm.isEmpty()) {
+            String term = "%" + searchTerm.toLowerCase() + "%";
+
+            spec = spec.and((root, query, cb) -> {
+                List<Predicate> predicates = new ArrayList<>();
+                predicates.add(cb.like(cb.lower(root.get("brand")), term));
+                predicates.add(cb.like(cb.lower(root.get("model")), term));
+
+                Join<Item, Processor> processorJoin = root.join("processor", JoinType.LEFT);
+                Join<Item, Memory> memoryJoin = root.join("memory", JoinType.LEFT);
+                Join<Item, GraphicsCard> gpuJoin = root.join("graphicsCard", JoinType.LEFT);
+
+                predicates.add(cb.like(cb.lower(processorJoin.get("socket_type")), term));
+                predicates.add(cb.like(cb.lower(memoryJoin.get("type")), term));
+                predicates.add(cb.like(cb.lower(gpuJoin.get("gddr")), term));
+                //to implement rest of components
+                return cb.or(predicates.toArray(new Predicate[0]));
+            });
         }
 
         Page<Item> itemsPage = itemRepository.findAll(spec, pageable);
