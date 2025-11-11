@@ -6,8 +6,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.backend_pcbuild.Component.dto.BaseItemDto;
-import org.example.backend_pcbuild.Component.dto.ItemComponentMapper;
+import org.example.backend_pcbuild.Component.dto.*;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.*;
 import org.springframework.core.ParameterizedTypeReference;
@@ -140,7 +139,6 @@ public class ComponentService {
                     if (brand == null || model == null) {
                         continue;
                     }
-//                    log.debug("Processing component type={} brand={} model={}", type, brand, model);
 
                     Item item = itemRepository.findByBrandAndModel(brand, model)
                             .orElseGet(() -> {
@@ -282,6 +280,145 @@ public class ComponentService {
             }
         }
     }
+
+    public void saveComponent(BaseItemDto dto) {
+            if (dto instanceof ProcessorItemDto processor) {
+                saveProcessor(processor);
+            } else if (dto instanceof GraphicsCardItemDto gpu) {
+                saveGpu(gpu);
+            }
+            else if (dto instanceof MotherboardItemDto mb) {
+                saveMotherboard(mb);
+            }
+            else if (dto instanceof CaseItemDto c) {
+                saveCase(c);
+            }
+            else if (dto instanceof MemoryItemDto m) {
+                saveMemory(m);
+            }
+            else if (dto instanceof PowerSupplyItemDto p) {
+                savePowerSupply(p);
+            }
+            else if (dto instanceof CoolerItemDto c) {
+                saveCooler(c);
+            }
+            else {
+                throw new IllegalArgumentException("Nieobsługiwany typ komponentu: " + dto.getComponentType());
+            }
+        }
+
+
+    private void saveProcessor(ProcessorItemDto dto) {
+        Processor cpu = new Processor();
+        Item item = new Item();
+        item.setBrand(dto.getBrand());
+        item.setModel(dto.getModel());
+        item.setComponentType(ComponentType.PROCESSOR);
+        cpu.setCores(dto.getCores());
+        cpu.setThreads(dto.getThreads());
+        cpu.setBase_clock(dto.getBaseClock());
+        cpu.setSocket_type(dto.getSocketType());
+        cpu.setItem(item);
+        item.setProcessor(cpu);
+        itemRepository.save(item);
+    }
+
+    private void saveGpu(GraphicsCardItemDto dto) {
+        GraphicsCard gpu = new GraphicsCard();
+        Item item = new Item();
+        item.setBrand(dto.getBrand());
+        item.setModel(dto.getModel());
+        gpu.setVram(dto.getVram());
+        gpu.setGddr(dto.getGddr());
+        gpu.setPower_draw(dto.getPowerDraw());
+        item.setComponentType(ComponentType.GRAPHICS_CARD);
+        gpu.setItem(item);
+        item.setGraphicsCard(gpu);
+        itemRepository.save(item);
+    }
+
+    private void saveMotherboard(MotherboardItemDto dto) {
+        Motherboard mb = new Motherboard();
+        Item item = new Item();
+        item.setBrand(dto.getBrand());
+        item.setModel(dto.getModel());
+        mb.setChipset(dto.getChipset());
+        mb.setFormat(dto.getFormat());
+        mb.setMemoryType(dto.getMemoryType());
+        mb.setSocketType(dto.getSocketType());
+        mb.setRamSlots(dto.getRamSlots());
+        mb.setRamCapacity(dto.getRamCapacity());
+        item.setComponentType(ComponentType.MOTHERBOARD);
+        mb.setItem(item);
+        item.setMotherboard(mb);
+        itemRepository.save(item);
+    }
+
+    public void saveCase(CaseItemDto dto) {
+        Case c = new Case();
+        Item item = new Item();
+        item.setBrand(dto.getBrand());
+        item.setModel(dto.getModel());
+        c.setFormat(dto.getFormat());
+        item.setComponentType(ComponentType.CASE_PC);
+        c.setItem(item);
+        item.setCase_(c);
+        itemRepository.save(item);
+    }
+
+    public void saveMemory(MemoryItemDto dto) {
+        Memory m = new Memory();
+        Item item = new Item();
+        item.setBrand(dto.getBrand());
+        item.setModel(dto.getModel());
+        m.setCapacity(dto.getCapacity());
+        m.setType(dto.getType());
+        m.setSpeed(dto.getSpeed());
+        m.setLatency(dto.getLatency());
+        item.setComponentType(ComponentType.MEMORY);
+        m.setItem(item);
+        item.setMemory(m);
+        itemRepository.save(item);
+    }
+
+    public void savePowerSupply(PowerSupplyItemDto dto) {
+        PowerSupply ps = new PowerSupply();
+        Item item = new Item();
+        item.setBrand(dto.getBrand());
+        item.setModel(dto.getModel());
+        ps.setMaxPowerWatt(dto.getMaxPowerWatt());
+        item.setComponentType(ComponentType.POWER_SUPPLY);
+        ps.setItem(item);
+        item.setPowerSupply(ps);
+        itemRepository.save(item);
+    }
+
+    public void saveCooler(CoolerItemDto dto) {
+        Cooler c = new Cooler();
+        Item item = new Item();
+        item.setBrand(dto.getBrand());
+        item.setModel(dto.getModel());
+        item.setComponentType(ComponentType.CPU_COOLER);
+        c.setSocketTypes(dto.getCoolerSocketsType());
+        c.setItem(item);
+        item.setCooler(c);
+        itemRepository.save(item);
+    }
+
+    public void saveStorage(StorageItemDto dto) {
+        Storage s = new Storage();
+        Item item = new Item();
+        item.setBrand(dto.getBrand());
+        item.setModel(dto.getModel());
+        s.setCapacity(dto.getCapacity());
+        item.setComponentType(ComponentType.STORAGE);
+        s.setItem(item);
+        item.setStorage(s);
+        itemRepository.save(item);
+    }
+
+
+
     private Integer getIntegerValue(Map<String, Object> data, String key) {
         Object value = data.get(key);
         if (value instanceof Integer) {

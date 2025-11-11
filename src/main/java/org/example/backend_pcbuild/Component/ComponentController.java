@@ -1,6 +1,9 @@
 package org.example.backend_pcbuild.Component;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Component.dto.BaseItemDto;
 import org.example.backend_pcbuild.models.ComponentType;
@@ -8,19 +11,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/components")
 @RequiredArgsConstructor
 public class ComponentController {
-    private final ComponentService componentService;
 
+    private final ComponentService componentService;
     public record ComponentsPageResponse(
             List<BaseItemDto> items,
             boolean hasMore,
@@ -54,6 +55,13 @@ public class ComponentController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping
+    public ResponseEntity<?> saveComponent(@RequestBody BaseItemDto item) {
+        componentService.saveComponent(item);
+        return ResponseEntity.ok("Component has been successfully saved");
+    }
+
 
 
 //    @PreAuthorize("hasAuthority('ROLE_ADMIN')")

@@ -3,15 +3,14 @@ package org.example.backend_pcbuild.Admin.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.dto.OfferShopUpdateInfoDto;
+import org.example.backend_pcbuild.Admin.dto.OfferUpdateStatsDTO;
 import org.example.backend_pcbuild.Admin.repository.ShopOfferUpdateRepository;
-import org.example.backend_pcbuild.models.Offer;
-import org.example.backend_pcbuild.models.OfferShopOfferUpdate;
-import org.example.backend_pcbuild.models.OfferUpdate;
-import org.example.backend_pcbuild.models.ShopOfferUpdate;
+import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.Admin.repository.OfferUpdateRepository;
 import org.example.backend_pcbuild.repository.OfferRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -124,4 +123,29 @@ public class OfferUpdateService {
         return dto;
     }
 
+//    public List<OfferUpdateStatsDTO> getOfferUpdateStats() {
+//        return offerUpdateRepository.findOfferStatsLast30Days();
+//    }
+
+//    public List<OfferUpdateRepository.OfferUpdateStatsProjection> getOfferUpdateStats() {
+//        return offerUpdateRepository.findOfferStatsLast30Days();
+//    }
+//public List<OfferUpdateStatsDTO> getOfferStats() {
+//    return repo.findOfferStatsLast30DaysNative().stream()
+//            .map(r -> new OfferUpdateStatsDTO(((Number) r[0]).longValue(), ((Date) r[1]).toLocalDate()))
+//            .toList();
+//}
+
+    public List<OfferUpdateStatsDTO> getOfferStatsLast30Days() {
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        return offerUpdateRepository.findOfferStatsSince(thirtyDaysAgo);
+    }
+
+    public List<OfferUpdateRepository.OfferUpdateShopsOffersAmountStatsProjection> getOffersShopsAmountStats() {
+        return offerUpdateRepository.findOfferStatsByShop();
+    }
+
 }
+
+
+

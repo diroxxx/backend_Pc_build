@@ -2,6 +2,8 @@ package org.example.backend_pcbuild.Admin.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.dto.OfferShopUpdateInfoDto;
+import org.example.backend_pcbuild.Admin.dto.OfferUpdateStatsDTO;
+import org.example.backend_pcbuild.Admin.repository.OfferUpdateRepository;
 import org.example.backend_pcbuild.Admin.service.OfferUpdateService;
 import org.example.backend_pcbuild.Offer.service.OfferService;
 import org.springframework.http.ResponseEntity;
@@ -26,5 +28,15 @@ public class OfferUpdateController {
         return ResponseEntity.ok(offerUpdateService.getOfferUpdates());
     }
 
+//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/stats")
+    public ResponseEntity<List<OfferUpdateStatsDTO>> getOfferUpdateStats() {
+    return ResponseEntity.ok(offerUpdateService.getOfferStatsLast30Days());
+    }
+
+    @GetMapping("stats/shops")
+    public ResponseEntity<List<OfferUpdateRepository.OfferUpdateShopsOffersAmountStatsProjection>> getOffersShopsAmountStats() {
+        return ResponseEntity.ok(offerUpdateService.getOffersShopsAmountStats());
+    }
 
 }
