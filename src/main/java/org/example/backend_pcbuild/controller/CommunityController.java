@@ -11,10 +11,18 @@ import org.example.backend_pcbuild.Community.Repository.PostCommentRepository;
 import org.example.backend_pcbuild.Community.Repository.PostRepository;
 import org.example.backend_pcbuild.Community.Service.CommunityService;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
+import org.example.backend_pcbuild.LoginAndRegister.dto.PostResponseDto;
+import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
 import org.example.backend_pcbuild.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -41,58 +49,52 @@ public class CommunityController {
     private CommunityService communityService;
 
 
-    @GetMapping("/posts")
+    @GetMapping("/")
     public List<Post> getAllPosts() {
         return postRepository.findAll();
     }
 
 
-    @PostMapping("/posts")
+@PostMapping("/posts")
+public Post createPost(@RequestBody CreatePostDTO dto) {
 
-//    public Post createPost(@RequestBody CreatePostDTO dto) {
-//        User user = userRepository.findById(dto.getUserId())
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        Category category = categoryRepository.findById(dto.getCategoryId())
-//                .orElseThrow(() -> new RuntimeException("Category not found"));
-//
-//        Post post = new Post();
-//        post.setTitle(dto.getTitle());
-//        post.setContent(dto.getContent());
-//        post.setUser(user);
-//        post.setCategory(category);
-//        post.setCreatedAt(LocalDateTime.now());
-//
-//        return postRepository.save(post);
-//    }
-    public Post createPost(@RequestBody CreatePostDTO dto, @AuthenticationPrincipal User currentUser) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // ⚠️ Krok 1: Weryfikacja zalogowanego użytkownika
-        if (currentUser == null) {
-            // Zabezpieczenie na wypadek, gdyby Security nie zadziałało poprawnie,
-            // ale standardowo powinno to być zablokowane filtrem JWT/Security.
-            throw new RuntimeException("Unauthorized: User not logged in.");
-        }
+    if (authentication == null || !authentication.isAuthenticated() ||
+            authentication.getPrincipal().equals("anonymousUser")) {
 
-        // ⚠️ Krok 2: Używamy obiektu Usera z Security zamiast z DTO
-        User user = currentUser;
-
-        Category category = categoryRepository.findById(dto.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-
-        Post post = new Post();
-        post.setTitle(dto.getTitle());
-        post.setContent(dto.getContent());
-        post.setUser(user); // Ustawiamy Usera pobranego z Security
-        post.setCategory(category);
-        post.setCreatedAt(LocalDateTime.now());
-
-        return postRepository.save(post);
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
     }
+
+    UserDto principalUserDto = (UserDto) authentication.getPrincipal();
+
+
+    User user = userRepository.findByEmail(principalUserDto.getEmail())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found in database."));
+
+    Category category = categoryRepository.findById(dto.getCategoryId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+
+
+    Post post = new Post();
+    post.setTitle(dto.getTitle());
+    post.setContent(dto.getContent());
+    post.setUser(user);
+    post.setCategory(category);
+    post.setCreatedAt(LocalDateTime.now());
+
+    return postRepository.save(post);
+}
+
     @GetMapping("/posts/{id}")
     public Optional<Post> getPostById(@PathVariable Integer id) {
         return postRepository.findById(id);
     }
+
+
+
+
+
 
 
     // ============ KOMENTARZE ============
@@ -120,9 +122,9 @@ public class CommunityController {
         return categoryRepository.findAll();
     }
 
-    @PostMapping("/categories")
-    public Category createCategory(@RequestBody Category category) {
-        return categoryRepository.save(category);
-    }
+//    @PostMapping("/categories")
+//    public Category createCategory(@RequestBody Category category) {
+//        return categoryRepository.save(category);
+//    }
 
 }

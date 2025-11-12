@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 public class CreatePostDTO {
     private String title;
     private String content;
-    private Long userId;
+    private String email;
     private Long categoryId;
 }
