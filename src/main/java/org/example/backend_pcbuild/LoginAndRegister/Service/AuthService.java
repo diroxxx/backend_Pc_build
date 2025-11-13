@@ -19,15 +19,15 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class AuthService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public UserDto findByLogin(String login) {
-        User user = userRepository.findByEmail(login).orElseThrow(() -> new AppException("Uknown user", HttpStatus.NOT_FOUND));
-        return  userMapper.toDto(user);
+    public UserDto findByLogin(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        return user.map(userMapper::toDto).orElse(null);
     }
 
     public UserDto login(CredentialsDto credentials, UserRole userRole) {
@@ -37,7 +37,7 @@ public class UserService {
 
         if(!passwordEncoder.matches(CharBuffer.wrap(credentials.getPassword()), user.getPassword())) {
 
-            throw new AppException("Invalid password", HttpStatus.FORBIDDEN);
+            throw new AppException("Invalid password or Email", HttpStatus.FORBIDDEN);
         }
 
         return userMapper.toDto(user);

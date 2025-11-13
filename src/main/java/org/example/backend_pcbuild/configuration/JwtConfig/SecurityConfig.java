@@ -31,8 +31,6 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/h2-console/**", "/collectData","/components/**").permitAll()
-//                        .requestMatchers("/auth/**", "/error").permitAll() // jeśli masz login/register endpointy
-//                                .requestMatchers("/admin/**").authenticated()
                                 .requestMatchers("/offers/**", "/offers").permitAll()
                                 .requestMatchers("/auth/**",  "/error").permitAll()
                                 // for tests

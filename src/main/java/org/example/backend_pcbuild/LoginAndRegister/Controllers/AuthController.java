@@ -3,13 +3,14 @@ package org.example.backend_pcbuild.LoginAndRegister.Controllers;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.configuration.JwtConfig.UserAuthProvider;
-import org.example.backend_pcbuild.LoginAndRegister.Service.UserService;
+import org.example.backend_pcbuild.LoginAndRegister.Service.AuthService;
 import org.example.backend_pcbuild.LoginAndRegister.dto.CredentialsDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.SignUpDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
@@ -29,15 +30,15 @@ import java.net.URI;
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class AuthController {
 
-    private final UserService userService;
+    private final AuthService authService;
     private final UserAuthProvider userAuthProvider;
 
     private final UserRepository userRepository;
 
 
 @PostMapping("/login/user")
-public ResponseEntity<UserDto> loginUser(@RequestBody CredentialsDto credentialsDto, HttpServletResponse response) {
-    UserDto login = userService.login(credentialsDto, UserRole.USER);
+public ResponseEntity<UserDto> loginUser(@RequestBody @Valid CredentialsDto credentialsDto, HttpServletResponse response) {
+    UserDto login = authService.login(credentialsDto, UserRole.USER);
     login.setAccessToken(userAuthProvider.createToken(login));
     String refreshToken = userAuthProvider.createRefreshToken(login);
 
@@ -51,7 +52,7 @@ public ResponseEntity<UserDto> loginUser(@RequestBody CredentialsDto credentials
 
     @PostMapping("/login/admin")
     public ResponseEntity<UserDto> loginAdmin(@RequestBody CredentialsDto credentialsDto, HttpServletResponse response) {
-        UserDto login = userService.login(credentialsDto, UserRole.ADMIN);
+        UserDto login = authService.login(credentialsDto, UserRole.ADMIN);
         login.setAccessToken(userAuthProvider.createToken(login));
         String refreshToken = userAuthProvider.createRefreshToken(login);
 
@@ -66,7 +67,7 @@ public ResponseEntity<UserDto> loginUser(@RequestBody CredentialsDto credentials
     @PostMapping("/register")
     public ResponseEntity<UserDto> register(@RequestBody SignUpDto signUpDto) {
 
-        UserDto user = userService.register(signUpDto);
+        UserDto user = authService.register(signUpDto);
         user.setRefreshToken(userAuthProvider.createRefreshToken(user));
         return ResponseEntity.created(URI.create("/users" + user.getId())).body(user);
     }
@@ -97,7 +98,7 @@ public ResponseEntity<UserDto> loginUser(@RequestBody CredentialsDto credentials
     public ResponseEntity<?> verifyCurrentPassword(@RequestBody PasswordChangeRequest request, Authentication authentication) {
         UserDto user = (UserDto) authentication.getPrincipal();
         String email = user.getEmail();
-        boolean isValid = userService.checkPassword(email, request.getCurrentPassword());
+        boolean isValid = authService.checkPassword(email, request.getCurrentPassword());
         if (isValid) {
             return ResponseEntity.ok("Password verified");
         }
@@ -110,7 +111,7 @@ public ResponseEntity<UserDto> loginUser(@RequestBody CredentialsDto credentials
 //        String userEmail = authentication.getName();
         UserDto user = (UserDto) authentication.getPrincipal();
         String email = user.getEmail();
-        User userAfterChanged = userService.changePassword(email, request.getCurrentPassword());
+        User userAfterChanged = authService.changePassword(email, request.getCurrentPassword());
         System.out.println( "hasło do zmiany " +request.getCurrentPassword());
         if (userAfterChanged == null) {
             return ResponseEntity.badRequest().body("Password have not been changed");

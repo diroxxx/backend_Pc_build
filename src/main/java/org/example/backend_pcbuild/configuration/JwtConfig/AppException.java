@@ -1,5 +1,6 @@
 package org.example.backend_pcbuild.configuration.JwtConfig;
 
+import ch.qos.logback.core.joran.spi.DefaultClass;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -9,5 +10,9 @@ public class AppException extends RuntimeException  {
     public AppException(String message, HttpStatus code) {
         super(message);
         this.code = code;
+    }
+
+    public HttpStatus getStatus() {
+        return code;
     }
 }

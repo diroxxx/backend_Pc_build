@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,20 +30,14 @@ public class ComponentController {
             long totalElements
     ) {}
 
-
-
     @GetMapping
     public ResponseEntity<ComponentsPageResponse> getComponents(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) ComponentType componentType,
             @RequestParam(required = false) String searchTerm,
-            @RequestParam(required = false) String brand, HttpServletRequest request) {
-//        System.out.println(itemType);
-//        System.out.println("=== Request Parameters ===");
-//        request.getParameterMap().forEach((key, values) -> {
-//            System.out.println(key + " = " + Arrays.toString(values));
-//        });
+            @RequestParam(required = false) String brand) {
+
         Pageable pageable = PageRequest.of(page, size);
         Page<BaseItemDto> componentsPage = componentService.getComponents(pageable, componentType, brand, searchTerm);
 
@@ -57,6 +52,7 @@ public class ComponentController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> saveComponent(@RequestBody BaseItemDto item) {
         componentService.saveComponent(item);
         return ResponseEntity.ok("Component has been successfully saved");

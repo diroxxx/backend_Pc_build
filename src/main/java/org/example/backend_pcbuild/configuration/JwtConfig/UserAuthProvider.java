@@ -10,7 +10,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.RefreshTokenRepository;
-import org.example.backend_pcbuild.LoginAndRegister.Service.UserService;
+import org.example.backend_pcbuild.LoginAndRegister.Service.AuthService;
 import org.example.backend_pcbuild.models.RefreshToken;
 import org.example.backend_pcbuild.models.User;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +29,7 @@ import java.util.*;
 public class UserAuthProvider {
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final UserService userService;
+    private final AuthService authService;
 
     @Value("${security.jwt.token.secret-key:secret-value}")
     private String secretKey;
@@ -90,7 +90,7 @@ public class UserAuthProvider {
             DecodedJWT decodedJWT = verifier.verify(token);
 
             String email = decodedJWT.getSubject();
-            UserDto user = userService.findByLogin(email);
+            UserDto user = authService.findByLogin(email);
             if (user == null) {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token or user not found");
             }
@@ -121,7 +121,7 @@ public class UserAuthProvider {
         JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secretKey)).build();
         try {
             DecodedJWT decodedJWT = verifier.verify(refreshToken);
-            UserDto user = userService.findByLogin(decodedJWT.getSubject());
+            UserDto user = authService.findByLogin(decodedJWT.getSubject());
             System.out.println("Refresh token validated for user: " + user.getEmail());
             return createToken(user);
         } catch (TokenExpiredException e) {
