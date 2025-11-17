@@ -93,38 +93,64 @@ public Post createPost(@RequestBody CreatePostDTO dto) {
 
 
 
-
-
-
-
-    // ============ KOMENTARZE ============
-
     @GetMapping("/posts/{postId}/comments")
     public List<PostCommentDTO> getCommentsForPost(@PathVariable Long postId) {
         return communityService.getCommentsForPost(postId);
     }
 
-    @PostMapping("/posts/{postId}/comments")
-    public PostComment addComment(@PathVariable Integer postId, @RequestBody PostComment comment) {
-        Post post = postRepository.findById(postId).orElseThrow();
-        User user = userRepository.findById(comment.getUser().getId()).orElseThrow();
+//    @PostMapping("/posts/{postId}/comments")
+//    public PostComment addComment(@PathVariable Integer postId, @RequestBody PostComment comment) {
+//        Post post = postRepository.findById(postId).orElseThrow();
+//        User user = userRepository.findById(comment.getUser().getId()).orElseThrow();
+//
+//        comment.setPost(post);
+//        comment.setUser(user);
+//        comment.setCreatedAt(LocalDateTime.now());
+//
+//        return commentRepository.save(comment);
+//    }
 
-        comment.setPost(post);
+    @PostMapping("/posts/{postId}/comments")
+    public PostComment addComment(@PathVariable Integer postId, @RequestBody PostComment dto) {
+
+        // 1. Uwierzytelnienie i Pobranie Principal (jak w createPost)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() ||
+                authentication.getPrincipal().equals("anonymousUser")) {
+            // Zwróć 401, jeśli użytkownik nie jest zalogowany
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
+        }
+
+        // Zakładamy, że principal to UserDto (zgodnie z logiką createPost)
+        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
+
+        // 2. Pobranie Autora z Bazy
+        User user = userRepository.findByEmail(principalUserDto.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found in database."));
+
+        // 3. Pobranie Posta, do którego dodawany jest komentarz
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found."));
+
+        // 4. Utworzenie Obiektu Komentarza
+        PostComment comment = new PostComment();
+
+        // Ustawienie treści z DTO
+        comment.setContent(dto.getContent());
+
+        // Bezpieczne ustawienie relacji i timestampu
         comment.setUser(user);
+        comment.setPost(post);
         comment.setCreatedAt(LocalDateTime.now());
 
+        // 5. Zapis do bazy danych
         return commentRepository.save(comment);
     }
-
 
     @GetMapping("/categories")
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
     }
-
-//    @PostMapping("/categories")
-//    public Category createCategory(@RequestBody Category category) {
-//        return categoryRepository.save(category);
-//    }
 
 }
