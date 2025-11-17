@@ -9,8 +9,9 @@ import org.example.backend_pcbuild.models.ComponentType;
 public class MemoryDto extends BaseOfferDto {
     private String type;
     private Integer capacity;
-    private String speed;
-    private String latency;
+    private Integer speed;
+    private Integer latency;
+    private Integer amount;
 
     {
         setComponentType(ComponentType.MEMORY);

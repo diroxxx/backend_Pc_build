@@ -2,7 +2,6 @@ package org.example.backend_pcbuild.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,7 +23,6 @@ public class Offer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
 
     @NotNull
     private String title;
@@ -54,11 +52,11 @@ public class Offer {
     @ToString.Exclude
     private Shop shop;
 
-    @ManyToOne
-    @JoinColumn(name = "item_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "component_id")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Item item;
+    private Component component;
 
     @OneToMany(mappedBy = "offer",cascade = CascadeType.ALL)
     @EqualsAndHashCode.Exclude

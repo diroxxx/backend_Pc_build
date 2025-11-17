@@ -37,22 +37,20 @@ public class OfferUpdateService {
             for (ShopOfferUpdate shopOfferUpdate : offerUpdate.getShopOfferUpdates()) {
                 String shopName = shopOfferUpdate.getShop().getName();
 
-                Map<String, Integer> offersAdded = countOffersByType(shopOfferUpdate, true);
-                Map<String, Integer> offersDeleted = countOffersByType(shopOfferUpdate, false);
-
-                Map<String, Integer> totalOffers = offerRepository.countVisibleOffersByShop(shopName)
-                        .stream()
-                        .collect(Collectors.toMap(
-                                OfferRepository.OfferTypeCountProjection::getType,
-                                p -> p.getCount().intValue()
-                        ));
-
+                Map<String, Integer> offersAdded = countOffersByType(
+                        shopOfferUpdate,
+                        UpdateChangeType.ADDED
+                );
+                Map<String, Integer> offersDeleted = countOffersByType(
+                        shopOfferUpdate,
+                        UpdateChangeType.DELETED
+                );
 
                 OfferShopUpdateInfoDto.ShopUpdateInfoDto shopDto = new OfferShopUpdateInfoDto.ShopUpdateInfoDto();
                 shopDto.setShopName(shopName);
                 shopDto.setOffersAdded(offersAdded);
                 shopDto.setOffersDeleted(offersDeleted);
-                shopDto.setTotalOffers(totalOffers);
+                shopDto.setStatus(shopOfferUpdate.getStatus());
 
                 dto.getShops().add(shopDto);
             }
@@ -64,17 +62,7 @@ public class OfferUpdateService {
     }
 
 
-    private Map<String, Integer> countOffersByType(ShopOfferUpdate shopOfferUpdate, boolean isVisible) {
-        return shopOfferUpdate.getOfferShopOfferUpdates().stream()
-                .map(OfferShopOfferUpdate::getOffer)
-                .filter(offer -> offer.getIsVisible() == isVisible)
-                .collect(Collectors.groupingBy(
-                        offer -> offer.getItem().getComponentType().name(),
-                        Collectors.summingInt(o -> 1)
-                ));
-    }
-
-    public OfferShopUpdateInfoDto.ShopUpdateInfoDto getShopUpdateInfo(String shopName, Long offerUpdateId, boolean isVisible) {
+    public OfferShopUpdateInfoDto.ShopUpdateInfoDto getShopUpdateInfo(String shopName, Long offerUpdateId) {
 
         ShopOfferUpdate shopOfferUpdate = shopOfferUpdateRepository
                 .findFirstByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateId, shopName)
@@ -82,59 +70,48 @@ public class OfferUpdateService {
 
         OfferShopUpdateInfoDto.ShopUpdateInfoDto dto = new OfferShopUpdateInfoDto.ShopUpdateInfoDto();
         dto.setShopName(shopName);
-        dto.setTotalOffers(Collections.emptyMap());
         dto.setOffersAdded(Collections.emptyMap());
         dto.setOffersDeleted(Collections.emptyMap());
+        dto.setStatus(shopOfferUpdate.getStatus());
 
-        if (shopOfferUpdate == null) {
-            return dto;
-        }
 
-        Map<String, Integer> totalByType = offerRepository
-                .countVisibleOffersByShop(shopName)
-                .stream()
-                .collect(Collectors.toMap(
-                        OfferRepository.OfferTypeCountProjection::getType,
-                        p -> p.getCount().intValue()
-                ));
-
-        List<Offer> offersFromUpdate = shopOfferUpdate.getOfferShopOfferUpdates().stream()
+        Map<String, Integer> addedByType = shopOfferUpdate.getOfferShopOfferUpdates().stream()
+                .filter(link -> link.getUpdateChangeType() == UpdateChangeType.ADDED)
                 .map(OfferShopOfferUpdate::getOffer)
-                .filter(o -> o.getItem() != null)
-                .toList();
-
-        Map<String, Integer> addedByType = offersFromUpdate.stream()
-                .filter(o -> Boolean.TRUE.equals(o.getIsVisible()))
+                .filter(o -> o.getComponent() != null)
                 .collect(Collectors.groupingBy(
-                        o -> o.getItem().getComponentType().name(),
+                        o -> o.getComponent().getComponentType().name(),
                         Collectors.summingInt(x -> 1)
                 ));
 
-        Map<String, Integer> deletedByType = offersFromUpdate.stream()
-                .filter(o -> Boolean.FALSE.equals(o.getIsVisible()))
+        Map<String, Integer> deletedByType = shopOfferUpdate.getOfferShopOfferUpdates().stream()
+                .filter(link -> link.getUpdateChangeType() == UpdateChangeType.DELETED)
+                .map(OfferShopOfferUpdate::getOffer)
+                .filter(o -> o.getComponent() != null)
                 .collect(Collectors.groupingBy(
-                        o -> o.getItem().getComponentType().name(),
+                        o -> o.getComponent().getComponentType().name(),
                         Collectors.summingInt(x -> 1)
                 ));
 
-        dto.setTotalOffers(totalByType);
         dto.setOffersAdded(addedByType);
         dto.setOffersDeleted(deletedByType);
         return dto;
     }
 
-//    public List<OfferUpdateStatsDTO> getOfferUpdateStats() {
-//        return offerUpdateRepository.findOfferStatsLast30Days();
-//    }
+    private Map<String, Integer> countOffersByType(
+            ShopOfferUpdate shopOfferUpdate,
+            UpdateChangeType changeType
+    ) {
+        return shopOfferUpdate.getOfferShopOfferUpdates().stream()
+                .filter(link -> link.getUpdateChangeType() == changeType)
+                .map(OfferShopOfferUpdate::getOffer)
+                .filter(offer -> offer.getComponent() != null)
+                .collect(Collectors.groupingBy(
+                        offer -> offer.getComponent().getComponentType().name(),
+                        Collectors.summingInt(o -> 1)
+                ));
+    }
 
-//    public List<OfferUpdateRepository.OfferUpdateStatsProjection> getOfferUpdateStats() {
-//        return offerUpdateRepository.findOfferStatsLast30Days();
-//    }
-//public List<OfferUpdateStatsDTO> getOfferStats() {
-//    return repo.findOfferStatsLast30DaysNative().stream()
-//            .map(r -> new OfferUpdateStatsDTO(((Number) r[0]).longValue(), ((Date) r[1]).toLocalDate()))
-//            .toList();
-//}
 
     public List<OfferUpdateStatsDTO> getOfferStatsLast30Days() {
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);

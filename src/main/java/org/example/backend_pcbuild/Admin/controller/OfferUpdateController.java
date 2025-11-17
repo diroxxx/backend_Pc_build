@@ -21,7 +21,7 @@ public class OfferUpdateController {
     private final OfferService offerService;
     private final OfferUpdateService offerUpdateService;
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping()
     public ResponseEntity<List<OfferShopUpdateInfoDto>> getOffersUpdates() {
 

@@ -12,15 +12,19 @@ public class OfferShopOfferUpdate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false, cascade = CascadeType.ALL)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "offer_id", nullable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Offer offer;
 
-    @ManyToOne(optional = false, cascade = CascadeType.ALL)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "shop_offer_update_id", nullable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ShopOfferUpdate shopOfferUpdate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "change_type", nullable = false)
+    private UpdateChangeType updateChangeType;
 }

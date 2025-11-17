@@ -11,10 +11,12 @@ public class PowerSupply {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
+    private String modular;
+    private String type;
+    private String efficiencyRating;
     private Integer maxPowerWatt;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @JoinColumn(name = "component_id")
+    private Component component;
 }

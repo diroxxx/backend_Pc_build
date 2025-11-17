@@ -13,11 +13,14 @@ public class Processor {
 
     private Integer cores;
     private Integer threads;
-    private String socket_type;
-    private String base_clock;
+    private String socketType;
+    private Double baseClock;
+    private Double boostClock;
+    private String integratedGraphics;
+    private Integer tdp;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @JoinColumn(name = "component_id")
+    private Component component;
 
 }

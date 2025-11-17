@@ -7,8 +7,10 @@ import org.example.backend_pcbuild.models.ComponentType;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class PowerSupplyDto extends BaseOfferDto {
-    private Integer maxPowerWatt;
-    {
+    private String modular;
+    private String type;
+    private String efficiencyRating;
+    private Integer maxPowerWatt;    {
         setComponentType(ComponentType.POWER_SUPPLY);
     }
 

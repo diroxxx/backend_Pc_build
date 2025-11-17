@@ -8,8 +8,8 @@ import lombok.EqualsAndHashCode;
 public class MotherboardItemDto extends BaseItemDto{
     private String chipset;
     private String socketType;
-    private String memoryType;
     private String format;
     private Integer ramSlots;
     private Integer ramCapacity;
+    private String memoryType;
 }

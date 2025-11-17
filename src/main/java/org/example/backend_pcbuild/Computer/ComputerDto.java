@@ -31,22 +31,22 @@ public class ComputerDto {
 
         for(ComputerOffer computer_offer: ComputerOffers){
             Offer offer = computer_offer.getOffer();
-            if (offer.getItem().getProcessor() != null){
-              componentDtos.add(OfferComponentMapper.toDto(offer.getItem().getProcessor(), offer));
-            } else if (offer.getItem().getGraphicsCard() != null) {
-                componentDtos.add(OfferComponentMapper.toDto(offer.getItem().getGraphicsCard(), offer));
-            } else if (offer.getItem().getMotherboard() != null) {
-                componentDtos.add(OfferComponentMapper.toDto(offer.getItem().getMotherboard(), offer));
-            } else if (offer.getItem().getMemory() != null) {
-                componentDtos.add(OfferComponentMapper.toDto(offer.getItem().getMemory(), offer));
-            } else if (offer.getItem().getStorage() != null) {
-                componentDtos.add(OfferComponentMapper.toDto(offer.getItem().getStorage(), offer));
-            } else if (offer.getItem().getPowerSupply() != null) {
-                componentDtos.add(OfferComponentMapper.toDto(offer.getItem().getPowerSupply(), offer));
-            } else if (offer.getItem().getCase_() != null) {
-                componentDtos.add(OfferComponentMapper.toDto(offer.getItem().getCase_(), offer));
-            } else if (offer.getItem().getCooler() != null) {
-                componentDtos.add(OfferComponentMapper.toDto(offer.getItem().getCooler(), offer));
+            if (offer.getComponent().getProcessor() != null){
+              componentDtos.add(OfferComponentMapper.toDto(offer.getComponent().getProcessor(), offer));
+            } else if (offer.getComponent().getGraphicsCard() != null) {
+                componentDtos.add(OfferComponentMapper.toDto(offer.getComponent().getGraphicsCard(), offer));
+            } else if (offer.getComponent().getMotherboard() != null) {
+                componentDtos.add(OfferComponentMapper.toDto(offer.getComponent().getMotherboard(), offer));
+            } else if (offer.getComponent().getMemory() != null) {
+                componentDtos.add(OfferComponentMapper.toDto(offer.getComponent().getMemory(), offer));
+            } else if (offer.getComponent().getStorage() != null) {
+                componentDtos.add(OfferComponentMapper.toDto(offer.getComponent().getStorage(), offer));
+            } else if (offer.getComponent().getPowerSupply() != null) {
+                componentDtos.add(OfferComponentMapper.toDto(offer.getComponent().getPowerSupply(), offer));
+            } else if (offer.getComponent().getCase_() != null) {
+                componentDtos.add(OfferComponentMapper.toDto(offer.getComponent().getCase_(), offer));
+            } else if (offer.getComponent().getCooler() != null) {
+                componentDtos.add(OfferComponentMapper.toDto(offer.getComponent().getCooler(), offer));
             }
         }
         return ComputerDto.builder()

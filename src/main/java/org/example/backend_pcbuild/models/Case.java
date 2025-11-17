@@ -14,7 +14,7 @@ public class Case {
     private String format;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @JoinColumn(name = "component_id")
+    private Component component;
 
 }

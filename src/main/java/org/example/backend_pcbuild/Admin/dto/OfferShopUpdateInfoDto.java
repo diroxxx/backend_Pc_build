@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.backend_pcbuild.models.ShopUpdateStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,8 +27,8 @@ public class OfferShopUpdateInfoDto {
     @NoArgsConstructor
     public static class ShopUpdateInfoDto {
         String shopName;
-        Map<String, Integer> totalOffers;
         Map<String, Integer> offersAdded;
         Map<String, Integer> offersDeleted;
+        ShopUpdateStatus status;
     }
 }

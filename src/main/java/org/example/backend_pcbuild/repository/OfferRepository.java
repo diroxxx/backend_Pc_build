@@ -15,17 +15,31 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     @Query("SELECT o FROM Offer o WHERE TRIM(LOWER(o.websiteUrl)) = TRIM(LOWER(:url))")
     Optional<Offer> findByWebsiteUrl(@Param("url") String url);
 
+    @Query("SELECT COUNT(o) FROM Offer o JOIN o.offerShopOfferUpdates osou WHERE osou.shopOfferUpdate.id = :shopOfferUpdateId")
+    int countByShopOfferUpdates_ShopOfferUpdate_Id(@Param("shopOfferUpdateId") Long shopOfferUpdateId);
+
+
+    @Query("""
+        SELECT o FROM Offer o
+        WHERE LOWER(TRIM(o.shop.name)) = LOWER(TRIM(:shopName))
+          AND LOWER(TRIM(o.websiteUrl)) = LOWER(TRIM(:url))
+    """)
+    Optional<Offer> findByShopNameAndWebsiteUrlIgnoreCaseTrim(
+            @Param("shopName") String shopName,
+            @Param("url") String url
+    );
+
     List<Offer> findAllByWebsiteUrlIn(List<String> urls);
 
     void deleteByWebsiteUrlIn(List<String> urls);
 
     @Query("""
-    SELECT o.item.componentType as type, COUNT(o) as count
+    SELECT o.component.componentType as type, COUNT(o) as count
     FROM Offer o
     WHERE o.shop.name = :shopName
       AND o.isVisible = true
-      AND o.item IS NOT NULL
-    GROUP BY o.item.componentType
+      AND o.component IS NOT NULL
+    GROUP BY o.component.componentType
 """)
     List<OfferTypeCountProjection> countVisibleOffersByShop(@Param("shopName") String shopName);
 
@@ -40,11 +54,11 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<String> findDistinctShopNames();
 
     @Query("SELECT i.componentType AS componentType, s.name AS shopName, COUNT(o) AS count " +
-            "FROM Offer o join Item i on o.item= i join Shop s on o.shop = s GROUP BY i.componentType, s.name")
+            "FROM Offer o join Component i on o.component= i join Shop s on o.shop = s GROUP BY i.componentType, s.name")
     List<ComponentShopCountProjection> getOfferStatsByComponentAndShop();
 
     @Query("SELECT i.componentType AS componentType, COUNT(o) AS total " +
-            "FROM Offer o join Item i on o.item = i GROUP BY i.componentType")
+            "FROM Offer o join Component i on o.component = i GROUP BY i.componentType")
     List<ComponentTotalProjection> getOfferStatsTotal();
 
 

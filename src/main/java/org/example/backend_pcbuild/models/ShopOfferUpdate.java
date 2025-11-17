@@ -23,6 +23,10 @@ public class ShopOfferUpdate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ShopUpdateStatus status;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "shop_id", nullable = false)
     @EqualsAndHashCode.Exclude

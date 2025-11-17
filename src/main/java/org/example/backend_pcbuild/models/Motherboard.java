@@ -13,14 +13,14 @@ public class Motherboard {
 
     private String chipset;
     private String socketType;
-    private String memoryType;
+    private String format;
     private Integer ramSlots;
     private Integer ramCapacity;
-    private String format;
+    private String memoryType;
 
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @JoinColumn(name = "component_id")
+    private Component component;
 
 }

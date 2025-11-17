@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
+import org.example.backend_pcbuild.Admin.dto.ComponentOfferDto;
 import org.example.backend_pcbuild.Offer.dto.*;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.*;
@@ -25,7 +26,7 @@ public class OfferService {
     private final CaseRepository caseRepository;
     private final CoolerRepository coolerRepository;
     private final GraphicsCardRepository graphicsCardRepository;
-    private final ItemRepository itemRepository;
+    private final ComponentRepository componentRepository;
     private final MemoryRepository memoryRepository;
     private final MotherboardRepository motherboardRepository;
     private final ProcessorRepository processorRepository;
@@ -51,68 +52,81 @@ public class OfferService {
     }
 
 
-    public void softDeleteByUrls(List<String> urls) {
-        if (urls == null || urls.isEmpty()) return;
+    public void softDeleteByUrls(List<String> urls, ShopOfferUpdate shopOfferUpdate) {
+        if (urls == null || urls.isEmpty() || shopOfferUpdate == null) return;
+
         List<Offer> offersToDelete = offerRepository.findAllByWebsiteUrlIn(urls);
 
-        for ( Offer offer : offersToDelete) {
-            for ( String url : urls ) {
-                if (offer.getWebsiteUrl().equals(url)){
-                    offer.setIsVisible(false);
-                }
+        for (Offer offer : offersToDelete) {
+            offer.setIsVisible(false);
+
+            boolean alreadyLinkedDeleted = offer.getOfferShopOfferUpdates().stream()
+                    .anyMatch(link ->
+                            link.getShopOfferUpdate().getId().equals(shopOfferUpdate.getId()) &&
+                                    link.getUpdateChangeType() == UpdateChangeType.DELETED
+                    );
+
+            if (!alreadyLinkedDeleted) {
+                OfferShopOfferUpdate link = new OfferShopOfferUpdate();
+                link.setOffer(offer);
+                link.setShopOfferUpdate(shopOfferUpdate);
+                link.setUpdateChangeType(UpdateChangeType.DELETED);
+
+                offer.getOfferShopOfferUpdates().add(link);
+                shopOfferUpdate.getOfferShopOfferUpdates().add(link);
             }
         }
-        offerRepository.saveAll(offersToDelete);
 
+        offerRepository.saveAll(offersToDelete);
     }
 
     public Map<String, List<?>> getAllOffers() {
         Map<String, List<?>> result = new LinkedHashMap<>();
 
         List<GraphicsCardDto> gpus = graphicsCardRepository.findAll().stream()
-                .flatMap(gc -> gc.getItem().getOffers().stream()
+                .flatMap(gc -> gc.getComponent().getOffers().stream()
                         .filter(Offer::getIsVisible)
                         .map(offer -> OfferComponentMapper.toDto(gc, offer)))
                 . toList();
 //        System.out.println(gpus);
         List<ProcessorDto> processors = processorRepository.findAll().stream()
-                .flatMap(cpu -> cpu.getItem().getOffers().stream()
+                .flatMap(cpu -> cpu.getComponent().getOffers().stream()
                 .filter(Offer::getIsVisible)
                         .map(offer -> OfferComponentMapper.toDto(cpu, offer)))
                 .toList();
 //        System.out.println(processors);
         List<CoolerDto> coolers = coolerRepository.findAll().stream()
-                .flatMap(c -> c.getItem().getOffers().stream()
+                .flatMap(c -> c.getComponent().getOffers().stream()
                         .filter(Offer::getIsVisible)
                         .map(offer -> OfferComponentMapper.toDto(c, offer)))
                 .toList();
 //        System.out.println(coolers);
         List<MemoryDto> memories = memoryRepository.findAll().stream()
-                .flatMap(m -> m.getItem().getOffers().stream()
+                .flatMap(m -> m.getComponent().getOffers().stream()
                         .filter(Offer::getIsVisible)
                         .map(offer -> OfferComponentMapper.toDto(m, offer)))
                 .toList();
 //        System.out.println(memories);
         List<MotherboardDto> motherboards = motherboardRepository.findAll().stream()
-                .flatMap(mb -> mb.getItem().getOffers().stream()
+                .flatMap(mb -> mb.getComponent().getOffers().stream()
                         .filter(Offer::getIsVisible)
                         .map(offer -> OfferComponentMapper.toDto(mb, offer)))
                 .toList();
 //        System.out.println(motherboards);
         List<PowerSupplyDto> powerSupplies = powerSupplyRepository.findAll().stream()
-                .flatMap(ps -> ps.getItem().getOffers().stream()
+                .flatMap(ps -> ps.getComponent().getOffers().stream()
                         .filter(Offer::getIsVisible)
                         .map(offer -> OfferComponentMapper.toDto(ps, offer)))
                 .toList();
 //        System.out.println(powerSupplies);
         List<StorageDto> storages = storageRepository.findAll().stream()
-                .flatMap(s -> s.getItem().getOffers().stream()
+                .flatMap(s -> s.getComponent().getOffers().stream()
                         .filter(Offer::getIsVisible)
                         .map(offer -> OfferComponentMapper.toDto(s, offer)))
                 .toList();
 //        System.out.println(storages);
         List<CaseDto> casesPc = caseRepository.findAll().stream()
-                .flatMap(c -> c.getItem().getOffers().stream()
+                .flatMap(c -> c.getComponent().getOffers().stream()
                         .filter(Offer::getIsVisible)
                         .map(offer -> OfferComponentMapper.toDto(c, offer)))
                 .toList();
@@ -147,7 +161,7 @@ public class OfferService {
 
         if(componentType == null || componentType == ComponentType.GRAPHICS_CARD) {
             List<GraphicsCardDto> gpus = graphicsCardRepository.findAll().stream()
-                    .flatMap(gc -> gc.getItem().getOffers().stream()
+                    .flatMap(gc -> gc.getComponent().getOffers().stream()
                             .filter(Offer::getIsVisible)
                             .map(offer -> OfferComponentMapper.toDto(gc, offer)))
                     . toList();
@@ -156,7 +170,7 @@ public class OfferService {
 
         if(componentType == null || componentType == ComponentType.PROCESSOR) {
             List<ProcessorDto> processors = processorRepository.findAll().stream()
-                    .flatMap(cpu -> cpu.getItem().getOffers().stream()
+                    .flatMap(cpu -> cpu.getComponent().getOffers().stream()
                             .filter(Offer::getIsVisible)
                             .map(offer -> OfferComponentMapper.toDto(cpu, offer)))
                     .toList();
@@ -165,7 +179,7 @@ public class OfferService {
 
         if (componentType == null || componentType == ComponentType.CPU_COOLER) {
             List<CoolerDto> coolers = coolerRepository.findAll().stream()
-                    .flatMap(c -> c.getItem().getOffers().stream()
+                    .flatMap(c -> c.getComponent().getOffers().stream()
                             .filter(Offer::getIsVisible)
                             .map(offer -> OfferComponentMapper.toDto(c, offer)))
                     .toList();
@@ -174,7 +188,7 @@ public class OfferService {
 
         if (componentType == null || componentType == ComponentType.MEMORY) {
             List<MemoryDto> memories = memoryRepository.findAll().stream()
-                    .flatMap(m -> m.getItem().getOffers().stream()
+                    .flatMap(m -> m.getComponent().getOffers().stream()
                             .filter(Offer::getIsVisible)
                             .map(offer -> OfferComponentMapper.toDto(m, offer)))
                     .toList();
@@ -183,7 +197,7 @@ public class OfferService {
 
         if (componentType == null || componentType == ComponentType.MOTHERBOARD) {
             List<MotherboardDto> motherboards = motherboardRepository.findAll().stream()
-                    .flatMap(mb -> mb.getItem().getOffers().stream()
+                    .flatMap(mb -> mb.getComponent().getOffers().stream()
                             .filter(Offer::getIsVisible)
                             .map(offer -> OfferComponentMapper.toDto(mb, offer)))
                     .toList();
@@ -192,7 +206,7 @@ public class OfferService {
 
         if (componentType == null || componentType == ComponentType.POWER_SUPPLY) {
         List<PowerSupplyDto> powerSupplies = powerSupplyRepository.findAll().stream()
-                .flatMap(ps -> ps.getItem().getOffers().stream()
+                .flatMap(ps -> ps.getComponent().getOffers().stream()
                         .filter(Offer::getIsVisible)
                         .map(offer -> OfferComponentMapper.toDto(ps, offer)))
                 .toList();
@@ -201,7 +215,7 @@ public class OfferService {
 
         if (componentType == null || componentType == ComponentType.STORAGE) {
         List<StorageDto> storages = storageRepository.findAll().stream()
-                .flatMap(s -> s.getItem().getOffers().stream()
+                .flatMap(s -> s.getComponent().getOffers().stream()
                         .filter(Offer::getIsVisible)
                         .map(offer -> OfferComponentMapper.toDto(s, offer)))
                 .toList();
@@ -211,7 +225,7 @@ public class OfferService {
         if (componentType == null || componentType == ComponentType.CASE_PC) {
 
             List<CaseDto> casesPc = caseRepository.findAll().stream()
-                    .flatMap(c -> c.getItem().getOffers().stream()
+                    .flatMap(c -> c.getComponent().getOffers().stream()
                             .filter(Offer::getIsVisible)
                             .map(offer -> OfferComponentMapper.toDto(c, offer)))
                     .toList();
@@ -264,15 +278,42 @@ public class OfferService {
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), filtered.size());
 
-        List<BaseOfferDto> pagedList = filtered.subList(start, end);
-
+        List<BaseOfferDto> pagedList;
+        if (start >= filtered.size()) {
+            pagedList = List.of();
+        } else {
+            pagedList = filtered.subList(start, end);
+        }
         return new PageImpl<>(pagedList, pageable, filtered.size());
     }
 
-
-
     @Transactional
-    public void saveAllOffers(Map<String, List<Object>> offers, ShopOfferUpdate update) {
+    public boolean saveOffer(ComponentOfferDto offerDto, ShopOfferUpdate update) {
+        System.out.println("=== Processing Offer ===");
+        System.out.println("Title: " + offerDto.getTitle());
+        System.out.println("Brand: " + offerDto.getBrand());
+        System.out.println("Model: " + offerDto.getModel());
+        System.out.println("Category: " + offerDto.getCategory());
+
+        Optional<Offer> existingOfferOpt = offerRepository
+                .findByShopNameAndWebsiteUrlIgnoreCaseTrim(offerDto.getShop(), offerDto.getUrl());
+
+        if (existingOfferOpt.isPresent()) {
+            Offer existingOffer = existingOfferOpt.get();
+
+            boolean alreadyLinked = existingOffer.getOfferShopOfferUpdates().stream()
+                    .anyMatch(link -> link.getShopOfferUpdate().getId().equals(update.getId()));
+
+            if (alreadyLinked) {
+                System.out.println("Skipping - offer already linked to this update: " + offerDto.getUrl());
+                return false;
+            }
+
+            // Dla istniejących ofert NIC nie zapisujemy do OfferShopOfferUpdate.
+            // Dzięki temu statystyki z aktualizacji (ADDED) będą liczyć tylko NOWE oferty.
+            System.out.println("Skipping existing offer (no new record for this update): " + offerDto.getUrl());
+            return false;
+        }
 
         List<GraphicsCard> graphicsCardList = graphicsCardRepository.findAll();
         List<Processor> processorList = processorRepository.findAll();
@@ -283,82 +324,55 @@ public class OfferService {
         List<Case> caseList = caseRepository.findAll();
         List<Cooler> coolerList = coolerRepository.findAll();
 
-        Map<String, List<?>> categoryMap = Map.of(
-                "graphics_card", graphicsCardList,
-                "processor", processorList,
-                "ram", memoryList,
-                "motherboard", motherboardList,
-                "power_supply", powerSupplyList,
-                "storage", storageList,
-                "case", caseList,
-                "cpu_cooler", coolerList
+        Map<ComponentType, List<?>> categoryMap = Map.of(
+                ComponentType.GRAPHICS_CARD, graphicsCardList,
+                ComponentType.PROCESSOR, processorList,
+                ComponentType.MEMORY, memoryList,
+                ComponentType.MOTHERBOARD, motherboardList,
+                ComponentType.POWER_SUPPLY, powerSupplyList,
+                ComponentType.STORAGE, storageList,
+                ComponentType.CASE_PC, caseList,
+                ComponentType.CPU_COOLER, coolerList
         );
 
-        int totalSaved = 0;
-        int totalDeleted = 0;
-        int totalSkipped = 0;
+        ComponentType category = offerDto.getCategory();
+        List<?> itemsForCategory = categoryMap.getOrDefault(category, Collections.emptyList());
 
-        Map<String, Integer> offersSaved = new HashMap<>();
-        for (String category : offers.keySet()) {
-            offersSaved.put(category, 0);
+        System.out.println("Items for category " + category + ": " + itemsForCategory.size());
+
+        Component bestComponent = offerMatchingService.matchOfferToComponent(
+                category,
+                offerDto,
+                itemsForCategory
+        );
+
+        if (bestComponent == null) {
+            System.out.println("No matching component found for: " +
+                    offerDto.getBrand() + " " + offerDto.getModel() + " - SKIPPING");
+            return false;
         }
 
-        for (Map.Entry<String, List<Object>> entry : offers.entrySet()) {
-            String offerCategory = entry.getKey().toLowerCase();
-            List<?> itemsForCategory = categoryMap.getOrDefault(offerCategory, Collections.emptyList());
+        Offer offer = buildOfferConnectToShop(offerDto);
 
-//            System.out.println("Processing category: " + offerCategory + " with " + entry.getValue().size() + " offers");
+        System.out.println("✓ Matched component: " +
+                bestComponent.getBrand().getName() + " " + bestComponent.getModel());
+        offer.setComponent(bestComponent);
+        bestComponent.getOffers().add(offer);
 
-            for (Object object : entry.getValue()) {
-                try {
-                    Map<String, Object> componentData = (Map<String, Object>) object;
-                    Offer offer = buildOfferFromData(componentData);
+        // TYLKO dla nowych ofert tworzymy powiązanie z aktualizacją (ADDED)
+        OfferShopOfferUpdate offerUpdate = new OfferShopOfferUpdate();
+        offerUpdate.setOffer(offer);
+        offerUpdate.setShopOfferUpdate(update);
+        offerUpdate.setUpdateChangeType(UpdateChangeType.ADDED);
 
-                    String url = offer.getWebsiteUrl();
+        offer.getOfferShopOfferUpdates().add(offerUpdate);
+        update.getOfferShopOfferUpdates().add(offerUpdate);
 
-                    Optional<Offer> existingOfferOpt = offerRepository.findByWebsiteUrl(url);
-                    if (existingOfferOpt.isPresent()) {
-                        totalSkipped++;
-                        continue;
-                    }
+        offerRepository.save(offer);
 
-                    if (offer.getCondition() == null || offer.getShop() == null || offer.getPhotoUrl() == null || url == null) {
-//                        System.out.println("Skipping offer - missing required fields: " + componentData);
-                        totalSkipped++;
-                        continue;
-                    }
-
-                    Item bestItem = offerMatchingService.matchOfferToItem(offerCategory, componentData, itemsForCategory);
-                    if (bestItem != null) {
-                        offer.setItem(bestItem);
-                        bestItem.getOffers().add(offer);
-
-                          OfferShopOfferUpdate offerUpdate = new OfferShopOfferUpdate();
-                          offerUpdate.setOffer(offer);
-                          offerUpdate.setShopOfferUpdate(update);
-
-                          offer.getOfferShopOfferUpdates().add(offerUpdate);
-                          update.getOfferShopOfferUpdates().add(offerUpdate);
-
-
-                          itemRepository.save(bestItem);
-//                          offerRepository.save(offer);
-
-                        offersSaved.put(offerCategory, offersSaved.get(offerCategory) + 1);
-                        totalSaved++;
-//                        System.out.println("Saved offer for: " + bestItem.getBrand() + " " + bestItem.getModel());
-                    } else {
-//                        System.out.println("No matching item found for offer: " + componentData.get("brand") + " " + componentData.get("model"));
-                        totalSkipped++;
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            }
-        }
+        System.out.println("Saved new offer with component: " + offerDto.getUrl());
+        return true;
     }
-
     public  List<ComponentStatsDto>  getCountsOffersByComponents() {
         var totals = offerRepository.getOfferStatsTotal();
         var details = offerRepository.getOfferStatsByComponentAndShop();
@@ -378,55 +392,32 @@ public class OfferService {
                 .toList();
     }
 
-    private Offer buildOfferFromData(Map<String, Object> componentData) {
+    private Offer buildOfferConnectToShop(ComponentOfferDto componentData) {
         Offer offer = new Offer();
 
-        String statusString = (String) componentData.get("status");
+        String statusString = componentData.getStatus();
         if (statusString != null) {
             try {
                 offer.setCondition(ItemCondition.valueOf(statusString));
             } catch (IllegalArgumentException ignored) {}
         }
 
-        offer.setPrice(parsePrice(componentData.get("price")));
-        offer.setPhotoUrl((String) componentData.get("img"));
-        offer.setWebsiteUrl((String) componentData.get("url"));
+        offer.setPrice(componentData.getPrice());
+        offer.setPhotoUrl(componentData.getImg());
+        offer.setWebsiteUrl(componentData.getUrl());
         offer.setIsVisible(true);
-        offer.setTitle((String) componentData.get("title"));
-        String shopName = (String) componentData.get("shop");
-
+        offer.setTitle(componentData.getTitle());
+        String shopName = componentData.getShop();
 
         if (shopName != null && !shopName.isBlank()) {
             Shop shop = shopRepository.findByNameIgnoreCase(shopName)
                     .orElseThrow(() -> new IllegalStateException("Unknown shop: " + shopName));
             offer.setShop(shop);
+            shop.getOffers().add(offer);
         } else {
             throw new IllegalArgumentException("Missing shop name in component data");
         }
 
         return offer;
     }
-
-    private Double parsePrice(Object priceObject) {
-        if (priceObject instanceof Number) {
-            return ((Number) priceObject).doubleValue();
-        } else if (priceObject instanceof String) {
-            String p = ((String) priceObject).replaceAll("[^\\d,\\.]", "").replace(",", ".");
-            if (!p.isEmpty()) {
-                try {
-                    return Double.parseDouble(p);
-                } catch (NumberFormatException ex) {
-                    throw new IllegalArgumentException("Invalid price value: " + priceObject);
-                }
-            } else {
-                throw new IllegalArgumentException("Invalid price value: " + priceObject);
-            }
-        } else {
-            throw new IllegalArgumentException("Invalid price value: " + priceObject);
-        }
-    }
-
-
-
-
 }

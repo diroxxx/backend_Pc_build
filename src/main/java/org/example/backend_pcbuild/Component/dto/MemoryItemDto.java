@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 public class MemoryItemDto extends BaseItemDto{
     private String type;
     private Integer capacity;
-    private String speed;
-    private String latency;
+    private Integer speed;
+    private Integer latency;
+    private Integer amount;
 }

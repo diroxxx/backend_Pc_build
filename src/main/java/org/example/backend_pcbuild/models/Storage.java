@@ -13,8 +13,8 @@ public class Storage {
     private Double capacity;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @JoinColumn(name = "component_id")
+    private Component component;
 
 
 }

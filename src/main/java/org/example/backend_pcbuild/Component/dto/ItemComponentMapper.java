@@ -10,12 +10,15 @@ public class ItemComponentMapper {
         ProcessorItemDto dto = new ProcessorItemDto();
         dto.setId(entity.getId());
         dto.setComponentType(ComponentType.PROCESSOR);
-        dto.setBrand(entity.getItem().getBrand());
-        dto.setModel(entity.getItem().getModel());
-        dto.setSocketType(entity.getSocket_type());
-        dto.setBaseClock(entity.getBase_clock());
+        dto.setBrand(entity.getComponent().getBrand().getName());
+        dto.setModel(entity.getComponent().getModel());
+        dto.setSocketType(entity.getSocketType());
+        dto.setBaseClock(entity.getBaseClock());
         dto.setCores(entity.getCores());
         dto.setThreads(entity.getThreads());
+        dto.setTdp(entity.getTdp());
+        dto.setBoostClock(entity.getBoostClock());
+        dto.setIntegratedGraphics(entity.getIntegratedGraphics());
         return dto;
     }
 
@@ -23,11 +26,11 @@ public class ItemComponentMapper {
         GraphicsCardItemDto dto = new GraphicsCardItemDto();
         dto.setId(entity.getId());
         dto.setComponentType(ComponentType.GRAPHICS_CARD);
-        dto.setBrand(entity.getItem().getBrand());
-        dto.setModel(entity.getItem().getModel());
+        dto.setBrand(entity.getComponent().getBrand().getName());
+        dto.setModel(entity.getComponent().getModel());
         dto.setVram(entity.getVram());
         dto.setGddr(entity.getGddr());
-        dto.setPowerDraw(entity.getPower_draw());
+        dto.setPowerDraw(entity.getPowerDraw());
         return dto;
     }
 
@@ -35,8 +38,8 @@ public class ItemComponentMapper {
         MemoryItemDto dto = new MemoryItemDto();
         dto.setId(entity.getId());
         dto.setComponentType(ComponentType.MEMORY);
-        dto.setBrand(entity.getItem().getBrand());
-        dto.setModel(entity.getItem().getModel());
+        dto.setBrand(entity.getComponent().getBrand().getName());
+        dto.setModel(entity.getComponent().getModel());
         dto.setCapacity(entity.getCapacity());
         dto.setType(entity.getType());
         dto.setLatency(entity.getLatency());
@@ -48,8 +51,8 @@ public class ItemComponentMapper {
         MotherboardItemDto dto = new MotherboardItemDto();
         dto.setId(entity.getId());
         dto.setComponentType(ComponentType.MOTHERBOARD);
-        dto.setBrand(entity.getItem().getBrand());
-        dto.setModel(entity.getItem().getModel());
+        dto.setBrand(entity.getComponent().getBrand().getName());
+        dto.setModel(entity.getComponent().getModel());
         dto.setChipset(entity.getChipset());
         dto.setFormat(entity.getFormat());
         dto.setMemoryType(entity.getMemoryType());
@@ -63,8 +66,8 @@ public class ItemComponentMapper {
         PowerSupplyItemDto dto = new PowerSupplyItemDto();
         dto.setId(entity.getId());
         dto.setComponentType(ComponentType.POWER_SUPPLY);
-        dto.setBrand(entity.getItem().getBrand());
-        dto.setModel(entity.getItem().getModel());
+        dto.setBrand(entity.getComponent().getBrand().getName());
+        dto.setModel(entity.getComponent().getModel());
         dto.setMaxPowerWatt(entity.getMaxPowerWatt());
         return dto;
     }
@@ -73,8 +76,8 @@ public class ItemComponentMapper {
         StorageItemDto dto = new StorageItemDto();
         dto.setId(entity.getId());
         dto.setComponentType(ComponentType.STORAGE);
-        dto.setBrand(entity.getItem().getBrand());
-        dto.setModel(entity.getItem().getModel());
+        dto.setBrand(entity.getComponent().getBrand().getName());
+        dto.setModel(entity.getComponent().getModel());
         dto.setCapacity(entity.getCapacity());
         return dto;
     }
@@ -83,8 +86,8 @@ public class ItemComponentMapper {
         CaseItemDto dto = new CaseItemDto();
         dto.setId(entity.getId());
         dto.setComponentType(ComponentType.CASE_PC);
-        dto.setBrand(entity.getItem().getBrand());
-        dto.setModel(entity.getItem().getModel());
+        dto.setBrand(entity.getComponent().getBrand().getName());
+        dto.setModel(entity.getComponent().getModel());
         dto.setFormat(entity.getFormat());
         return dto;
     }
@@ -92,7 +95,7 @@ public class ItemComponentMapper {
         CoolerItemDto dto = new CoolerItemDto();
         dto.setId(entity.getId());
         dto.setComponentType(ComponentType.CPU_COOLER);
-        dto.setBrand(entity.getItem().getBrand());
+        dto.setBrand(entity.getComponent().getBrand().getName());
         dto.setCoolerSocketsType(entity.getSocketTypes());
         return dto;
     }

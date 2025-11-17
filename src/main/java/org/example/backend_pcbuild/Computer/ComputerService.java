@@ -68,11 +68,11 @@ public class ComputerService {
         Offer offer = offerRepository.findByWebsiteUrl(offerUrl)
                 .orElseThrow(() -> new IllegalArgumentException("Offer with URL " + finalOfferUrl + " not found."));
 
-        ComponentType newType = offer.getItem().getComponentType();
+        ComponentType newType = offer.getComponent().getComponentType();
 
         ComputerOffer existingOffer = computer.getComputer_offer().stream()
                 .filter(co -> {
-                    ComponentType existingType = co.getOffer().getItem().getComponentType();
+                    ComponentType existingType = co.getOffer().getComponent().getComponentType();
                     System.out.printf("Comparing existing=%s vs new=%s%n", existingType, newType);
 
                     return existingType != null && existingType.equals(newType);
@@ -99,7 +99,7 @@ public class ComputerService {
         computerRepository.save(computer);
 
         System.out.printf("Added %s (%s). New total price: %.2f%n",
-                newType, offer.getItem().getModel(), totalPrice);
+                newType, offer.getComponent().getModel(), totalPrice);
     }
 
     public void updateComputerName(String name, Long computerId) {

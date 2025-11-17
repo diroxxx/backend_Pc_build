@@ -10,6 +10,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class CoolerDto extends BaseOfferDto {
     private List<String> coolerSocketsType;
+    private String fanRpm;
+    private String noiseLevel;
+    private String radiatorSize;
 
     {
         setComponentType(ComponentType.CPU_COOLER);

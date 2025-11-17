@@ -18,9 +18,13 @@ public class Cooler {
     @Column(name = "socket_type")
     private List<String> socketTypes;
 
+    private String fanRpm;
+    private String noiseLevel;
+    private String radiatorSize;
+
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @JoinColumn(name = "component_id")
+    private Component component;
 
 
 

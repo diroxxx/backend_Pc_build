@@ -25,6 +25,10 @@ public class OfferUpdate {
     private LocalDateTime startedAt;
     private LocalDateTime finishedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private OfferUpdateStatus status;
+
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "offer_update_config_id")
     @ToString.Exclude

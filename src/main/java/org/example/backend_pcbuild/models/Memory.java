@@ -2,6 +2,7 @@ package org.example.backend_pcbuild.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.data.relational.core.sql.In;
 
 @Entity
 @Data
@@ -12,11 +13,13 @@ public class Memory {
 
     private String type;
     private Integer capacity;
-    private String speed;
-    private String latency;
+    private Integer speed;
+    private Integer latency;
+    private Integer amount;
+
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @JoinColumn(name = "component_id")
+    private Component component;
 
 }

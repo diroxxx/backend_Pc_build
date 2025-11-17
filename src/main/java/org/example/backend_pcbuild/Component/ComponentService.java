@@ -24,8 +24,9 @@ import java.util.*;
 @Slf4j
 public class ComponentService {
     private final RestClient restClient = RestClient.create();
-    private final ItemRepository itemRepository;
+    private final ComponentRepository componentRepository;
     private final ItemComponentMapper itemComponentMapper;
+    private final BrandRepository brandRepository;
 
     public Map<String, List<Object>> fetchComponentsAsMap() {
         return restClient.get()
@@ -35,36 +36,43 @@ public class ComponentService {
     }
 
     public List<BaseItemDto> getAllComponents() {
-        List<Item> items = itemRepository.findAll();
+        List<Component> components = componentRepository.findAll();
 
-        return items.stream()
+        return components.stream()
                 .map(this::mapToDto)
                 .filter(Objects::nonNull)
                 .toList();
     }
 
     public Page<BaseItemDto> getComponents(Pageable pageable, ComponentType type, String brand, String searchTerm) {
-        Specification<Item> spec = Specification.not(null);
+        Specification<Component> spec = Specification.not(null);
 
         if (type != null) {
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("componentType")), "%" + type.name().toLowerCase() + "%"));
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("componentType"), type)
+            );
         }
         if (brand != null && !brand.isEmpty()) {
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("brand")), "%" + brand.toLowerCase() + "%"));
+            spec = spec.and((root, query, cb) ->
+                    cb.like(
+                            cb.lower(root.get("brand").get("name")),
+                            "%" + brand.toLowerCase() + "%"
+                    )
+            );
         }
         if (searchTerm != null && !searchTerm.isEmpty()) {
             String term = "%" + searchTerm.toLowerCase() + "%";
 
             spec = spec.and((root, query, cb) -> {
                 List<Predicate> predicates = new ArrayList<>();
-                predicates.add(cb.like(cb.lower(root.get("brand")), term));
+                predicates.add(cb.like(cb.lower(root.get("brand").get("name")), term));
                 predicates.add(cb.like(cb.lower(root.get("model")), term));
 
-                Join<Item, Processor> processorJoin = root.join("processor", JoinType.LEFT);
-                Join<Item, Memory> memoryJoin = root.join("memory", JoinType.LEFT);
-                Join<Item, GraphicsCard> gpuJoin = root.join("graphicsCard", JoinType.LEFT);
+                Join<Component, Processor> processorJoin = root.join("processor", JoinType.LEFT);
+                Join<Component, Memory> memoryJoin = root.join("memory", JoinType.LEFT);
+                Join<Component, GraphicsCard> gpuJoin = root.join("graphicsCard", JoinType.LEFT);
 
-                predicates.add(cb.like(cb.lower(processorJoin.get("socket_type")), term));
+                predicates.add(cb.like(cb.lower(processorJoin.get("socketType")), term));
                 predicates.add(cb.like(cb.lower(memoryJoin.get("type")), term));
                 predicates.add(cb.like(cb.lower(gpuJoin.get("gddr")), term));
                 //to implement rest of components
@@ -72,39 +80,39 @@ public class ComponentService {
             });
         }
 
-        Page<Item> itemsPage = itemRepository.findAll(spec, pageable);
+        Page<Component> itemsPage = componentRepository.findAll(spec, pageable);
 
         return itemsPage.map(this::mapToDto);
     }
 
 
-    private BaseItemDto mapToDto(Item item) {
-        if (item == null || item.getComponentType() == null) return null;
+    private BaseItemDto mapToDto(Component component) {
+        if (component == null || component.getComponentType() == null) return null;
 
-        switch (item.getComponentType()) {
+        switch (component.getComponentType()) {
             case PROCESSOR -> {
-                return itemComponentMapper.toDto(item.getProcessor());
+                return itemComponentMapper.toDto(component.getProcessor());
             }
             case GRAPHICS_CARD -> {
-                return itemComponentMapper.toDto(item.getGraphicsCard());
+                return itemComponentMapper.toDto(component.getGraphicsCard());
             }
             case MOTHERBOARD -> {
-                return itemComponentMapper.toDto(item.getMotherboard());
+                return itemComponentMapper.toDto(component.getMotherboard());
             }
             case MEMORY -> {
-                return itemComponentMapper.toDto(item.getMemory());
+                return itemComponentMapper.toDto(component.getMemory());
             }
             case CPU_COOLER -> {
-                return itemComponentMapper.toDto(item.getCooler());
+                return itemComponentMapper.toDto(component.getCooler());
             }
             case POWER_SUPPLY -> {
-                return itemComponentMapper.toDto(item.getPowerSupply());
+                return itemComponentMapper.toDto(component.getPowerSupply());
             }
             case CASE_PC -> {
-                return itemComponentMapper.toDto(item.getCase_());
+                return itemComponentMapper.toDto(component.getCase_());
             }
             case STORAGE -> {
-                return itemComponentMapper.toDto(item.getStorage());
+                return itemComponentMapper.toDto(component.getStorage());
             }
             default -> {
                 return null;
@@ -113,11 +121,33 @@ public class ComponentService {
     }
 
     public List<String> getAllBrands() {
-        return itemRepository.findDistinctBrands();
+        return componentRepository.findDistinctBrands();
 
 
     }
+    private Brand getOrCreateBrand(String brandName) {
+        if (brandName == null || brandName.isBlank()) {
+            throw new IllegalArgumentException("Brand name cannot be null or blank");
+        }
+        return brandRepository.findByNameIgnoreCase(brandName.trim())
+                .orElseGet(() -> {
+                    Brand brand = new Brand();
+                    brand.setName(brandName.trim());
+                    return brandRepository.save(brand);
+                });
+    }
 
+    private Component getOrCreateComponent(String brandName, String model, ComponentType type) {
+        Brand brand = getOrCreateBrand(brandName);
+        return componentRepository.findByBrandAndModelIgnoreCase(brand, model)
+                .orElseGet(() -> {
+                    Component c = new Component();
+                    c.setBrand(brand);
+                    c.setModel(model);
+                    c.setComponentType(type);
+                    return c;
+                });
+    }
 
     @Transactional
     public void saveBasedComponents(Map<String, List<Object>> components) {
@@ -140,43 +170,42 @@ public class ComponentService {
                         continue;
                     }
 
-                    Item item = itemRepository.findByBrandAndModel(brand, model)
-                            .orElseGet(() -> {
-                                Item it = new Item();
-                                it.setBrand(brand);
-                                it.setModel(model);
-                                return it;
-                            });
+                    Brand checkBrand =getOrCreateBrand(brand);
+
+                    Component component = componentRepository.findByBrandAndModelIgnoreCase(checkBrand, model).orElseGet(() -> {
+                        Component component1 = new Component();
+                        component1.setModel(model);
+                        component1.setBrand(checkBrand);
+                        return component1;
+                    });
 
                     switch (type) {
                         case "processor": {
-                            if (item.getProcessor() != null) break;
+                            if (component.getProcessor() != null) break;
                             Processor p = new Processor();
                             p.setCores(getIntegerValue(data, "cores"));
                             p.setThreads(getIntegerValue(data, "threads"));
-                            p.setSocket_type(getStringValue(data, "socket"));
-                            p.setBase_clock(getStringValue(data, "base_clock"));
-                            p.setItem(item);
-                            item.setComponentType(ComponentType.PROCESSOR);
-                            item.setProcessor(p);
-//                            processorRepository.save(p);
-                            itemRepository.save(item);
+                            p.setSocketType(getStringValue(data, "socket"));
+                            p.setBaseClock(getDoubleValue(data, "base_clock"));
+                            p.setComponent(component);
+                            component.setComponentType(ComponentType.PROCESSOR);
+                            component.setProcessor(p);
+                            componentRepository.save(component);
                             break;
                         }
                         case "storage": {
-                            if (item.getStorage() != null) break;
+                            if (component.getStorage() != null) break;
                             Storage s = new Storage();
                             s.setCapacity(getDoubleValue(data, "capacity"));
-                            s.setItem(item);
-                            item.setStorage(s);
-                            item.setComponentType(ComponentType.STORAGE);
-//                            storageRepository.save(s);
-                            itemRepository.save(item);
+                            s.setComponent(component);
+                            component.setStorage(s);
+                            component.setComponentType(ComponentType.STORAGE);
+                            componentRepository.save(component);
 
                             break;
                         }
                         case "motherboard": {
-                            if (item.getMotherboard() != null) break;
+                            if (component.getMotherboard() != null) break;
                             Motherboard mb = new Motherboard();
                             mb.setChipset(getStringValue(data, "chipset"));
                             mb.setFormat(getStringValue(data, "format"));
@@ -184,30 +213,30 @@ public class ComponentService {
                             mb.setSocketType(getStringValue(data, "socket_motherboard"));
                             mb.setRamSlots(getIntegerValue(data, "ramslots"));
                             mb.setRamCapacity(getIntegerValue(data, "memory_capacity"));
-                            mb.setItem(item);
-                            item.setMotherboard(mb);
-                            item.setComponentType(ComponentType.MOTHERBOARD);
+                            mb.setComponent(component);
+                            component.setMotherboard(mb);
+                            component.setComponentType(ComponentType.MOTHERBOARD);
 //                            motherboardRepository.save(mb);
-                            itemRepository.save(item);
+                            componentRepository.save(component);
 
                             break;
                         }
                         case "power_supply": {
-                            if (item.getPowerSupply() != null) break;
+                            if (component.getPowerSupply() != null) break;
                             PowerSupply ps = new PowerSupply();
                             Integer maxW = getIntegerValue(data, "maxPowerWatt");
                             if (maxW == null) maxW = getIntegerValue(data, "max_power_watt");
                             ps.setMaxPowerWatt(maxW);
-                            ps.setItem(item);
-                            item.setPowerSupply(ps);
-                            item.setComponentType(ComponentType.POWER_SUPPLY);
+                            ps.setComponent(component);
+                            component.setPowerSupply(ps);
+                            component.setComponentType(ComponentType.POWER_SUPPLY);
 //                            powerSupplyRepository.save(ps);
-                            itemRepository.save(item);
+                            componentRepository.save(component);
 
                             break;
                         }
                         case "cpu_cooler": {
-                            if (item.getCooler() != null) break;
+                            if (component.getCooler() != null) break;
                             Cooler cooler = new Cooler();
                             Object socketsObj = data.get("sockets");
                             if (socketsObj instanceof List) {
@@ -221,51 +250,51 @@ public class ComponentService {
                                         .toList();
                                 cooler.setSocketTypes(sockets);
                             }
-                            cooler.setItem(item);
-                            item.setCooler(cooler);
-                            item.setComponentType(ComponentType.CPU_COOLER);
+                            cooler.setComponent(component);
+                            component.setCooler(cooler);
+                            component.setComponentType(ComponentType.CPU_COOLER);
 //                            coolerRepository.save(cooler);
-                            itemRepository.save(item);
+                            componentRepository.save(component);
 
                             break;
                         }
                         case "graphics_card": {
-                            if (item.getGraphicsCard() != null) break;
+                            if (component.getGraphicsCard() != null) break;
                             GraphicsCard g = new GraphicsCard();
                             g.setGddr(getStringValue(data, "gddr"));
-                            g.setPower_draw(getDoubleValue(data, "power_draw"));
+                            g.setPowerDraw(getDoubleValue(data, "power_draw"));
                             g.setVram(getIntegerValue(data, "vram"));
-                            g.setItem(item);
-                            item.setGraphicsCard(g);
-                            item.setComponentType(ComponentType.GRAPHICS_CARD);
+                            g.setComponent(component);
+                            component.setGraphicsCard(g);
+                            component.setComponentType(ComponentType.GRAPHICS_CARD);
 //                            graphicsCardRepository.save(g);
-                            itemRepository.save(item);
+                            componentRepository.save(component);
 
                             break;
                         }
                         case "case": {
-                            if (item.getCase_() != null) break;
+                            if (component.getCase_() != null) break;
                             Case c = new Case();
                             c.setFormat(getStringValue(data, "format"));
-                            c.setItem(item);
-                            item.setCase_(c);
-                            item.setComponentType(ComponentType.CASE_PC);
-                            itemRepository.save(item);
+                            c.setComponent(component);
+                            component.setCase_(c);
+                            component.setComponentType(ComponentType.CASE_PC);
+                            componentRepository.save(component);
 //                            caseRepository.save(c);
                             break;
                         }
                         case "ram": {
-                            if (item.getMemory() != null) break;
+                            if (component.getMemory() != null) break;
                             Memory m = new Memory();
                             m.setCapacity(getIntegerValue(data, "capacity"));
                             m.setType(getStringValue(data, "type"));
-                            m.setSpeed(getStringValue(data, "speed"));
-                            m.setLatency(getStringValue(data, "latency"));
-                            m.setItem(item);
-                            item.setMemory(m);
-                            item.setComponentType(ComponentType.MEMORY);
+                            m.setSpeed(getIntegerValue(data, "speed"));
+                            m.setLatency(getIntegerValue(data, "latency"));
+                            m.setComponent(component);
+                            component.setMemory(m);
+                            component.setComponentType(ComponentType.MEMORY);
 //                            memoryRepository.save(m);
-                            itemRepository.save(item);
+                            componentRepository.save(component);
                             break;
                         }
                         default:
@@ -278,6 +307,19 @@ public class ComponentService {
                     throw e;
                 }
             }
+        }
+    }
+    @Transactional
+    public void saveComponents(List<? extends BaseItemDto> components) {
+        if (components == null || components.isEmpty()) {
+            return;
+        }
+        components.forEach(this::saveComponent);
+    }
+
+    private <T> void setIfNotNull(T value, java.util.function.Consumer<T> setter) {
+        if (value != null) {
+            setter.accept(value);
         }
     }
 
@@ -301,6 +343,8 @@ public class ComponentService {
             }
             else if (dto instanceof CoolerItemDto c) {
                 saveCooler(c);
+            } else if (dto instanceof StorageItemDto s) {
+                saveStorage(s);
             }
             else {
                 throw new IllegalArgumentException("Nieobsługiwany typ komponentu: " + dto.getComponentType());
@@ -309,112 +353,191 @@ public class ComponentService {
 
 
     private void saveProcessor(ProcessorItemDto dto) {
-        Processor cpu = new Processor();
-        Item item = new Item();
-        item.setBrand(dto.getBrand());
-        item.setModel(dto.getModel());
-        item.setComponentType(ComponentType.PROCESSOR);
-        cpu.setCores(dto.getCores());
-        cpu.setThreads(dto.getThreads());
-        cpu.setBase_clock(dto.getBaseClock());
-        cpu.setSocket_type(dto.getSocketType());
-        cpu.setItem(item);
-        item.setProcessor(cpu);
-        itemRepository.save(item);
+        if (dto.getBrand() == null || dto.getModel() == null) {
+            throw new IllegalArgumentException("Processor must have brand and model");
+        }
+
+        Component component = getOrCreateComponent(dto.getBrand(), dto.getModel(), ComponentType.PROCESSOR);
+
+        Processor cpu = component.getProcessor();
+        if (cpu == null) {
+            cpu = new Processor();
+            cpu.setComponent(component);
+            component.setProcessor(cpu);
+        }
+
+        setIfNotNull(dto.getCores(), cpu::setCores);
+        setIfNotNull(dto.getThreads(), cpu::setThreads);
+        setIfNotNull(dto.getSocketType(), cpu::setSocketType);
+        setIfNotNull(dto.getBaseClock(), cpu::setBaseClock);
+        setIfNotNull(dto.getBoostClock(), cpu::setBoostClock);
+        setIfNotNull(dto.getIntegratedGraphics(), cpu::setIntegratedGraphics);
+        setIfNotNull(dto.getTdp(), cpu::setTdp);
+
+        component.setComponentType(ComponentType.PROCESSOR);
+        componentRepository.save(component);
     }
 
     private void saveGpu(GraphicsCardItemDto dto) {
-        GraphicsCard gpu = new GraphicsCard();
-        Item item = new Item();
-        item.setBrand(dto.getBrand());
-        item.setModel(dto.getModel());
-        gpu.setVram(dto.getVram());
-        gpu.setGddr(dto.getGddr());
-        gpu.setPower_draw(dto.getPowerDraw());
-        item.setComponentType(ComponentType.GRAPHICS_CARD);
-        gpu.setItem(item);
-        item.setGraphicsCard(gpu);
-        itemRepository.save(item);
+        if (dto.getBrand() == null || dto.getModel() == null) {
+            throw new IllegalArgumentException("GPU must have brand and model");
+        }
+
+        Component component = getOrCreateComponent(dto.getBrand(), dto.getModel(), ComponentType.GRAPHICS_CARD);
+
+        GraphicsCard gpu = component.getGraphicsCard();
+        if (gpu == null) {
+            gpu = new GraphicsCard();
+            gpu.setComponent(component);
+            component.setGraphicsCard(gpu);
+        }
+
+        setIfNotNull(dto.getVram(), gpu::setVram);
+        setIfNotNull(dto.getGddr(), gpu::setGddr);
+        setIfNotNull(dto.getPowerDraw(), gpu::setPowerDraw);
+        setIfNotNull(dto.getBoostClock(), gpu::setBoostClock);
+        setIfNotNull(dto.getCoreClock(), gpu::setCoreClock);
+        setIfNotNull(dto.getLengthInMM(), gpu::setLengthInMM);
+
+        component.setComponentType(ComponentType.GRAPHICS_CARD);
+        componentRepository.save(component);
     }
 
     private void saveMotherboard(MotherboardItemDto dto) {
-        Motherboard mb = new Motherboard();
-        Item item = new Item();
-        item.setBrand(dto.getBrand());
-        item.setModel(dto.getModel());
-        mb.setChipset(dto.getChipset());
-        mb.setFormat(dto.getFormat());
-        mb.setMemoryType(dto.getMemoryType());
-        mb.setSocketType(dto.getSocketType());
-        mb.setRamSlots(dto.getRamSlots());
-        mb.setRamCapacity(dto.getRamCapacity());
-        item.setComponentType(ComponentType.MOTHERBOARD);
-        mb.setItem(item);
-        item.setMotherboard(mb);
-        itemRepository.save(item);
+        if (dto.getBrand() == null || dto.getModel() == null) {
+            throw new IllegalArgumentException("Motherboard must have brand and model");
+        }
+
+        Component component = getOrCreateComponent(dto.getBrand(), dto.getModel(), ComponentType.MOTHERBOARD);
+
+        Motherboard mb = component.getMotherboard();
+        if (mb == null) {
+            mb = new Motherboard();
+            mb.setComponent(component);
+            component.setMotherboard(mb);
+        }
+
+        setIfNotNull(dto.getChipset(), mb::setChipset);
+        setIfNotNull(dto.getSocketType(), mb::setSocketType);
+        setIfNotNull(dto.getFormat(), mb::setFormat);
+        setIfNotNull(dto.getRamSlots(), mb::setRamSlots);
+        setIfNotNull(dto.getRamCapacity(), mb::setRamCapacity);
+        setIfNotNull(dto.getMemoryType(), mb::setMemoryType);
+
+        component.setComponentType(ComponentType.MOTHERBOARD);
+        componentRepository.save(component);
     }
 
     public void saveCase(CaseItemDto dto) {
-        Case c = new Case();
-        Item item = new Item();
-        item.setBrand(dto.getBrand());
-        item.setModel(dto.getModel());
-        c.setFormat(dto.getFormat());
-        item.setComponentType(ComponentType.CASE_PC);
-        c.setItem(item);
-        item.setCase_(c);
-        itemRepository.save(item);
+        if (dto.getBrand() == null || dto.getModel() == null) {
+            throw new IllegalArgumentException("Case must have brand and model");
+        }
+
+        Component component = getOrCreateComponent(dto.getBrand(), dto.getModel(), ComponentType.CASE_PC);
+
+        Case c = component.getCase_();
+        if (c == null) {
+            c = new Case();
+            c.setComponent(component);
+            component.setCase_(c);
+        }
+
+        setIfNotNull(dto.getFormat(), c::setFormat);
+
+        component.setComponentType(ComponentType.CASE_PC);
+        componentRepository.save(component);
     }
 
     public void saveMemory(MemoryItemDto dto) {
-        Memory m = new Memory();
-        Item item = new Item();
-        item.setBrand(dto.getBrand());
-        item.setModel(dto.getModel());
-        m.setCapacity(dto.getCapacity());
-        m.setType(dto.getType());
-        m.setSpeed(dto.getSpeed());
-        m.setLatency(dto.getLatency());
-        item.setComponentType(ComponentType.MEMORY);
-        m.setItem(item);
-        item.setMemory(m);
-        itemRepository.save(item);
+        if (dto.getBrand() == null || dto.getModel() == null) {
+            throw new IllegalArgumentException("Memory must have brand and model");
+        }
+
+        Component component = getOrCreateComponent(dto.getBrand(), dto.getModel(), ComponentType.MEMORY);
+
+        Memory m = component.getMemory();
+        if (m == null) {
+            m = new Memory();
+            m.setComponent(component);
+            component.setMemory(m);
+        }
+
+        setIfNotNull(dto.getType(), m::setType);
+        setIfNotNull(dto.getCapacity(), m::setCapacity);
+        setIfNotNull(dto.getSpeed(), m::setSpeed);
+        setIfNotNull(dto.getLatency(), m::setLatency);
+        setIfNotNull(dto.getAmount(), m::setAmount);
+
+        component.setComponentType(ComponentType.MEMORY);
+        componentRepository.save(component);
     }
 
     public void savePowerSupply(PowerSupplyItemDto dto) {
-        PowerSupply ps = new PowerSupply();
-        Item item = new Item();
-        item.setBrand(dto.getBrand());
-        item.setModel(dto.getModel());
-        ps.setMaxPowerWatt(dto.getMaxPowerWatt());
-        item.setComponentType(ComponentType.POWER_SUPPLY);
-        ps.setItem(item);
-        item.setPowerSupply(ps);
-        itemRepository.save(item);
+        if (dto.getBrand() == null || dto.getModel() == null) {
+            throw new IllegalArgumentException("Power supply must have brand and model");
+        }
+
+        Component component = getOrCreateComponent(dto.getBrand(), dto.getModel(), ComponentType.POWER_SUPPLY);
+
+        PowerSupply ps = component.getPowerSupply();
+        if (ps == null) {
+            ps = new PowerSupply();
+            ps.setComponent(component);
+            component.setPowerSupply(ps);
+        }
+
+        setIfNotNull(dto.getMaxPowerWatt(), ps::setMaxPowerWatt);
+        setIfNotNull(dto.getType(), ps::setType);
+        setIfNotNull(dto.getModular(), ps::setModular);
+        setIfNotNull(dto.getEfficiencyRating(), ps::setEfficiencyRating);
+
+        component.setComponentType(ComponentType.POWER_SUPPLY);
+        componentRepository.save(component);
     }
 
     public void saveCooler(CoolerItemDto dto) {
-        Cooler c = new Cooler();
-        Item item = new Item();
-        item.setBrand(dto.getBrand());
-        item.setModel(dto.getModel());
-        item.setComponentType(ComponentType.CPU_COOLER);
-        c.setSocketTypes(dto.getCoolerSocketsType());
-        c.setItem(item);
-        item.setCooler(c);
-        itemRepository.save(item);
+        if (dto.getBrand() == null || dto.getModel() == null) {
+            System.out.println(dto);
+            return;
+//            throw new IllegalArgumentException("Cooler must have brand and model");
+        }
+
+        Component component = getOrCreateComponent(dto.getBrand(), dto.getModel(), ComponentType.CPU_COOLER);
+
+        Cooler c = component.getCooler();
+        if (c == null) {
+            c = new Cooler();
+            c.setComponent(component);
+            component.setCooler(c);
+        }
+
+        setIfNotNull(dto.getCoolerSocketsType(), c::setSocketTypes);
+        setIfNotNull(dto.getFanRpm(), c::setFanRpm);
+        setIfNotNull(dto.getNoiseLevel(), c::setNoiseLevel);
+        setIfNotNull(dto.getRadiatorSize(), c::setRadiatorSize);
+
+        component.setComponentType(ComponentType.CPU_COOLER);
+        componentRepository.save(component);
     }
 
     public void saveStorage(StorageItemDto dto) {
-        Storage s = new Storage();
-        Item item = new Item();
-        item.setBrand(dto.getBrand());
-        item.setModel(dto.getModel());
-        s.setCapacity(dto.getCapacity());
-        item.setComponentType(ComponentType.STORAGE);
-        s.setItem(item);
-        item.setStorage(s);
-        itemRepository.save(item);
+        if (dto.getBrand() == null || dto.getModel() == null) {
+            throw new IllegalArgumentException("Storage must have brand and model");
+        }
+
+        Component component = getOrCreateComponent(dto.getBrand(), dto.getModel(), ComponentType.STORAGE);
+
+        Storage s = component.getStorage();
+        if (s == null) {
+            s = new Storage();
+            s.setComponent(component);
+            component.setStorage(s);
+        }
+
+        setIfNotNull(dto.getCapacity(), s::setCapacity);
+
+        component.setComponentType(ComponentType.STORAGE);
+        componentRepository.save(component);
     }
 
 

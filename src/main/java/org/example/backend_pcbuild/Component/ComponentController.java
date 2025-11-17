@@ -1,9 +1,4 @@
 package org.example.backend_pcbuild.Component;
-
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Component.dto.BaseItemDto;
 import org.example.backend_pcbuild.models.ComponentType;
@@ -15,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/components")
