@@ -4,16 +4,17 @@ import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.HeaderColumnNameMappingStrategy;
 import com.opencsv.enums.CSVReaderNullFieldIndicator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Component.ComponentService;
 import org.example.backend_pcbuild.Component.dto.*;
 import org.example.backend_pcbuild.models.ComponentType;
-import org.example.backend_pcbuild.repository.ComponentRepository;
+import org.example.backend_pcbuild.models.Game;
+import org.example.backend_pcbuild.repository.GameRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -21,9 +22,10 @@ import java.util.List;
 public class ImportCsvFilesService {
 
     private final ComponentService componentService;
+    private final GameRepository gameRepository;
 
 
-    private <T extends BaseItemDto> List<T> parseCsv(Reader reader, Class<T> type) {
+    private <T> List<T> prepareCsvToParse(Reader reader, Class<T> type) {
         HeaderColumnNameMappingStrategy<T> strategy = new HeaderColumnNameMappingStrategy<>();
         strategy.setType(type);
 
@@ -37,39 +39,44 @@ public class ImportCsvFilesService {
         return csvToBean.parse();
     }
 
-    private <T extends BaseItemDto> List<T> parseCsv(MultipartFile file, Class<T> type) throws IOException {
+    private <T extends BaseItemDto> List<T> prepareComponentsCsvtoParse(Reader reader, Class<T> type) {
+        return prepareCsvToParse(reader, type);
+    }
+
+    private <T extends BaseItemDto> List<T> prepareComponentsCsvtoParse(MultipartFile file, Class<T> type) throws IOException {
         try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-            return parseCsv(reader, type);
+            return prepareComponentsCsvtoParse(reader, type);
         }
     }
 
+    @Transactional
     public Integer importComponentsFromCsv(MultipartFile file, ComponentType componentType) throws IOException {
         List<? extends BaseItemDto> items;
 
         switch (componentType) {
             case PROCESSOR -> {
-                items = parseCsv(file, ProcessorItemDto.class);
+                items = prepareComponentsCsvtoParse(file, ProcessorItemDto.class);
             }
             case GRAPHICS_CARD -> {
-                items = parseCsv(file, GraphicsCardItemDto.class);
+                items = prepareComponentsCsvtoParse(file, GraphicsCardItemDto.class);
             }
             case MOTHERBOARD -> {
-                items = parseCsv(file, MotherboardItemDto.class);
+                items = prepareComponentsCsvtoParse(file, MotherboardItemDto.class);
             }
             case MEMORY -> {
-                items = parseCsv(file, MemoryItemDto.class);
+                items = prepareComponentsCsvtoParse(file, MemoryItemDto.class);
             }
             case POWER_SUPPLY -> {
-                items = parseCsv(file, PowerSupplyItemDto.class);
+                items = prepareComponentsCsvtoParse(file, PowerSupplyItemDto.class);
             }
             case CPU_COOLER -> {
-                items = parseCsv(file, CoolerItemDto.class);
+                items = prepareComponentsCsvtoParse(file, CoolerItemDto.class);
             }
             case CASE_PC -> {
-                items = parseCsv(file, CaseItemDto.class);
+                items = prepareComponentsCsvtoParse(file, CaseItemDto.class);
             }
             case STORAGE -> {
-                items = parseCsv(file, StorageItemDto.class);
+                items = prepareComponentsCsvtoParse(file, StorageItemDto.class);
             }
             default -> throw new IllegalArgumentException("Nieobsługiwany typ komponentu: " + componentType);
         }
@@ -84,34 +91,45 @@ public class ImportCsvFilesService {
 
             switch (componentType) {
                 case PROCESSOR -> {
-                    items = parseCsv(reader, ProcessorItemDto.class);
+                    items = prepareComponentsCsvtoParse(reader, ProcessorItemDto.class);
                 }
                 case GRAPHICS_CARD -> {
-                    items = parseCsv(reader, GraphicsCardItemDto.class);
+                    items = prepareComponentsCsvtoParse(reader, GraphicsCardItemDto.class);
                 }
                 case MOTHERBOARD -> {
-                    items = parseCsv(reader, MotherboardItemDto.class);
+                    items = prepareComponentsCsvtoParse(reader, MotherboardItemDto.class);
                 }
                 case MEMORY -> {
-                    items = parseCsv(reader, MemoryItemDto.class);
+                    items = prepareComponentsCsvtoParse(reader, MemoryItemDto.class);
                 }
                 case POWER_SUPPLY -> {
-                    items = parseCsv(reader, PowerSupplyItemDto.class);
+                    items = prepareComponentsCsvtoParse(reader, PowerSupplyItemDto.class);
                 }
                 case CPU_COOLER -> {
-                    items = parseCsv(reader, CoolerItemDto.class);
+                    items = prepareComponentsCsvtoParse(reader, CoolerItemDto.class);
                 }
                 case CASE_PC -> {
-                    items = parseCsv(reader, CaseItemDto.class);
+                    items = prepareComponentsCsvtoParse(reader, CaseItemDto.class);
                 }
                 case STORAGE -> {
-                    items = parseCsv(reader, StorageItemDto.class);
+                    items = prepareComponentsCsvtoParse(reader, StorageItemDto.class);
                 }
                 default -> throw new IllegalArgumentException("Nieobsługiwany typ komponentu: " + componentType);
             }
 
             componentService.saveComponents(items);
             return items.size();
+        }
+    }
+    @Transactional
+    public Integer importGamesFromCsv(InputStream inputStream) throws IOException {
+        try (Reader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            List<Game> games = prepareCsvToParse(reader, Game.class);
+            for (Game game : games) {
+                game.decodeImageFromBase64();
+            }
+            gameRepository.saveAll(games);
+            return games.size();
         }
     }
 }
