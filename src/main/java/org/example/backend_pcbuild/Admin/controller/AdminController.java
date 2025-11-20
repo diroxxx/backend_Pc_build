@@ -87,86 +87,95 @@ public class AdminController {
     }
 
 
+//    @PutMapping("/update/automatic")
+//    public void saveRequestToAutomaticUpdate(@RequestParam("intervalInMinutes") Integer intervalInMinutes ) {
+////        List<Shop> shops = shopRepository.findAll();
+//        OfferUpdateConfig offerUpdateConfig = offerUpdateConfigRepository.findByType(OfferUpdateType.AUTOMATIC).orElseThrow();
+//        offerUpdateConfig.setIntervalInMinutes(intervalInMinutes);
+//        offerUpdateConfigRepository.save(offerUpdateConfig);
+//    }
+
     @MessageMapping("/offers")
     @SendTo("/topic/offers")
     @Transactional
-//    @PreAuthorize("hasAuthority('ADMIN')")
-    public void sendRequestToScraper(@Payload ManualFetchOffersSettingsDto settings) {
+    public void sendRequestToManualUpdate(@Payload ManualFetchOffersSettingsDto settings) {
         System.out.println(settings.getShops());
         OfferUpdate offerUpdate = new OfferUpdate();
         offerUpdate.setStartedAt(LocalDateTime.now());
         offerUpdate.setStatus(OfferUpdateStatus.RUNNING);
-        OfferUpdate offerUpdateCreated = offerUpdateRepository.save(offerUpdate);
+        OfferUpdate saveUpdate = offerUpdateRepository.save(offerUpdate);
+
+                OfferUpdateConfig offerUpdateConfig = offerUpdateConfigRepository.findByType(OfferUpdateType.MANUAL)
+                .orElseThrow();
+        offerUpdate.setOfferUpdateConfig(offerUpdateConfig);
 
         List<OfferShopUpdateInfoDto.ShopUpdateInfoDto> shopInfos = new ArrayList<>();
 
-        settings.getShops().forEach(shopName -> {
-            shopInfos.add(new OfferShopUpdateInfoDto.ShopUpdateInfoDto(
-                    shopName,
-                    new HashMap<>(),
-                    new HashMap<>(),
-                    ShopUpdateStatus.RUNNING
-            ));
-        });
-
-        OfferShopUpdateInfoDto dto = new OfferShopUpdateInfoDto();
-        dto.setId(offerUpdate.getId());
-        dto.setShops(new ArrayList<>());
-        dto.setStartedAt(offerUpdate.getStartedAt());
-        dto.getShops().addAll(shopInfos);
-
-        messagingTemplate.convertAndSend("/topic/offers", dto);
-        for (String shop : settings.getShops()){
-
+        for (String shop : settings.getShops()) {
             Shop shopForAdd = shopRepository.findByNameIgnoreCase(shop).orElseThrow();
             System.out.println("znalazłem sklep " + shop);
 
-            if (shopOfferUpdateRepository.existsByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateCreated.getId(), shop)) {
+            boolean alreadyAdded = offerUpdate.getShopOfferUpdates().stream()
+                    .anyMatch(u -> u.getShop().getId().equals(shopForAdd.getId()));
+            if (alreadyAdded) {
                 System.out.println("Duplicate ShopOfferUpdate detected for shop=" + shop + ", skipping.");
                 continue;
             }
 
             ShopOfferUpdate shopOfferUpdate = new ShopOfferUpdate();
-            shopOfferUpdate.setOfferUpdate(offerUpdateCreated);
+            shopOfferUpdate.setOfferUpdate(offerUpdate);
             shopOfferUpdate.setShop(shopForAdd);
             shopOfferUpdate.setStatus(ShopUpdateStatus.RUNNING);
-            ShopOfferUpdate save = shopOfferUpdateRepository.save(shopOfferUpdate);
 
+            offerUpdate.getShopOfferUpdates().add(shopOfferUpdate);
 
-            OfferUpdateConfig offerUpdateConfig = offerUpdateConfigRepository.findByType(OfferUpdateType.MANUAL).orElseThrow();
-            offerUpdate.setOfferUpdateConfig(offerUpdateConfig);
-            offerUpdateConfig.getOfferUpdates().add(offerUpdateCreated);
-
+            shopInfos.add(new OfferShopUpdateInfoDto.ShopUpdateInfoDto(
+                    shop,
+                    new HashMap<>(),
+                    new HashMap<>(),
+                    ShopUpdateStatus.RUNNING
+            ));
             offerUpdateRepository.save(offerUpdate);
-            shopRepository.save(shopForAdd);
+        }
 
-                List<String> listOfUrls = offerRepository
-                        .findAll()
-                        .stream()
-                        .map(Offer::getWebsiteUrl)
-                        .toList();
-                try{
-                    String urlsJson = new ObjectMapper().writeValueAsString(listOfUrls);
-                    if (urlsJson == null){
-                        continue;
-                    }
 
-                    Map<String, Object> checkingPayload = Map.of(
-                            "updateId", (offerUpdate.getId()),
-                            "shop", shop,
-                            "urls", listOfUrls
-                    );
-                    rabbitTemplate.convertAndSend("checkOffers." + shop, checkingPayload);
 
-                    Map<String, Object> scrapingPayload = Map.of(
-                            "updateId", (offerUpdate.getId()),
-                            "shop", shop
-                    );
-                    rabbitTemplate.convertAndSend("scrapingOffers." + shop, scrapingPayload);
+        OfferShopUpdateInfoDto dto = new OfferShopUpdateInfoDto();
+        dto.setId(saveUpdate.getId());
+        dto.setShops(new ArrayList<>());
+        dto.setStartedAt(saveUpdate.getStartedAt());
+        dto.getShops().addAll(shopInfos);
 
-                }catch (Exception e) {
-                    e.printStackTrace();
+        messagingTemplate.convertAndSend("/topic/offers", dto);
+
+        for (String shop : settings.getShops()) {
+            List<String> listOfUrls = offerRepository
+                    .findAll()
+                    .stream()
+                    .map(Offer::getWebsiteUrl)
+                    .toList();
+            try {
+                String urlsJson = new ObjectMapper().writeValueAsString(listOfUrls);
+                if (urlsJson == null) {
+                    continue;
                 }
+
+                Map<String, Object> checkingPayload = Map.of(
+                        "updateId", saveUpdate.getId(),
+                        "shop", shop,
+                        "urls", listOfUrls
+                );
+                rabbitTemplate.convertAndSend("checkOffers." + shop, checkingPayload);
+
+                Map<String, Object> scrapingPayload = Map.of(
+                        "updateId", saveUpdate.getId(),
+                        "shop", shop
+                );
+                rabbitTemplate.convertAndSend("scrapingOffers." + shop, scrapingPayload);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -3,9 +3,7 @@ package org.example.backend_pcbuild.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import org.example.backend_pcbuild.Admin.dto.OfferUpdateType;
 
 import java.util.HashSet;
@@ -13,16 +11,8 @@ import java.util.Set;
 
 @Data
 @Entity
+@NoArgsConstructor
 public class OfferUpdateConfig {
-
-    public OfferUpdateConfig( OfferUpdateType type, Integer intervalInMinutes) {
-        this.type = type;
-        this.intervalInMinutes = intervalInMinutes;
-    }
-
-    public OfferUpdateConfig() {
-
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,10 +23,14 @@ public class OfferUpdateConfig {
     private OfferUpdateType type;
 
     //in minutes
-//    @NotNull
     private Integer intervalInMinutes;
 
-    @OneToMany(mappedBy = "offerUpdateConfig")
+    public OfferUpdateConfig( OfferUpdateType type,Integer intervalInMinutes) {
+        this.intervalInMinutes = intervalInMinutes;
+        this.type = type;
+    }
+
+    @OneToMany(mappedBy = "offerUpdateConfig" , cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @JsonIgnore

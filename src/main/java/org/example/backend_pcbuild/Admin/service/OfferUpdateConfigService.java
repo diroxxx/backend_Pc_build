@@ -19,6 +19,6 @@ public class OfferUpdateConfigService {
         if(offerUpdateConfig.isPresent()) {
             return;
         }
-        offerUpdateConfigRepository.save(new OfferUpdateConfig( type, intervalInMinutes));
+        offerUpdateConfigRepository.save(new OfferUpdateConfig(type, intervalInMinutes));
     }
 }

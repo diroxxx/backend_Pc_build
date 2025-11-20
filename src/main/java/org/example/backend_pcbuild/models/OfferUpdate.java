@@ -29,7 +29,7 @@ public class OfferUpdate {
     @Column(name = "status", nullable = false)
     private OfferUpdateStatus status;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "offer_update_config_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
