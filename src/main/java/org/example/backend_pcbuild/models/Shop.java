@@ -25,9 +25,6 @@ public class Shop {
     @Size(min = 2, max = 100)
     private String name;
 
-//    @Lob
-//    private byte[] logo;
-
 
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
     @EqualsAndHashCode.Exclude

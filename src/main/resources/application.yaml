@@ -31,3 +31,6 @@ security:
     refresh-token:
       expiration: 604800000
 
+youtube:
+  api:
+    key: ${YOUTUBE_API_KEY:}

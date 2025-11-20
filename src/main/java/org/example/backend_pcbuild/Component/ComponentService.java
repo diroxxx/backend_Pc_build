@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -499,7 +500,6 @@ public class ComponentService {
         if (dto.getBrand() == null || dto.getModel() == null) {
             System.out.println(dto);
             return;
-//            throw new IllegalArgumentException("Cooler must have brand and model");
         }
 
         Component component = getOrCreateComponent(dto.getBrand(), dto.getModel(), ComponentType.CPU_COOLER);
@@ -538,6 +538,23 @@ public class ComponentService {
 
         component.setComponentType(ComponentType.STORAGE);
         componentRepository.save(component);
+    }
+
+    public GameFpsComponentsFormDto getFpsComponents() {
+
+        GameFpsComponentsFormDto formDto = new GameFpsComponentsFormDto();
+        formDto.setGpusModels( componentRepository.findAllByComponentType(ComponentType.GRAPHICS_CARD)
+                .stream()
+                .map(Component::getModel)
+                .collect(Collectors.toSet()));
+
+        formDto.setCpusModels(componentRepository.findAllByComponentType(ComponentType.PROCESSOR)
+                .stream()
+                .map(Component::getModel)
+                .collect(Collectors.toSet()));
+
+        return formDto;
+
     }
 
 

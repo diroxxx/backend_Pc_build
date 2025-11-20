@@ -356,11 +356,10 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "Offer update config updated"));
     }
 
+
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/users")
-//    public ResponseEntity<List<UserDto>> getUsers(@AuthenticationPrincipal UserDto userPrincipal) {
     public ResponseEntity<List<UserDto>> getUsers() {
-//        System.out.println(userPrincipal.getEmail());
         List<UserDto> users = userRepository.findAll().stream()
                 .map(userMapper::toUserDto)
                 .toList();

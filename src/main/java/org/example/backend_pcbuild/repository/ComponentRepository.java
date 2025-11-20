@@ -2,6 +2,7 @@ package org.example.backend_pcbuild.repository;
 
 import org.example.backend_pcbuild.models.Brand;
 import org.example.backend_pcbuild.models.Component;
+import org.example.backend_pcbuild.models.ComponentType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -23,5 +24,6 @@ public interface ComponentRepository extends JpaRepository<Component, Integer>, 
 
     Optional<Component> findByBrandAndModelIgnoreCase(Brand brand, String model);
 
+    List<Component> findAllByComponentType(ComponentType componentType);
 }
 

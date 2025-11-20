@@ -35,4 +35,7 @@ public class Game {
             this.image = Base64.getDecoder().decode(imageBase64);
         }
     }
+
+
+
 }

@@ -1,6 +1,7 @@
 package org.example.backend_pcbuild.Component;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Component.dto.BaseItemDto;
+import org.example.backend_pcbuild.Component.dto.GameFpsComponentsFormDto;
 import org.example.backend_pcbuild.models.ComponentType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -62,4 +63,11 @@ public class ComponentController {
         if (allBrands.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(componentService.getAllBrands());
     }
+
+
+    @GetMapping("/fps")
+    public ResponseEntity<GameFpsComponentsFormDto> getGameFpsComponents() {
+        return ResponseEntity.ok(componentService.getFpsComponents());
+    }
+
 }
