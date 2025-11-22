@@ -9,7 +9,6 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
-#    virtual-host: /
 logging:
   level:
     org:

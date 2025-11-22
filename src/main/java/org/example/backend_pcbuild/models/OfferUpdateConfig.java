@@ -11,7 +11,6 @@ import java.util.Set;
 
 @Data
 @Entity
-@NoArgsConstructor
 public class OfferUpdateConfig {
 
     @Id
@@ -23,12 +22,8 @@ public class OfferUpdateConfig {
     private OfferUpdateType type;
 
     //in minutes
-    private Integer intervalInMinutes;
+    private String intervalTime;
 
-    public OfferUpdateConfig( OfferUpdateType type,Integer intervalInMinutes) {
-        this.intervalInMinutes = intervalInMinutes;
-        this.type = type;
-    }
 
     @OneToMany(mappedBy = "offerUpdateConfig" , cascade = CascadeType.ALL)
     @ToString.Exclude

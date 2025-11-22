@@ -39,6 +39,6 @@ public class OfferUpdate {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @JsonIgnore
-    private Set<ShopOfferUpdate> shopOfferUpdates = new HashSet<>();
+    private List<ShopOfferUpdate> shopOfferUpdates = new ArrayList<>();
 
 }

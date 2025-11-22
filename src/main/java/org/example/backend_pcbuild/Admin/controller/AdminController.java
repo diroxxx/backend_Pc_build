@@ -4,7 +4,6 @@ package org.example.backend_pcbuild.Admin.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.security.auth.UserPrincipal;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.dto.*;
@@ -32,7 +31,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
@@ -69,6 +67,7 @@ public class AdminController {
     private final ShopOfferUpdateRepository shopOfferUpdateRepository;
     private final OfferUpdateService offerUpdateService;
     private final ComponentService componentService;
+    private final OfferUpdateConfigService configService;
 
 
     //TEST
@@ -87,13 +86,10 @@ public class AdminController {
     }
 
 
-//    @PutMapping("/update/automatic")
-//    public void saveRequestToAutomaticUpdate(@RequestParam("intervalInMinutes") Integer intervalInMinutes ) {
-////        List<Shop> shops = shopRepository.findAll();
-//        OfferUpdateConfig offerUpdateConfig = offerUpdateConfigRepository.findByType(OfferUpdateType.AUTOMATIC).orElseThrow();
-//        offerUpdateConfig.setIntervalInMinutes(intervalInMinutes);
-//        offerUpdateConfigRepository.save(offerUpdateConfig);
-//    }
+    @PutMapping("/update/automatic")
+    public void saveRequestToAutomaticUpdate(@RequestParam("interval") String interval) {
+        configService.updateUpdateInterval(interval);
+    }
 
     @MessageMapping("/offers")
     @SendTo("/topic/offers")
@@ -137,8 +133,6 @@ public class AdminController {
             ));
             offerUpdateRepository.save(offerUpdate);
         }
-
-
 
         OfferShopUpdateInfoDto dto = new OfferShopUpdateInfoDto();
         dto.setId(saveUpdate.getId());
@@ -352,7 +346,7 @@ public class AdminController {
 
             return ResponseEntity.badRequest().body(Map.of("message", "Automatic update interval cannot be null"));
         }
-        offerUpdateConfigService.saveOfferUpdateConfig(offerUpdateConfigDto.getIntervalInMinutes(), offerUpdateConfigDto.getType());
+//        offerUpdateConfigService.saveOfferUpdateConfig(offerUpdateConfigDto.getIntervalInMinutes(), offerUpdateConfigDto.getType());
         return ResponseEntity.ok(Map.of("message", "Offer update config updated"));
     }
 

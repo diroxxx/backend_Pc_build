@@ -5,6 +5,9 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
+#  devtools:
+#    restart:
+#      enabled: false
 
   h2:
     console:
@@ -41,4 +44,5 @@ spring:
 #  insert into shop(id,name) values('1','olx');
 #  insert into shop(id,name) values('2','allegro');
 #  insert into shop(id,name) values('3','allegroLokalnie');
-#  insert into offer_update_config(id, type, interval_in_minutes) values('1','MANUAL',null);
+#  insert into offer_update_config(id, type, interval_time) values('1','MANUAL',null);
+#  insert into offer_update_config(id, type, interval_time) values('2','AUTOMATIC',null);
