@@ -66,7 +66,8 @@ public class CommunityService {
                             c.getContent(),
                             c.getCreatedAt(),
                             userDTO,
-                            postDTO
+                            postDTO,
+                            userDTO.getUsername()
                     );
                 })
                 .toList();

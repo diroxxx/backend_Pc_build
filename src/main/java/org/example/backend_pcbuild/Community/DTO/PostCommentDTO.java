@@ -15,4 +15,5 @@ public class PostCommentDTO {
     private LocalDateTime createdAt;
     private UserPostDTO user;
     private PostDTO post;
+    private String username;
 }
