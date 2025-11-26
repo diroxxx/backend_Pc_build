@@ -35,7 +35,7 @@ public class Post {
     @JsonIgnoreProperties({"id", "posts"})
     private Category category;
 
-
+    @JsonIgnore
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private Set<PostComment> comments;
 
