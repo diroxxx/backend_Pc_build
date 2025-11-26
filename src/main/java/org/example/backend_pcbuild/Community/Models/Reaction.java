@@ -8,6 +8,10 @@ import org.example.backend_pcbuild.models.User;
 
 @Entity
 @Data
+@Table(name = "post_likes",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id", "post_id"})
+        })
 public class Reaction {
 
 
@@ -15,11 +19,11 @@ public class Reaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
     private Boolean likeReaction = false;
 
     @ManyToOne
-    @JoinColumn(name = "users_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne

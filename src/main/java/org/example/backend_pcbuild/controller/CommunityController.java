@@ -1,20 +1,24 @@
 package org.example.backend_pcbuild.controller;
 
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.example.backend_pcbuild.Community.DTO.*;
 import org.example.backend_pcbuild.Community.Models.Category;
 import org.example.backend_pcbuild.Community.Models.Post;
 import org.example.backend_pcbuild.Community.Models.PostComment;
+import org.example.backend_pcbuild.Community.Models.Reaction;
 import org.example.backend_pcbuild.Community.Repository.CategoryRepository;
 import org.example.backend_pcbuild.Community.Repository.PostCommentRepository;
 import org.example.backend_pcbuild.Community.Repository.PostRepository;
+import org.example.backend_pcbuild.Community.Repository.ReactionRepository;
 import org.example.backend_pcbuild.Community.Service.CommunityService;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.LoginAndRegister.dto.PostResponseDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
 import org.example.backend_pcbuild.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -48,6 +52,8 @@ public class CommunityController {
     @Autowired
     private CommunityService communityService;
 
+    @Autowired
+    private ReactionRepository reactionRepository;
 
     @GetMapping("/")
     public List<Post> getAllPosts() {
@@ -98,18 +104,6 @@ public Post createPost(@RequestBody CreatePostDTO dto) {
         return communityService.getCommentsForPost(postId);
     }
 
-//    @PostMapping("/posts/{postId}/comments")
-//    public PostComment addComment(@PathVariable Integer postId, @RequestBody PostComment comment) {
-//        Post post = postRepository.findById(postId).orElseThrow();
-//        User user = userRepository.findById(comment.getUser().getId()).orElseThrow();
-//
-//        comment.setPost(post);
-//        comment.setUser(user);
-//        comment.setCreatedAt(LocalDateTime.now());
-//
-//        return commentRepository.save(comment);
-//    }
-
     @PostMapping("/posts/{postId}/comments")
     public PostComment addComment(@PathVariable Integer postId, @RequestBody PostComment dto) {
 
@@ -148,9 +142,138 @@ public Post createPost(@RequestBody CreatePostDTO dto) {
         return commentRepository.save(comment);
     }
 
+
     @GetMapping("/categories")
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
     }
 
+
+    @PostMapping("/posts/{postId}/vote")
+    @Transactional // Wymagana transakcja do modyfikacji danych
+    public ResponseEntity<Integer> castVote(
+            @PathVariable Long postId,
+            @RequestParam String type
+    ) {
+        // 1. Uwierzytelnienie i Pobranie Użytkownika
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() ||
+                authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
+        User user = userRepository.findByEmail(principalUserDto.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found."));
+
+        Long userId = user.getId();
+
+        // 2. Walidacja Posta
+        Post post = postRepository.findById(postId.intValue())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found."));
+
+
+        final boolean isLike;
+        if ("upvote".equalsIgnoreCase(type)) {
+            isLike = true;
+        } else if ("downvote".equalsIgnoreCase(type)) {
+            isLike = false;
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid vote type. Must be 'upvote' or 'downvote'.");
+        }
+
+        // 4. Logika Głosowania (implementacja logiki serwisu w kontrolerze)
+        try {
+            Optional<Reaction> existingVoteOpt = reactionRepository.findByPostIdAndUserId(postId, userId);
+
+            if (existingVoteOpt.isPresent()) {
+                // SCENARIUSZ 1: Głos ISTNIEJE
+                Reaction existingVote = existingVoteOpt.get();
+
+                if (existingVote.getLikeReaction() == isLike) {
+                    // SCENARIUSZ 1A: Użytkownik klika TEN SAM GŁOS
+                    // Np. Miał Like (true), klika Like (true).
+                    // Akcja: Wycofanie głosu (UN-VOTE). Usuwamy rekord, przechodzimy w stan Neutralny.
+                    reactionRepository.delete(existingVote);
+                } else {
+                    // SCENARIUSZ 1B: Użytkownik klika PRZECIWNY GŁOS
+                    // Np. Miał Like (true), klika Dislike (false).
+                    // Akcja: Zmiana głosu. Aktualizujemy pole 'likeReaction' w istniejącym rekordzie.
+                    existingVote.setLikeReaction(isLike);
+                    reactionRepository.save(existingVote);
+                }
+            } else {
+                // SCENARIUSZ 2: Głos NIE ISTNIEJE
+                // Użytkownik głosuje po raz pierwszy.
+                // Akcja: Utworzenie nowego rekordu Reaction.
+                Reaction newVote = new Reaction();
+                newVote.setPost(post);
+                newVote.setUser(user);
+                newVote.setLikeReaction(isLike);
+                reactionRepository.save(newVote);
+            }
+
+            // 5. Obliczenie i zwrot nowej punktacji netto
+            return ResponseEntity.ok(getNetScore(postId));
+
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error during vote: " + e.getMessage());
+        }
+    }
+    @GetMapping("/posts/{postId}/vote")
+    public ResponseEntity<Integer> getScore(@PathVariable Long postId) {
+        try {
+            int score = getNetScore(postId);
+            return ResponseEntity.ok(score);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error retrieving score.");
+        }
+    }
+
+    // Metoda pomocnicza do obliczania wyniku netto (Likes - Dislikes)
+    private int getNetScore(Long postId) {
+        long likes = reactionRepository.countByPostIdAndLikeReaction(postId, true);
+        long dislikes = reactionRepository.countByPostIdAndLikeReaction(postId, false);
+
+        // ZMIANA LOGIKI (jeśli chcesz, aby ujemne wyniki były zerowane):
+        // return Math.max(0, netScore); // To by zerowało wszystkie ujemne, co jest niepoprawne dla Twojego systemu.
+
+        // W Twoim przypadku:
+        // **Wynik -1 jest POPRAWNY.** Jeśli oczekujesz zera, być może mylisz wynik netto z samym licznikiem polubień.
+
+        return (int) (likes - dislikes); // Pozostaw tak, jak jest.
+    }
+    @GetMapping("/posts/{postId}/vote/status")
+    public ResponseEntity<String> getUserVoteStatus(@PathVariable Long postId) {
+        // 1. Uwierzytelnienie i Pobranie Użytkownika
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() ||
+                authentication.getPrincipal().equals("anonymousUser")) {
+            // Zwraca null dla niezalogowanych lub 401, w zależności od preferencji.
+            // Tutaj zwrócimy null, jeśli użytkownik nie jest zalogowany (brak głosu)
+            return ResponseEntity.ok(null);
+        }
+
+        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
+        User user = userRepository.findByEmail(principalUserDto.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found."));
+
+        Long userId = user.getId();
+
+        // 2. Znalezienie głosu w bazie
+        Optional<Reaction> existingVoteOpt = reactionRepository.findByPostIdAndUserId(postId, userId);
+
+        if (existingVoteOpt.isPresent()) {
+            Reaction vote = existingVoteOpt.get();
+            // 3. Mapowanie typu głosu z Boolean na String
+            if (vote.getLikeReaction()) {
+                return ResponseEntity.ok("upvote");
+            } else {
+                return ResponseEntity.ok("downvote");
+            }
+        } else {
+            // Brak rekordu w bazie = brak głosu
+            return ResponseEntity.ok(null);
+        }
+    }
 }
