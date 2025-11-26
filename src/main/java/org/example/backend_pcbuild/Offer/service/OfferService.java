@@ -144,20 +144,16 @@ public class OfferService {
     }
 
     public Page<BaseOfferDto> getAllOffersV2(Pageable pageable,
-                                             ComponentType componentType,
-                                             String brand,
-                                             Double minPrize,
-                                             Double maxPrize,
-                                             ItemCondition itemCondition,
-                                             String shopName,
-                                             SortByOffers sortBy,
-                                             String querySearch) {
+                                              ComponentType componentType,
+                                              String brand,
+                                              Double minPrize,
+                                              Double maxPrize,
+                                              ItemCondition itemCondition,
+                                              String shopName,
+                                              SortByOffers sortBy,
+                                              String querySearch) {
 
         List<BaseOfferDto> result = new ArrayList<>();
-        Specification<Offer> spec = Specification.not(null);
-
-         spec = spec.and((root, query, cb) -> cb.equal(root.get("isVisible"), true));
-
 
         if(componentType == null || componentType == ComponentType.GRAPHICS_CARD) {
             List<GraphicsCardDto> gpus = graphicsCardRepository.findAll().stream()
@@ -205,21 +201,21 @@ public class OfferService {
         }
 
         if (componentType == null || componentType == ComponentType.POWER_SUPPLY) {
-        List<PowerSupplyDto> powerSupplies = powerSupplyRepository.findAll().stream()
-                .flatMap(ps -> ps.getComponent().getOffers().stream()
-                        .filter(Offer::getIsVisible)
-                        .map(offer -> OfferComponentMapper.toDto(ps, offer)))
-                .toList();
-        result.addAll(powerSupplies);
+            List<PowerSupplyDto> powerSupplies = powerSupplyRepository.findAll().stream()
+                    .flatMap(ps -> ps.getComponent().getOffers().stream()
+                            .filter(Offer::getIsVisible)
+                            .map(offer -> OfferComponentMapper.toDto(ps, offer)))
+                    .toList();
+            result.addAll(powerSupplies);
         }
 
         if (componentType == null || componentType == ComponentType.STORAGE) {
-        List<StorageDto> storages = storageRepository.findAll().stream()
-                .flatMap(s -> s.getComponent().getOffers().stream()
-                        .filter(Offer::getIsVisible)
-                        .map(offer -> OfferComponentMapper.toDto(s, offer)))
-                .toList();
-        result.addAll(storages);
+            List<StorageDto> storages = storageRepository.findAll().stream()
+                    .flatMap(s -> s.getComponent().getOffers().stream()
+                            .filter(Offer::getIsVisible)
+                            .map(offer -> OfferComponentMapper.toDto(s, offer)))
+                    .toList();
+            result.addAll(storages);
         }
 
         if (componentType == null || componentType == ComponentType.CASE_PC) {

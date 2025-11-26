@@ -41,5 +41,4 @@ public abstract class BaseOfferDto {
     private String shopName;
     private ComponentType componentType;
 
-
 }

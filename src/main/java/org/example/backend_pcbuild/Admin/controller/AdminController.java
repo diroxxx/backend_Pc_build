@@ -35,10 +35,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @CrossOrigin("http://127.0.0.1:5000")
@@ -68,6 +65,17 @@ public class AdminController {
     private final OfferUpdateService offerUpdateService;
     private final ComponentService componentService;
     private final OfferUpdateConfigService configService;
+
+
+
+    @RabbitListener(queues = {
+            "test1"
+    })
+    @Transactional
+    public void test(Message amqpMessage) {
+        String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
+        System.out.println(json);
+    }
 
 
     //TEST

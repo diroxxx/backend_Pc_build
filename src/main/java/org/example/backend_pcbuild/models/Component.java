@@ -13,13 +13,6 @@ public class Component {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @NotNull
-//    @Size(min = 1, max = 100)
-//    @Column(nullable = false, unique = true)
-//    private String brand;
-
-//    @NotNull
-//    @Size(min = 1, max = 100)
     private String model;
 
     @Enumerated(EnumType.STRING)

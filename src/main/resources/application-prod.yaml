@@ -13,3 +13,12 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.SQLServer2012Dialect
         format_sql: true
+
+
+#  INSERT INTO app_user (email, password, username, role)
+#  VALUES ('admin1@wp.pl', '$2a$10$Ex02DfV0RrCd2ugBxnbEnOqnNy9tr.6pu0ZFVdbbSqRZHv9O1K0hu', 'admin1', 'ADMIN');
+#  INSERT INTO shop(name) VALUES('olx');
+#  INSERT INTO shop(name) VALUES('allegro');
+#  INSERT INTO shop(name) VALUES('allegroLokalnie');
+#  INSERT INTO offer_update_config(type, interval_time) VALUES('MANUAL', NULL);
+#  INSERT INTO offer_update_config(type, interval_time) VALUES('AUTOMATIC', NULL);
