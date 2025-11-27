@@ -154,6 +154,8 @@ public class AdminController {
             List<String> listOfUrls = offerRepository
                     .findAll()
                     .stream()
+                    .filter(offer -> offer.getShop().getName().equalsIgnoreCase(shop))
+                    .filter(Offer::getIsVisible)
                     .map(Offer::getWebsiteUrl)
                     .toList();
             try {
@@ -198,11 +200,14 @@ public class AdminController {
     @RabbitListener(queues = {
             "offersAdded.olx",
             "offersAdded.allegro",
+            "offersAdded.x-kom",
             "offersAdded.allegroLokalnie"
     })
     @Transactional
     public void handleOffersAdded(Message amqpMessage) {
         OfferUpdate offerUpdate = null;
+        ShopOfferUpdate shopOfferUpdate = null;
+
         try {
             String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
             ScrapingOfferDto dto = objectMapper.readValue(json, ScrapingOfferDto.class);
@@ -219,7 +224,7 @@ public class AdminController {
                         ", shopName=" + shopName);
             }
 
-            ShopOfferUpdate shopOfferUpdate = shopOfferUpdateRepository
+            shopOfferUpdate = shopOfferUpdateRepository
                     .findFirstByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateId, shopName)
                     .orElseThrow(() -> new IllegalStateException(
                             "No ShopOfferUpdate for OfferUpdate.id=" + offerUpdateId + " and shop=" + shopName));
@@ -228,43 +233,9 @@ public class AdminController {
             if (components == null) {
                 components = List.of();
             }
+            System.out.println("zapisywanie dla sklepu " + shopName + ", ilsoc: " + components.size());
 
-            int saved = 0;
-            int skipped = 0;
-            int noMatch = 0;
-            int errors = 0;
-
-            for (ComponentOfferDto componentOfferDto : components) {
-                try {
-                    boolean created = offerService.saveOffer(componentOfferDto, shopOfferUpdate);
-
-                    if (created) {
-                        saved++;
-                    } else {
-
-                        noMatch++;
-                    }
-                } catch (DataIntegrityViolationException e) {
-                    skipped++;
-                    System.out.println("Skipping duplicate: " + componentOfferDto.getUrl());
-                } catch (Exception e) {
-                    errors++;
-                    System.err.println("Error saving offer " + componentOfferDto.getUrl() + ": " + e.getMessage());
-                }
-            }
-
-            System.out.println("=== SUMMARY ===");
-            System.out.printf("Shop: %s%n", shopName);
-            System.out.printf("Total received: %d%n", components.size());
-            System.out.printf("Saved with component: %d%n", saved);
-            System.out.printf("Skipped (duplicate or no match): %d%n", noMatch);
-            System.out.printf("Errors: %d%n", errors);
-            System.out.println("===============");
-
-
-            shopOfferUpdate.setStatus(
-                    errors > 0 ? ShopUpdateStatus.FAILED : ShopUpdateStatus.COMPLETED
-            );
+            offerService.saveOffersTemplate(components, shopOfferUpdate);
 
             offerUpdate = shopOfferUpdate.getOfferUpdate();
 
@@ -280,6 +251,11 @@ public class AdminController {
                 offerUpdate.setFinishedAt(LocalDateTime.now());
             }
 
+            boolean isDeleted = offerUpdateService.checkIfUpdateTypeIsCompleted(offerUpdateId, shopName, UpdateChangeType.DELETED);
+            System.out.println("isDeleted: " + isDeleted);
+            shopOfferUpdate.setStatus(isDeleted ? ShopUpdateStatus.COMPLETED : ShopUpdateStatus.RUNNING);
+            shopOfferUpdateRepository.save(shopOfferUpdate);
+
             offerUpdateRepository.save(offerUpdate);
 
             OfferShopUpdateInfoDto.ShopUpdateInfoDto shopUpdateInfo =
@@ -293,6 +269,10 @@ public class AdminController {
                 offerUpdate.setFinishedAt(LocalDateTime.now());
                 offerUpdateRepository.save(offerUpdate);
             }
+            if (shopOfferUpdate != null) {
+                shopOfferUpdate.setStatus(ShopUpdateStatus.FAILED);
+                shopOfferUpdateRepository.save(shopOfferUpdate);
+            }
             throw new AmqpRejectAndDontRequeueException(e);
         }
     }
@@ -300,6 +280,7 @@ public class AdminController {
     @RabbitListener(queues = {
             "offersDeleted.olx",
             "offersDeleted.allegro",
+            "offersDeleted.x-kom",
             "offersDeleted.allegroLokalnie"
     })
     @Transactional
@@ -332,6 +313,10 @@ public class AdminController {
 
             offerService.softDeleteByUrls(urls, shopOfferUpdate);
 
+            boolean isAdded = offerUpdateService.checkIfUpdateTypeIsCompleted(offerUpdateId, shopName, UpdateChangeType.ADDED);
+            shopOfferUpdate.setStatus(isAdded ? ShopUpdateStatus.COMPLETED : ShopUpdateStatus.RUNNING);
+            shopOfferUpdateRepository.save(shopOfferUpdate);
+
             OfferShopUpdateInfoDto.ShopUpdateInfoDto shopUpdateInfo =
                     offerUpdateService.getShopUpdateInfo(shopName, offerUpdateId);
 
@@ -354,7 +339,6 @@ public class AdminController {
 
             return ResponseEntity.badRequest().body(Map.of("message", "Automatic update interval cannot be null"));
         }
-//        offerUpdateConfigService.saveOfferUpdateConfig(offerUpdateConfigDto.getIntervalInMinutes(), offerUpdateConfigDto.getType());
         return ResponseEntity.ok(Map.of("message", "Offer update config updated"));
     }
 

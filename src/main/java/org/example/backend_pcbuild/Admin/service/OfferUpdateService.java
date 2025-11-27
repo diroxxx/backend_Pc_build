@@ -1,6 +1,5 @@
 package org.example.backend_pcbuild.Admin.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -130,6 +129,26 @@ public class OfferUpdateService {
     public List<OfferUpdateRepository.OfferUpdateShopsOffersAmountStatsProjection> getOffersShopsAmountStats() {
         return offerUpdateRepository.findOfferStatsByShop();
     }
+
+    public boolean checkIfUpdateTypeIsCompleted(Long offerUpdateId, String shopName, UpdateChangeType type) {
+
+       Optional <ShopOfferUpdate> shopOfferUpdate = shopOfferUpdateRepository.findFirstByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateId, shopName);
+         boolean isCompleted = false;
+       if (shopOfferUpdate.isPresent()){
+           long count = shopOfferUpdate.get().getOfferShopOfferUpdates().stream()
+                   .filter(link -> link.getUpdateChangeType() == type)
+                   .map(OfferShopOfferUpdate::getOffer)
+                   .filter(offer -> offer.getComponent() != null)
+                   .count();
+
+           isCompleted = count > 0;
+       }
+
+       return isCompleted;
+
+    }
+
+
 
 
     public Runnable scheduledAutomaticOfferUpdate() {

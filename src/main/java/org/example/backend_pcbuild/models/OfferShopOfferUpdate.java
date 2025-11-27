@@ -12,6 +12,10 @@ public class OfferShopOfferUpdate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "change_type", nullable = false)
+    private UpdateChangeType updateChangeType;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "offer_id", nullable = false)
     @EqualsAndHashCode.Exclude
@@ -24,7 +28,5 @@ public class OfferShopOfferUpdate {
     @ToString.Exclude
     private ShopOfferUpdate shopOfferUpdate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "change_type", nullable = false)
-    private UpdateChangeType updateChangeType;
+
 }

@@ -19,8 +19,10 @@ public class Component {
     private ComponentType componentType;
 
 
-    @ManyToOne( optional = false)
-    @JoinColumn(name = "brand_id", nullable = false)
+//    @ManyToOne( optional = false)
+//    @JoinColumn(name = "brand_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "brand_id")
     private Brand brand;
 
     @OneToMany(mappedBy = "component", cascade = CascadeType.ALL)
