@@ -59,6 +59,7 @@ public class CommunityService {
                             c.getPost().getTitle(),
                             c.getPost().getContent(),
                             categoryDTO
+
                     );
 
                     return new PostCommentDTO(
@@ -72,4 +73,5 @@ public class CommunityService {
                 })
                 .toList();
     }
+
 }

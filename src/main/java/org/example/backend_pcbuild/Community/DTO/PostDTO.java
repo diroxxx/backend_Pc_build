@@ -13,4 +13,5 @@ public class PostDTO {
     private String title;
     private String content;
     private CategoryDTO category;
+//    private PostImageDTO postImage;
 }

@@ -1,18 +1,14 @@
 package org.example.backend_pcbuild.controller;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.example.backend_pcbuild.Community.DTO.*;
-import org.example.backend_pcbuild.Community.Models.Category;
-import org.example.backend_pcbuild.Community.Models.Post;
-import org.example.backend_pcbuild.Community.Models.PostComment;
-import org.example.backend_pcbuild.Community.Models.Reaction;
-import org.example.backend_pcbuild.Community.Repository.CategoryRepository;
-import org.example.backend_pcbuild.Community.Repository.PostCommentRepository;
-import org.example.backend_pcbuild.Community.Repository.PostRepository;
-import org.example.backend_pcbuild.Community.Repository.ReactionRepository;
+import org.example.backend_pcbuild.Community.Models.*;
+import org.example.backend_pcbuild.Community.Repository.*;
 import org.example.backend_pcbuild.Community.Service.CommunityService;
+import org.example.backend_pcbuild.Community.Service.PostImageService;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.LoginAndRegister.dto.PostResponseDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
@@ -20,16 +16,20 @@ import org.example.backend_pcbuild.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 //@CrossOrigin("http://127.0.0.1:5000")
@@ -54,6 +54,13 @@ public class CommunityController {
 
     @Autowired
     private ReactionRepository reactionRepository;
+
+    @Autowired
+    private PostImageRepository postImageRepository;
+
+    @Autowired
+    private PostImageService postImageService;
+
 
     @GetMapping("/")
     public List<Post> getAllPosts() {
@@ -93,7 +100,7 @@ public Post createPost(@RequestBody CreatePostDTO dto) {
 }
 
     @GetMapping("/posts/{id}")
-    public Optional<Post> getPostById(@PathVariable Integer id) {
+    public Optional<Post> getPostById(@PathVariable Long id) {
         return postRepository.findById(id);
     }
 
@@ -105,7 +112,7 @@ public Post createPost(@RequestBody CreatePostDTO dto) {
     }
 
     @PostMapping("/posts/{postId}/comments")
-    public PostComment addComment(@PathVariable Integer postId, @RequestBody PostComment dto) {
+    public PostComment addComment(@PathVariable Long postId, @RequestBody PostComment dto) {
 
         // 1. Uwierzytelnienie i Pobranie Principal (jak w createPost)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -169,7 +176,7 @@ public Post createPost(@RequestBody CreatePostDTO dto) {
         Long userId = user.getId();
 
         // 2. Walidacja Posta
-        Post post = postRepository.findById(postId.intValue())
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found."));
 
 
@@ -274,6 +281,152 @@ public Post createPost(@RequestBody CreatePostDTO dto) {
         } else {
             // Brak rekordu w bazie = brak głosu
             return ResponseEntity.ok(null);
+        }
+    }
+
+    @PostMapping(value = "/posts/upload-image-to-db", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadImageToDatabase(
+            @RequestPart("file") MultipartFile file,
+            @RequestParam("postId") String postId) {
+
+
+
+        if (file.isEmpty() || file.getOriginalFilename() == null) {
+            return ResponseEntity.badRequest().body("Plik nie może być pusty.");
+        }
+
+        // Sprawdzenie typu MIME dla bezpieczeństwa
+        if (!file.getContentType().startsWith("image/")) {
+            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body("Obsługiwane są tylko pliki graficzne.");
+        }
+
+        try {
+            // 2. Przekazanie danych binarnych do Serwisu
+            byte[] imageData = file.getBytes();
+            String mimeType = file.getContentType();
+
+            PostImageDTO savedImage = postImageService.addImageToPost(Long.parseLong(postId), imageData, mimeType, file.getOriginalFilename());
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedImage);
+        } catch (IOException e) {
+            // Błąd odczytu pliku
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Błąd odczytu pliku: " + e.getMessage());
+        } catch (IllegalStateException e) {
+            // Błąd z Serwisu (np. przekroczenie limitu 5 zdjęć)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            // Ogólny błąd
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Nieznany błąd podczas zapisu zdjęcia.");
+        }
+    }
+    @GetMapping("/image/{imageId}") // Pełna ścieżka to np. /community/image/11
+    public ResponseEntity<byte[]> getImage(@PathVariable Long imageId) {
+
+        try {
+            // 1. Serwis pobiera encję PostImage (z danymi binarnymi)
+            PostImage image = postImageService.getImageById(imageId);
+
+            // 2. Walidacja.
+            if (image.getImage() == null || image.getImage().length == 0) {
+                // Jeśli dane binarne są null lub puste (choć EntytyNotFoundException powinno być pierwsze)
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // 3. Zwrócenie danych binarnych z POPRAWNYM nagłówkiem Content-Type
+            return ResponseEntity.ok()
+                    // ❗ KLUCZOWE: Ustawienie typu MIME (np. image/png, image/jpeg)
+                    .contentType(MediaType.parseMediaType(image.getMimeType()))
+                    // Wysłanie surowej tablicy bajtów (dane binarne obrazu)
+                    .body(image.getImage());
+
+        } catch (EntityNotFoundException e) {
+            // Obsługa, jeśli PostImage nie istnieje w bazie (zwróci 404 NOT FOUND)
+            // Używamy ResponseEntity.status().build() dla czystszej odpowiedzi 404
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            // Ogólna obsługa błędu
+            System.err.println("Błąd serwowania obrazu: " + e.getMessage());
+            // Zwracamy 500 INTERNAL SERVER ERROR
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+//    @GetMapping("/posts/{postId}/images")
+//    public ResponseEntity<List<PostImageDTO>> getImagesForPost(@PathVariable Long postId) {
+//        try {
+//            // 1. Serwis pobiera Post z JAWNIE ZAŁADOWANĄ kolekcją 'images' (dzięki JOIN FETCH).
+//            Post post = postImageService.getPostDetails(postId);
+//
+//            // 2. Mapowanie encji PostImage na DTO.
+//            // Konwersja Set<PostImage> na List<PostImageDTO>
+//            List<PostImageDTO> imageDTOs = post.getImages().stream()
+//                    .map(img -> new PostImageDTO(
+//                            img.getId(),
+//                            img.getFilename(),
+//                            img.getMimeType()))
+//                    .collect(Collectors.toList());
+//
+//            // 3. Zwracamy listę DTO
+//            return ResponseEntity.ok(imageDTOs);
+//
+//        } catch (EntityNotFoundException e) {
+//            // Obsługa, jeśli Post nie istnieje
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post nie znaleziony o ID: " + postId);
+//        } catch (Exception e) {
+//            // Ogólna obsługa błędu
+//            System.err.println("Błąd pobierania listy obrazów dla posta: " + e.getMessage());
+//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Wystąpił błąd serwera.");
+//        }
+//    }
+//@GetMapping("/posts/{postId}/images")
+//public ResponseEntity<List<PostImageDTO>> getImagesForPost(@PathVariable Long postId) {
+//    try {
+//        Post post = postImageService.getPostDetails(postId);
+//
+//        List<PostImageDTO> imageDTOs = post.getImages().stream()
+//                .map(img -> new PostImageDTO(
+//                        img.getId(),
+//                        img.getFilename(),
+//                        img.getMimeType(),
+//                        "/community/image/" + img.getId() // <-- KLUCZOWE!
+//                ))
+//                .collect(Collectors.toList());
+//
+//        return ResponseEntity.ok(imageDTOs);
+//
+//    } catch (EntityNotFoundException e) {
+//        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post nie znaleziony o ID: " + postId);
+//    } catch (Exception e) {
+//        System.err.println("Błąd pobierania listy obrazów: " + e.getMessage());
+//        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Wystąpił błąd serwera.");
+//    }
+//}
+
+
+    @GetMapping(value = "/posts/{postId}/images", produces = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<String> renderImagesForPost(@PathVariable Long postId) {
+
+        try {
+            Post post = postImageService.getPostDetails(postId);
+
+            StringBuilder html = new StringBuilder();
+            html.append("<html><body style='display:flex; flex-wrap:wrap; gap:20px;'>");
+
+            for (PostImage img : post.getImages()) {
+                html.append("<div>");
+                html.append("<img src=\"/community/image/" + img.getId() + "\" ")
+                        .append("alt=\"" + img.getFilename() + "\" ")
+                        .append("style=\"max-width:300px; height:auto; border:1px solid #ccc;\"/>");
+                html.append("</div>");
+            }
+
+            html.append("</body></html>");
+
+            return ResponseEntity.ok(html.toString());
+
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("<h1>Post o ID " + postId + " nie istnieje</h1>");
         }
     }
 }
