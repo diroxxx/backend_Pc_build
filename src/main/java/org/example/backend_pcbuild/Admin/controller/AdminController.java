@@ -12,7 +12,7 @@ import org.example.backend_pcbuild.Admin.service.OfferUpdateConfigService;
 import org.example.backend_pcbuild.Admin.service.OfferUpdateService;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserMapper;
-import org.example.backend_pcbuild.Component.ComponentService;
+import org.example.backend_pcbuild.Component.service.ComponentService;
 import org.example.backend_pcbuild.Offer.service.OfferService;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.OfferRepository;
@@ -23,7 +23,6 @@ import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -261,6 +260,16 @@ public class AdminController {
             OfferShopUpdateInfoDto.ShopUpdateInfoDto shopUpdateInfo =
                     offerUpdateService.getShopUpdateInfo(shopName, offerUpdateId);
 
+
+            boolean offerUpdateFinished = offerUpdateService.isOfferUpdateFinished(offerUpdateId);
+            if (offerUpdateFinished) {
+                Optional<OfferUpdate> byId = offerUpdateRepository.findById(offerUpdateId);
+                if (byId.isPresent()){
+                    byId.get().setFinishedAt(LocalDateTime.now());
+                    offerUpdateRepository.save(byId.get());
+                }
+            }
+
             messagingTemplate.convertAndSend("/topic/offers/" + offerUpdateId, shopUpdateInfo);
 
         } catch (Exception e) {
@@ -304,9 +313,6 @@ public class AdminController {
                 urls = objectMapper.convertValue(node.get("urls"), new TypeReference<List<String>>() {});
             }
 
-            OfferUpdate offerUpdate = offerUpdateRepository.findById(offerUpdateId)
-                    .orElseThrow(() -> new IllegalStateException("No OfferUpdate for id=" + offerUpdateId));
-
             ShopOfferUpdate shopOfferUpdate = shopOfferUpdateRepository
                     .findFirstByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateId, shopName)
                     .orElseThrow(() -> new IllegalStateException("No ShopOfferUpdate for OfferUpdate.id=" + offerUpdateId + " and shop=" + shopName));
@@ -319,6 +325,16 @@ public class AdminController {
 
             OfferShopUpdateInfoDto.ShopUpdateInfoDto shopUpdateInfo =
                     offerUpdateService.getShopUpdateInfo(shopName, offerUpdateId);
+
+            boolean offerUpdateFinished = offerUpdateService.isOfferUpdateFinished(offerUpdateId);
+            if (offerUpdateFinished) {
+                Optional<OfferUpdate> byId = offerUpdateRepository.findById(offerUpdateId);
+                if (byId.isPresent()){
+                    byId.get().setFinishedAt(LocalDateTime.now());
+                    offerUpdateRepository.save(byId.get());
+                }
+            }
+
 
             System.out.println("Usunięto oferty dla sklepu " + shopName);
             messagingTemplate.convertAndSend("/topic/offers/" + offerUpdateId, shopUpdateInfo);

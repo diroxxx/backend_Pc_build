@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.Component;
+package org.example.backend_pcbuild.Component.service;
 
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;

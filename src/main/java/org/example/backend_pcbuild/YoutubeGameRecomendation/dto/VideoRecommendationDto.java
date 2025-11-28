@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.YoutubeGameRecomendation;
+package org.example.backend_pcbuild.YoutubeGameRecomendation.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

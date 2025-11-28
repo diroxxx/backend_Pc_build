@@ -6,7 +6,7 @@ import com.opencsv.bean.HeaderColumnNameMappingStrategy;
 import com.opencsv.enums.CSVReaderNullFieldIndicator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.example.backend_pcbuild.Component.ComponentService;
+import org.example.backend_pcbuild.Component.service.ComponentService;
 import org.example.backend_pcbuild.Component.dto.*;
 import org.example.backend_pcbuild.models.ComponentType;
 import org.example.backend_pcbuild.models.Game;
