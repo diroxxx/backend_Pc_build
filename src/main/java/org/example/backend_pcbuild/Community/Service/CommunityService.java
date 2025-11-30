@@ -51,6 +51,7 @@ public class CommunityService {
                     );
 
                     CategoryDTO categoryDTO = new CategoryDTO(
+                            c.getPost().getCategory().getId(),
                             c.getPost().getCategory().getName()
                     );
 
