@@ -15,6 +15,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -34,6 +35,8 @@ public class OfferService {
     private final OfferRepository offerRepository;
     private final OfferMatchingService offerMatchingService;
     private final ShopRepository shopRepository;
+    private final BrandRepository brandRepository;
+
     private static final JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
 
 
@@ -284,32 +287,9 @@ public class OfferService {
     }
 
     @Transactional
-    public boolean saveOffer(ComponentOfferDto offerDto, ShopOfferUpdate update) {
-        System.out.println("=== Processing Offer ===");
-        System.out.println("Title: " + offerDto.getTitle());
-        System.out.println("Brand: " + offerDto.getBrand());
-        System.out.println("Model: " + offerDto.getModel());
-        System.out.println("Category: " + offerDto.getCategory());
+    public void saveOffersTemplate(List<ComponentOfferDto> offers, ShopOfferUpdate update) {
 
-        Optional<Offer> existingOfferOpt = offerRepository
-                .findByShopNameAndWebsiteUrlIgnoreCaseTrim(offerDto.getShop(), offerDto.getUrl());
-
-        if (existingOfferOpt.isPresent()) {
-            Offer existingOffer = existingOfferOpt.get();
-
-            boolean alreadyLinked = existingOffer.getOfferShopOfferUpdates().stream()
-                    .anyMatch(link -> link.getShopOfferUpdate().getId().equals(update.getId()));
-
-            if (alreadyLinked) {
-                System.out.println("Skipping - offer already linked to this update: " + offerDto.getUrl());
-                return false;
-            }
-
-            // Dla istniejących ofert NIC nie zapisujemy do OfferShopOfferUpdate.
-            // Dzięki temu statystyki z aktualizacji (ADDED) będą liczyć tylko NOWE oferty.
-            System.out.println("Skipping existing offer (no new record for this update): " + offerDto.getUrl());
-            return false;
-        }
+        Set<String> brands = new HashSet<>(brandRepository.findAll()).stream().map(Brand::getName).collect(Collectors.toSet());
 
         List<GraphicsCard> graphicsCardList = graphicsCardRepository.findAll();
         List<Processor> processorList = processorRepository.findAll();
@@ -331,10 +311,71 @@ public class OfferService {
                 ComponentType.CPU_COOLER, coolerList
         );
 
-        ComponentType category = offerDto.getCategory();
-        List<?> itemsForCategory = categoryMap.getOrDefault(category, Collections.emptyList());
 
-        System.out.println("Items for category " + category + ": " + itemsForCategory.size());
+        offers.forEach(offerDto -> {
+
+            Optional<Offer> existingOfferOpt = offerRepository
+                    .findByShopNameAndWebsiteUrlIgnoreCaseTrim(offerDto.getShop(), offerDto.getUrl());
+
+
+            if (existingOfferOpt.isPresent()) {
+                Offer existingOffer = existingOfferOpt.get();
+
+                boolean alreadyLinked = existingOffer.getOfferShopOfferUpdates().stream()
+                        .anyMatch(link -> link.getShopOfferUpdate().getId().equals(update.getId()));
+
+                if (alreadyLinked) {
+                    System.out.println("Skipping - offer already linked to this update: " + offerDto.getUrl());
+                    return;
+                }
+                System.out.println("Skipping existing offer (no new record for this update): " + offerDto.getUrl());
+                return;
+            }
+            ComponentType category = offerDto.getCategory();
+            List<?> itemsForCategory = categoryMap.getOrDefault(category, Collections.emptyList());
+
+            //if a brand from a database doesn't exist in title, create new component and offer with status
+
+
+//            for (String brand : brands) {
+//                if ( !offerDto.getTitle().toLowerCase().contains(brand.toLowerCase())) {
+//
+//                }
+//            }
+            System.out.println("=== Processing Offer ===");
+            System.out.println("Title: " + offerDto.getTitle());
+            System.out.println("Items for category " + category + ": " + itemsForCategory.size());
+            saveOffer(offerDto, update, itemsForCategory, category);
+
+        });
+    }
+
+
+
+    @Transactional
+    public boolean saveOffer(ComponentOfferDto offerDto, ShopOfferUpdate update , List<?> itemsForCategory,ComponentType category) {
+        System.out.println("=== Processing Offer ===");
+        System.out.println("Title: " + offerDto.getTitle());
+        System.out.println("Brand: " + offerDto.getBrand());
+        System.out.println("Model: " + offerDto.getModel());
+        System.out.println("Category: " + offerDto.getCategory());
+
+        Optional<Offer> existingOfferOpt = offerRepository
+                .findByShopNameAndWebsiteUrlIgnoreCaseTrim(offerDto.getShop(), offerDto.getUrl());
+
+        if (existingOfferOpt.isPresent()) {
+            Offer existingOffer = existingOfferOpt.get();
+
+            boolean alreadyLinked = existingOffer.getOfferShopOfferUpdates().stream()
+                    .anyMatch(link -> link.getShopOfferUpdate().getId().equals(update.getId()));
+
+            if (alreadyLinked) {
+                System.out.println("Skipping - offer already linked to this update: " + offerDto.getUrl());
+                return false;
+            }
+            System.out.println("Skipping existing offer (no new record for this update): " + offerDto.getUrl());
+            return false;
+        }
 
         Component bestComponent = offerMatchingService.matchOfferToComponent(
                 category,
@@ -342,7 +383,22 @@ public class OfferService {
                 itemsForCategory
         );
 
+        boolean isNewComponent = false;
+
         if (bestComponent == null) {
+//            Component newComponent = new Component();
+//
+//            newComponent.setModel("to change");
+//            newComponent.setComponentType(category);
+
+//            Optional<Brand> brandIgnoreCase = brandRepository.findByNameIgnoreCase(offerDto.getBrand());
+//            if (brandIgnoreCase.isPresent()) {
+//                newComponent.setBrand(brandIgnoreCase.get());
+//            }
+//            bestComponent = newComponent;
+//            componentRepository.save(newComponent);
+//            isNewComponent = true;
+
             System.out.println("No matching component found for: " +
                     offerDto.getBrand() + " " + offerDto.getModel() + " - SKIPPING");
             return false;
@@ -350,17 +406,23 @@ public class OfferService {
 
         Offer offer = buildOfferConnectToShop(offerDto);
 
-        System.out.println("✓ Matched component: " +
-                bestComponent.getBrand().getName() + " " + bestComponent.getModel());
+//        System.out.println("Matched component: " +
+//                bestComponent.getBrand().getName() + " " + bestComponent.getModel());
+
+
         offer.setComponent(bestComponent);
         bestComponent.getOffers().add(offer);
 
-        // TYLKO dla nowych ofert tworzymy powiązanie z aktualizacją (ADDED)
         OfferShopOfferUpdate offerUpdate = new OfferShopOfferUpdate();
         offerUpdate.setOffer(offer);
         offerUpdate.setShopOfferUpdate(update);
-        offerUpdate.setUpdateChangeType(UpdateChangeType.ADDED);
 
+//        if (isNewComponent) {
+//            offerUpdate.setUpdateChangeType(UpdateChangeType.RECHECK);
+//        } else {
+//
+//        }
+        offerUpdate.setUpdateChangeType(UpdateChangeType.ADDED);
         offer.getOfferShopOfferUpdates().add(offerUpdate);
         update.getOfferShopOfferUpdates().add(offerUpdate);
 
@@ -369,6 +431,7 @@ public class OfferService {
         System.out.println("Saved new offer with component: " + offerDto.getUrl());
         return true;
     }
+
     public  List<ComponentStatsDto>  getCountsOffersByComponents() {
         var totals = offerRepository.getOfferStatsTotal();
         var details = offerRepository.getOfferStatsByComponentAndShop();

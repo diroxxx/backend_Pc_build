@@ -27,7 +27,7 @@ public class rabbitMqConfig {
         return new Queue("test1", true);
     }
 
-    private static final List<String> SHOPS = List.of("olx", "allegro", "allegroLokalnie");
+    private static final List<String> SHOPS = List.of("olx", "allegro", "allegroLokalnie", "x-kom");
 
     @Bean
     public Declarables dynamicShopQueues() {

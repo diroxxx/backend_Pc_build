@@ -1,5 +1,6 @@
-package org.example.backend_pcbuild.Component;
+package org.example.backend_pcbuild.Component.controller;
 import lombok.RequiredArgsConstructor;
+import org.example.backend_pcbuild.Component.service.ComponentService;
 import org.example.backend_pcbuild.Component.dto.BaseItemDto;
 import org.example.backend_pcbuild.Component.dto.GameFpsComponentsFormDto;
 import org.example.backend_pcbuild.models.ComponentType;

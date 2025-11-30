@@ -46,7 +46,6 @@ public class Offer {
     private Boolean isVisible;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
-//    @ManyToOne(optional = false)
     @JoinColumn(name = "shop_id", nullable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

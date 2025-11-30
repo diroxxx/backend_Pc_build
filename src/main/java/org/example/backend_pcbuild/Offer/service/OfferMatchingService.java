@@ -4,46 +4,48 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.example.backend_pcbuild.Admin.dto.ComponentOfferDto;
 import org.example.backend_pcbuild.models.*;
+import org.example.backend_pcbuild.repository.BrandRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 @Service
 public class OfferMatchingService {
+
+
     private static final JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
 
 
     public Component matchOfferToComponent(
             ComponentType category,
             ComponentOfferDto offerDto,
-            List<?> items
+            List<?> components
     ) {
-        if (items == null || items.isEmpty()) {
+        if (components == null || components.isEmpty()) {
             System.out.println("[matchOfferToComponent] No items in DB for category: " + category);
             return null;
         }
-        if (offerDto == null || (offerDto.getBrand() == null && offerDto.getModel() == null && offerDto.getTitle() == null)) {
-            System.out.println("[matchOfferToComponent] Offer has no brand/model/title, skipping");
+        if (offerDto == null || offerDto.getTitle() == null) {
+            System.out.println("[matchOfferToComponent] Offer has no title, skipping");
             return null;
         }
 
         String modelOrTitle = offerDto.getModel() != null ? offerDto.getModel() : offerDto.getTitle();
-        String offerText = modelOrTitle != null ? modelOrTitle.toLowerCase() : "";
+        String offerText = modelOrTitle.toLowerCase();
         String[] offerWords = offerText.split("\\s+");
 
         return switch (category) {
-            case PROCESSOR     -> matchProcessor(offerDto, offerWords, items);
-            case GRAPHICS_CARD -> matchGraphicsCard(offerDto, offerWords, items);
-            case MEMORY        -> matchMemory(offerDto, offerWords, items);
-            case MOTHERBOARD   -> matchMotherboard(offerDto, offerWords, items);
-            case POWER_SUPPLY  -> matchPowerSupply(offerDto, offerWords, items);
-            case STORAGE       -> matchStorage(offerDto, offerWords, items);
-            case CASE_PC       -> matchCase(offerDto, offerWords, items);
-            case CPU_COOLER    -> matchCooler(offerDto, offerWords, items);
+            case PROCESSOR     -> matchProcessor(offerDto, offerWords, components);
+            case GRAPHICS_CARD -> matchGraphicsCard(offerDto, offerWords, components);
+            case MEMORY        -> matchMemory(offerDto, offerWords, components);
+            case MOTHERBOARD   -> matchMotherboard(offerDto, offerWords, components);
+            case POWER_SUPPLY  -> matchPowerSupply(offerDto, offerWords, components);
+            case STORAGE       -> matchStorage(offerDto, offerWords, components);
+            case CASE_PC       -> matchCase(offerDto, offerWords, components);
+            case CPU_COOLER    -> matchCooler(offerDto, offerWords, components);
         };
     }
 
@@ -52,14 +54,12 @@ public class OfferMatchingService {
         String offerTitle = offerDto.getTitle();
         String offerModelRaw = offerDto.getModel() != null ? offerDto.getModel() : offerTitle;
         String offerModelLower = offerModelRaw != null ? offerModelRaw.toLowerCase() : "";
-        String offerCpuClass = extractCpuClass(offerModelLower);
+        String offerCpuClass = extractCpuModel(offerModelLower);
 
-        Pattern socketPattern = Pattern.compile("(am4|am5|lga\\d{4}|s\\d{3,4}|fm2|fm1)", Pattern.CASE_INSENSITIVE);
         Pattern coresPattern = Pattern.compile("(\\d+)\\s*(rdzeni|rdzenie|cores)", Pattern.CASE_INSENSITIVE);
         Pattern threadsPattern = Pattern.compile("(\\d+)\\s*(wątk|threads)", Pattern.CASE_INSENSITIVE);
         Pattern clockPattern = Pattern.compile("(\\d{1,2}\\.\\d{1,2})\\s*ghz", Pattern.CASE_INSENSITIVE);
 
-        String offerSocket = extractPattern(socketPattern, offerModelLower, 1);
         Integer offerCores = extractIntPattern(coresPattern, offerModelLower, 1);
         Integer offerThreads = extractIntPattern(threadsPattern, offerModelLower, 1);
         Double offerBaseClock = null;
@@ -79,27 +79,20 @@ public class OfferMatchingService {
             Component comp = cpu.getComponent();
             if (comp == null || comp.getModel() == null) continue;
 
-            // filtr brandu po tytule oferty
             if (!isBrandInOfferTitle(comp.getBrand(), offerTitle)) {
                 continue;
             }
 
             String compModelLower = comp.getModel().toLowerCase();
             String[] compWords = compModelLower.split("\\s+");
-            String compCpuClass = extractCpuClass(compModelLower);
+            String compCpuClass = extractCpuModel(compModelLower);
 
-            // wymagaj zgodności klasy CPU, jeśli znana po obu stronach
             if (offerCpuClass != null && compCpuClass != null && !offerCpuClass.equals(compCpuClass)) {
                 continue;
             }
 
             double wordsScore = calculateCommonWordsScore(offerWords, compWords, 0.2);
             double modelSim = similarity.apply(offerModelLower, compModelLower);
-
-            double socketScore = 0.0;
-            if (offerSocket != null && cpu.getSocketType() != null) {
-                socketScore = compareString(offerSocket, cpu.getSocketType(), 0.5);
-            }
 
             double coresScore = 0.0;
             if (offerCores != null && cpu.getCores() != null) {
@@ -126,7 +119,7 @@ public class OfferMatchingService {
                 classScore = 1.0;
             }
 
-            double score = wordsScore + modelSim + socketScore + coresScore + threadsScore + clockScore + classScore;
+            double score = wordsScore + modelSim  + coresScore + threadsScore + clockScore + classScore;
 
             if (score > bestScore) {
                 bestScore = score;
@@ -164,7 +157,6 @@ public class OfferMatchingService {
             Component comp = gpu.getComponent();
             if (comp == null || comp.getModel() == null) continue;
 
-            // filtr brandu po tytule oferty
             if (!isBrandInOfferTitle(comp.getBrand(), offerTitle)) {
                 continue;
             }
@@ -440,7 +432,6 @@ public class OfferMatchingService {
         return bestComponent;
     }
 
-    // ===== CASE =====
     private Component matchCase(ComponentOfferDto offerDto, String[] offerWords, List<?> items) {
         String offerBrand = offerDto.getBrand();
         String offerTitle = offerDto.getTitle();
@@ -487,7 +478,6 @@ public class OfferMatchingService {
         return bestComponent;
     }
 
-    // ===== CPU COOLER =====
     private Component matchCooler(ComponentOfferDto offerDto, String[] offerWords, List<?> items) {
         String offerBrand = offerDto.getBrand();
         String offerTitle = offerDto.getTitle();
@@ -534,8 +524,6 @@ public class OfferMatchingService {
         if (text == null) return null;
         String lower = text.toLowerCase();
 
-        // Przykłady:
-        // "geforce rtx 2060", "rtx 2060", "2060 rtx", "gtx 970", "gt 1030"
         Pattern[] patterns = new Pattern[] {
                 Pattern.compile("(rtx\\s*\\d{3,4})"),          // rtx 2060, rtx2060
                 Pattern.compile("(gtx\\s*\\d{3,4})"),          // gtx 970
@@ -547,13 +535,13 @@ public class OfferMatchingService {
         for (Pattern p : patterns) {
             Matcher m = p.matcher(lower);
             if (m.find()) {
-                return m.group(1).replaceAll("\\s+", " ").trim(); // normalizacja spacji
+                return m.group(1).replaceAll("\\s+", " ").trim();
             }
         }
         return null;
     }
 
-    private String extractCpuClass(String text) {
+    private String extractCpuModel(String text) {
         if (text == null) return null;
         String lower = text.toLowerCase();
 
@@ -588,10 +576,7 @@ public class OfferMatchingService {
         return norm.isEmpty() ? null : norm;
     }
 
-    /**
-     * Zwraca true, jeśli brand z oferty jest zgodny z brandem komponentu
-     * lub pojawia się w modelu/tutule komponentu (po normalizacji).
-     */
+
     private boolean isBrandCompatible(String offerBrand, Brand componentBrand, String componentModel, String componentTitleOrModel) {
         String offerBrandNorm = normalizeBrandName(offerBrand);
         if (offerBrandNorm == null) {

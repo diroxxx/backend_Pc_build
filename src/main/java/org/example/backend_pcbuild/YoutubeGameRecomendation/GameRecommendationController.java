@@ -1,6 +1,8 @@
 package org.example.backend_pcbuild.YoutubeGameRecomendation;
 
 import lombok.RequiredArgsConstructor;
+import org.example.backend_pcbuild.YoutubeGameRecomendation.dto.GameFpsConfigDto;
+import org.example.backend_pcbuild.YoutubeGameRecomendation.dto.VideoRecommendationDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

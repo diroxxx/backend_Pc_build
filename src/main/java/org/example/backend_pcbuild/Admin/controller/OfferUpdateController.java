@@ -28,13 +28,13 @@ public class OfferUpdateController {
         return ResponseEntity.ok(offerUpdateService.getOfferUpdates());
     }
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/stats")
     public ResponseEntity<List<OfferUpdateStatsDTO>> getOfferUpdateStats() {
     return ResponseEntity.ok(offerUpdateService.getOfferStatsLast30Days());
     }
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("stats/shops")
     public ResponseEntity<List<OfferUpdateRepository.OfferUpdateShopsOffersAmountStatsProjection>> getOffersShopsAmountStats() {
         return ResponseEntity.ok(offerUpdateService.getOffersShopsAmountStats());
