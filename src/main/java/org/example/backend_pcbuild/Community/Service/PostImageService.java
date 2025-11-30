@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class PostImageService {
 
-    private static final int MAX_IMAGES_PER_POST = 5;
+    private static final int MAX_IMAGES_PER_POST = 10;
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
 

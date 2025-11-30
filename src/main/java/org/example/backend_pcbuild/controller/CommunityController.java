@@ -349,4 +349,83 @@ public class CommunityController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Wystąpił błąd serwera podczas pobierania zdjęć.");
         }
     }
+
+    @PutMapping("/posts/{postId}")
+    @Transactional
+    public ResponseEntity<Post> updatePost(@PathVariable Long postId, @RequestBody UpdatePostDTO dto) {
+
+        // 1. Uwierzytelnienie (Bez zmian)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
+        User currentUser = userRepository.findByEmail(principalUserDto.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found."));
+
+        // 2. Pobranie Posta (Bez zmian)
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found."));
+
+        // 3. Autoryzacja: Tylko autor lub admin (Bez zmian)
+        boolean isAuthor = post.getUser().getId().equals(currentUser.getId());
+        boolean isAdmin = principalUserDto.getRole().equals("ADMIN");
+
+        if (!isAuthor && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // 4. ⭐ WALIDACJA I AKTUALIZACJA TYLKO TREŚCI ⭐
+        if (dto.getContent() == null || dto.getContent().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Content cannot be empty.");
+        }
+
+        // Aktualizujemy tylko treść
+        post.setContent(dto.getContent());
+
+        return ResponseEntity.ok(postRepository.save(post));
+    }
+
+    @DeleteMapping("/posts/{postId}")
+    @Transactional
+    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
+
+        // 1. Uwierzytelnienie
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            // Zwraca 401 Unauthorized, jeśli użytkownik nie jest zalogowany
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
+        User currentUser = userRepository.findByEmail(principalUserDto.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found."));
+
+        // 2. Pobranie Posta
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found."));
+
+        // 3. Autoryzacja: Sprawdzenie uprawnień
+        boolean isAuthor = post.getUser().getId().equals(currentUser.getId());
+        boolean isAdmin = principalUserDto.getRole().equals("ADMIN"); // Zakładam, że rola jest dostępna w UserDto
+
+        if (!isAuthor && !isAdmin) {
+            // Zwraca 403 Forbidden, jeśli użytkownik nie jest autorem ani adminem
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // 4. Usunięcie
+        try {
+            // Pamiętaj: Jeśli Post ma relacje CascadeType.ALL lub OrphanRemoval=true
+            // dla komentarzy/zdjęć, zostaną one usunięte automatycznie.
+            postRepository.delete(post);
+
+            // Zwraca 204 No Content - standardowa odpowiedź po udanym usunięciu
+            return ResponseEntity.noContent().build();
+        } catch (DataAccessException e) {
+            // Błąd bazy danych
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error during post deletion.");
+        }
+    }
 }

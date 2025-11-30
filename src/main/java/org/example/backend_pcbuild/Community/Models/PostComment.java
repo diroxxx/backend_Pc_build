@@ -17,7 +17,7 @@ public class PostComment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 100, nullable = false)
+    @Column(length = 200, nullable = false)
     private String content;
 
 
