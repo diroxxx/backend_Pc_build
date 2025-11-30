@@ -21,9 +21,7 @@ public class PostImageDTO {
         this.id = id;
         this.filename = filename;
         this.mimeType = mimeType;
-
-        // POPRAWNY URL
-        this.imageUrl = "/community/image/" + id;
+        this.imageUrl = "http://localhost:8080/community/image/" + id;
     }
 
 }

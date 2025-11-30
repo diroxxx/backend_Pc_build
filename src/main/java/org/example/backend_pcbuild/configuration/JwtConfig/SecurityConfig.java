@@ -39,6 +39,7 @@ public class SecurityConfig {
                                 .requestMatchers("/api/components/**").permitAll()
                                 .requestMatchers("/offers/**").permitAll()
                                 .requestMatchers("/api/computers/users/**").permitAll()
+                                .requestMatchers("/community/image/**").permitAll()
 
                         .anyRequest().permitAll()
                 );
