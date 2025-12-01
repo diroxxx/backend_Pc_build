@@ -3,6 +3,9 @@ package org.example.backend_pcbuild.models;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Data
 public class Processor {
@@ -19,8 +22,14 @@ public class Processor {
     private String integratedGraphics;
     private Integer tdp;
 
+    private Double benchmark;
+
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "component_id")
     private Component component;
+
+    @OneToMany(mappedBy = "processor", cascade = CascadeType.ALL)
+    private List<GameCpuRequirements> gameCpuRequirements = new ArrayList<>();
 
 }

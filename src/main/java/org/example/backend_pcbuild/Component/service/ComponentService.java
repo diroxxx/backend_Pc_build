@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +29,7 @@ public class ComponentService {
     private final ComponentRepository componentRepository;
     private final ItemComponentMapper itemComponentMapper;
     private final BrandRepository brandRepository;
+    private final GpuModelRepository gpuModelRepository;
 
     public Map<String, List<Object>> fetchComponentsAsMap() {
         return restClient.get()
@@ -310,6 +312,7 @@ public class ComponentService {
             }
         }
     }
+
     @Transactional
     public void saveComponents(List<? extends BaseItemDto> components) {
         if (components == null || components.isEmpty()) {
@@ -325,6 +328,8 @@ public class ComponentService {
     }
 
     public void saveComponent(BaseItemDto dto) {
+
+
             if (dto instanceof ProcessorItemDto processor) {
                 saveProcessor(processor);
             } else if (dto instanceof GraphicsCardItemDto gpu) {
@@ -374,18 +379,78 @@ public class ComponentService {
         setIfNotNull(dto.getBoostClock(), cpu::setBoostClock);
         setIfNotNull(dto.getIntegratedGraphics(), cpu::setIntegratedGraphics);
         setIfNotNull(dto.getTdp(), cpu::setTdp);
+        setIfNotNull(dto.getBenchmark(), cpu::setBenchmark);
 
         component.setComponentType(ComponentType.PROCESSOR);
         componentRepository.save(component);
     }
 
-    private void saveGpu(GraphicsCardItemDto dto) {
+    private Optional<String> extractProcessorChipset(String model) {
+        if (model == null) return Optional.empty();
+        String[] patterns = new String[] {
+                "(Intel\\s+Core\\s+i[3579]-?\\d{3,4}[A-Za-z0-9-]*)",    // Intel Core i7-4770K etc.
+                "(AMD\\s+FX-\\d{3,4}[A-Za-z0-9-]*)",                    // AMD FX-6300
+                "(AMD\\s+Ryzen\\s+\\d\\s*\\d{3,4}[A-Za-z0-9-]*)",       // AMD Ryzen 5 1500X
+                "(Intel\\s+Pentium\\s+\\w+)",                           // inne przypadki
+        };
+        for (String pat : patterns) {
+            Pattern p = Pattern.compile(pat, Pattern.CASE_INSENSITIVE);
+            java.util.regex.Matcher m = p.matcher(model);
+            if (m.find()) {
+                return Optional.of(normalize(m.group().replaceAll("\\s+", " ")));
+            }
+        }
+        return Optional.empty();
+    }
+
+
+    @Transactional
+    public void saveGpu(GraphicsCardItemDto dto) {
         if (dto.getBrand() == null || dto.getModel() == null) {
             throw new IllegalArgumentException("GPU must have brand and model");
         }
 
-        Component component = getOrCreateComponent(dto.getBrand(), dto.getModel(), ComponentType.GRAPHICS_CARD);
+        String brand = normalize(dto.getBrand());
+        String model = normalize(dto.getModel());
+        String combined = normalize(brand + " " + model);
 
+        Optional<GpuModel> found = findByExactChipset(model);
+
+        if (!found.isPresent()) {
+            found = findByContainingToken(brand, model);
+        }
+        if (!found.isPresent()) {
+            // 4) try to extract chipset by regex heuristics (e.g. "RTX 3060 Ti")
+            Optional<String> extracted = extractChipsetWithRegex(model);
+            if (extracted.isPresent()) {
+                String chipsetCandidate = extracted.get();
+                // spróbuj dopasować extracted jako exact lub containing
+                found = findByExactChipset(chipsetCandidate);
+                if (!found.isPresent()) {
+                    List<GpuModel> candidates = gpuModelRepository.findByChipsetContainingIgnoreCase(chipsetCandidate);
+                    if (!candidates.isEmpty()) found = Optional.of(candidates.get(0));
+                }
+
+                if (!found.isPresent()) {
+                    GpuModel newModel = new GpuModel();
+                    newModel.setChipset(chipsetCandidate);
+                    newModel = gpuModelRepository.save(newModel);
+                    found = Optional.of(newModel);
+                }
+            }
+        }
+
+
+        GpuModel gpuModel = found.orElse(null);
+        if (gpuModel == null) {
+//            GpuModel placeholder = new GpuModel();
+//            placeholder.setChipset(model);
+//            placeholder = gpuModelRepository.save(placeholder);
+//            gpuModel = placeholder;
+            return;
+        }
+
+        Component component = getOrCreateComponent(brand, model, ComponentType.GRAPHICS_CARD);
         GraphicsCard gpu = component.getGraphicsCard();
         if (gpu == null) {
             gpu = new GraphicsCard();
@@ -393,16 +458,71 @@ public class ComponentService {
             component.setGraphicsCard(gpu);
         }
 
+        gpu.setGpuModel(gpuModel);
+
         setIfNotNull(dto.getVram(), gpu::setVram);
         setIfNotNull(dto.getGddr(), gpu::setGddr);
         setIfNotNull(dto.getPowerDraw(), gpu::setPowerDraw);
         setIfNotNull(dto.getBoostClock(), gpu::setBoostClock);
         setIfNotNull(dto.getCoreClock(), gpu::setCoreClock);
         setIfNotNull(dto.getLengthInMM(), gpu::setLengthInMM);
+        setIfNotNull(dto.getBenchmark(), gpu::setBenchmark);
 
         component.setComponentType(ComponentType.GRAPHICS_CARD);
         componentRepository.save(component);
     }
+    private String normalize(String s) {
+        if (s == null) return null;
+        return s.trim().replaceAll("\\s+", " ");
+    }
+
+    private Optional<GpuModel> findByContainingToken(String brand, String model) {
+        String combined = (brand == null ? "" : brand + " ") + (model == null ? "" : model);
+        combined = normalize(combined);
+
+        // Pobierz wszystkie modele i posortuj po długości desc (dłuższe najpierw)
+        List<GpuModel> all = gpuModelRepository.findAll()
+                .stream()
+                .sorted(Comparator.comparingInt((GpuModel gm) -> gm.getChipset().length()).reversed())
+                .collect(Collectors.toList());
+
+        for (GpuModel gm : all) {
+            String chipset = gm.getChipset();
+            if (chipset == null || chipset.isBlank()) continue;
+            // tokenowy match: \bCHIPSET\b (Pattern.quote dla bezpieczeństwa)
+            Pattern p = Pattern.compile("\\b" + Pattern.quote(chipset) + "\\b", Pattern.CASE_INSENSITIVE);
+            if (p.matcher(combined).find()) {
+                return Optional.of(gm);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> extractChipsetWithRegex(String model) {
+        if (model == null) return Optional.empty();
+        String[] patterns = new String[] {
+                "(RTX|GTX)\\s*\\d{3,4}\\s*(Ti|Super|S)?",        // Nvidia desktop (RTX 3060 Ti, GTX 1660 Super)
+                "Radeon\\s*(RX\\s*\\d{3,4})(\\s*XT|\\s*XTX|\\s*XT)?", // AMD Radeon
+                "RX\\s*\\d{3,4}\\s*(XT|XTX)?",                  // RX 6700 XT
+                "Arc\\s*B5\\d{2}",                              // Intel Arc examples
+                "UHD\\s*Graphics\\s*\\d{3}",                    // Intel UHD Graphics 630
+                "(Apple)\\s*(M1|M2)\\s*(GPU)?"                  // Apple M1/M2
+        };
+        for (String pat : patterns) {
+            Pattern p = Pattern.compile(pat, Pattern.CASE_INSENSITIVE);
+            java.util.regex.Matcher m = p.matcher(model);
+            if (m.find()) {
+                return Optional.of(normalize(m.group().replaceAll("\\s+", " ")));
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<GpuModel> findByExactChipset(String chipset) {
+        if (chipset == null || chipset.isBlank()) return Optional.empty();
+        return gpuModelRepository.findByChipsetIgnoreCase(chipset.trim());
+    }
+
 
     private void saveMotherboard(MotherboardItemDto dto) {
         if (dto.getBrand() == null || dto.getModel() == null) {
@@ -554,9 +674,20 @@ public class ComponentService {
                 .collect(Collectors.toSet()));
 
         return formDto;
-
     }
 
+
+    public Component findByComponentByModelAndType(String model, ComponentType type) {
+        List<Component> allByComponentTypeAndModel = componentRepository.findAllByComponentTypeAndModel(model, type);
+//        System.out.println(allByComponentTypeAndModel.size());
+
+        if( allByComponentTypeAndModel.isEmpty() ) return null;
+
+        for (Component component : allByComponentTypeAndModel) {
+            System.out.println(component.toString());
+        }
+        return allByComponentTypeAndModel.get(0);
+    }
 
 
     private Integer getIntegerValue(Map<String, Object> data, String key) {

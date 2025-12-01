@@ -12,14 +12,19 @@ public class GraphicsCard {
 
     private Integer vram;
     private String gddr;
-    private Integer boostClock;
-    private Integer coreClock;
+    private Double boostClock;
+    private Double coreClock;
     private Double powerDraw;
     private Double lengthInMM;
+
+    private Double benchmark;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "component_id")
     private Component component;
 
+    @ManyToOne
+    @JoinColumn(name = "gpu_model_id")
+    private GpuModel gpuModel;
 
 }

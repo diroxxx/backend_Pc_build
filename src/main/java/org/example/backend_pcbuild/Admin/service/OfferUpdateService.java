@@ -148,7 +148,6 @@ public class OfferUpdateService {
 
     }
 
-
     public boolean isOfferUpdateFinished(Long offerUpdateId) {
         return offerUpdateRepository.findById(offerUpdateId)
                 .map(offerUpdate -> {
@@ -160,9 +159,6 @@ public class OfferUpdateService {
 
                 }).orElse(false);
     }
-
-
-
 
     public Runnable scheduledAutomaticOfferUpdate() {
         return this::createAutomaticUpdate;

@@ -17,4 +17,6 @@ public class ProcessorItemDto  extends BaseItemDto{
     private Double boostClock;
     private String integratedGraphics;
     private Integer tdp;
+
+    private Double benchmark;
 }

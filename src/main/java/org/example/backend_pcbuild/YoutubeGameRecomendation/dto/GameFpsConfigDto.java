@@ -12,4 +12,6 @@ public class GameFpsConfigDto {
     private String technology;
     private String cpu;
     private String gpu;
+    private Double budget;
+
 }

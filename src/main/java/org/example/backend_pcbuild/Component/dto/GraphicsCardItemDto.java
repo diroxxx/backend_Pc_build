@@ -8,8 +8,11 @@ import lombok.EqualsAndHashCode;
 public class GraphicsCardItemDto extends BaseItemDto {
     private Integer vram;
     private String gddr;
-    private Integer boostClock;
-    private Integer coreClock;
+    private Double boostClock;
+    private Double coreClock;
     private Double powerDraw;
     private Double lengthInMM;
+
+    private Double benchmark;
+
 }

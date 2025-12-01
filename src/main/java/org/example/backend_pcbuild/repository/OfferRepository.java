@@ -1,5 +1,7 @@
 package org.example.backend_pcbuild.repository;
 
+import org.example.backend_pcbuild.models.Component;
+import org.example.backend_pcbuild.models.GpuModel;
 import org.example.backend_pcbuild.models.Offer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -72,6 +74,20 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
         String getComponentType();
         Long getTotal();
     }
+
+    @Query("SELECT o FROM Offer o " +
+            "JOIN o.component comp " +
+            "JOIN comp.graphicsCard g " +
+            "WHERE g.gpuModel = :gpuModel " +
+            "ORDER BY o.price ASC")
+    List<Offer> findTopByGpuModelOrderByPriceAsc(@Param("gpuModel") GpuModel gpuModel);
+
+
+    Optional<Offer> findFirstByComponentOrderByPriceAsc(Component component);
+
+    @Query(value = "SELECT * FROM offer o WHERE o.component_id = :componentId ORDER BY o.price ASC LIMIT 1", nativeQuery = true)
+    Optional<Offer> findCheapestNative(@Param("componentId") Long componentId);
+
 
 
 }

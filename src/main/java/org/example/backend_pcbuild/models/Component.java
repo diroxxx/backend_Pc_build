@@ -15,6 +15,8 @@ public class Component {
 
     private String model;
 
+    private Integer benchmark;
+
     @Enumerated(EnumType.STRING)
     private ComponentType componentType;
 

@@ -25,5 +25,16 @@ public interface ComponentRepository extends JpaRepository<Component, Integer>, 
     Optional<Component> findByBrandAndModelIgnoreCase(Brand brand, String model);
 
     List<Component> findAllByComponentType(ComponentType componentType);
+
+
+//    @Query("SELECT c FROM Component c WHERE c.componentType = :componentType AND c.model LIKE %:model%")
+//    List<Component> findAllByComponentTypeAndModel(@Param("model") String model, @Param("componentType") ComponentType componentType);
+
+    @Query("SELECT c FROM Component c " +
+            "WHERE c.componentType = :componentType " +
+            "AND LOWER(c.model) LIKE LOWER(CONCAT('%', :model, '%'))")
+    List<Component> findAllByComponentTypeAndModel(@Param("model") String model,
+                                                   @Param("componentType") ComponentType componentType);
+
 }
 

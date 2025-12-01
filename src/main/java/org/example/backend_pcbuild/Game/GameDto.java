@@ -10,4 +10,10 @@ public class GameDto {
     private Long id;
     private String title;
     private String imageBase64;
+
+    private String minCpu;
+    private String minGpu;
+    private String recGpu;
+    private String recCpu;
+
 }

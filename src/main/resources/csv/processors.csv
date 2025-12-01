@@ -1,201 +1,201 @@
-brand,model,socketType,cores,threads,baseClock,boostClock,integratedGraphics,tdp
-AMD,Ryzen 7 9800X3D,AM5,8,,4.7,5.2,Radeon,120
-AMD,Ryzen 7 7800X3D,AM5,8,,4.2,5,Radeon,120
-AMD,Ryzen 5 7600X,AM5,6,,4.7,5.3,Radeon,105
-AMD,Ryzen 5 9600X,AM5,6,,3.9,5.4,Radeon,65
-AMD,Ryzen 9 9950X3D,AM5,16,,4.3,5.7,Radeon,170
-AMD,Ryzen 7 9700X,AM5,8,,3.8,5.5,Radeon,65
-AMD,Ryzen 5 5500,AM4,6,,3.6,4.2,,65
-AMD,Ryzen 7 7700X,AM5,8,,4.5,5.4,Radeon,105
-AMD,Ryzen 5 5600,AM4,6,,3.5,4.4,,65
-AMD,Ryzen 5 3600,AM4,6,,3.6,4.2,,65
-Intel,Core i7-14700K,LGA1700,20,,3.4,5.6,Intel UHD Graphics 770,125
-AMD,Ryzen 5 5600X,AM4,6,,3.7,4.6,,65
-AMD,Ryzen 7 5800X,AM4,8,,3.8,4.7,,105
-AMD,Ryzen 5 7500F,AM5,6,,3.7,5,,65
-AMD,Ryzen 9 9900X,AM5,12,,4.4,5.6,Radeon,120
-AMD,Ryzen 5 7600,AM5,6,,3.8,5.1,Radeon,65
-AMD,Ryzen 7 5700X,AM4,8,,3.4,4.6,,65
-Intel,Core i5-12400F,LGA1700,6,,2.5,4.4,,65
-Intel,Core i5-14600K,LGA1700,14,,3.5,5.3,Intel UHD Graphics 770,125
-Intel,Core i9-14900K,LGA1700,24,,3.2,6,Intel UHD Graphics 770,125
-Intel,Core Ultra 7 265K,LGA1851,20,,3.9,5.5,Intel Xe,125
-AMD,Ryzen 9 7900X,AM5,12,,4.7,5.6,Radeon,170
-Intel,Core Ultra 9 285K,LGA1851,24,,3.7,5.7,Intel Xe,125
-AMD,Ryzen 9 9950X,AM5,16,,4.3,5.7,Radeon,170
-Intel,Core i5-14400F,LGA1700,10,,2.5,4.7,,65
-Intel,Core i7-12700KF,LGA1700,12,,3.6,5,,125
-AMD,Threadripper 3990X,sTRX4,64,,2.9,4.3,,280
-AMD,Ryzen 5 8500G,AM5,6,,4.1,5,Radeon 740M,65
-AMD,Ryzen 5 7600X3D,AM5,6,,4.1,4.7,Radeon,65
-AMD,Ryzen 7 3700X,AM4,8,,3.6,4.4,,65
-AMD,Ryzen 7 5800XT,AM4,8,,3.8,4.8,,105
-AMD,Ryzen 5 4500,AM4,6,,3.6,4.1,,65
-AMD,Ryzen 9 5950X,AM4,16,,3.4,4.9,,105
-AMD,Ryzen 5 8400F,AM5,6,,4.2,4.7,,65
-AMD,Ryzen 5 5600G,AM4,6,,3.9,4.4,Radeon Vega 7,65
-AMD,Ryzen 9 9900X3D,AM5,12,,4.4,5.5,Radeon,120
-AMD,Ryzen 7 7700,AM5,8,,3.6,5.3,Radeon,65
-Intel,Core i5-12600KF,LGA1700,10,,3.7,4.9,,125
-AMD,Ryzen 7 5700X3D,AM4,8,,3,4.1,,105
-AMD,Ryzen 7 5700G,AM4,8,,3.8,4.6,Radeon Vega 8,65
-AMD,Ryzen 9 5900X,AM4,12,,3.7,4.8,,105
-Intel,Core Ultra 7 265KF,LGA1851,20,,3.9,5.5,,125
-AMD,Ryzen 7 5700,AM4,8,,3.7,4.6,,65
-Intel,Core i7-12700K,LGA1700,12,,3.6,5,Intel UHD Graphics 770,125
-AMD,Ryzen 7 5800X3D,AM4,8,,3.4,4.5,,105
-Intel,Core i5-14600KF,LGA1700,14,,3.5,5.3,,125
-Intel,Core i5-13400F,LGA1700,10,,2.5,4.6,,65
-Intel,Core i5-12600K,LGA1700,10,,3.7,4.9,Intel UHD Graphics 770,125
-Intel,Core i7-14700KF,LGA1700,20,,3.4,5.6,,125
-Intel,Core i3-12100F,LGA1700,4,,3.3,4.3,,58
-Intel,Core i9-12900K,LGA1700,16,,3.2,5.2,Intel UHD Graphics 770,125
-AMD,Ryzen 7 8700G,AM5,8,,4.2,5.1,Radeon 780M,65
-Intel,Core i9-14900KF,LGA1700,24,,3.2,6,,125
-AMD,Ryzen 7 7800X3D,AM5,8,,4.2,5,Radeon,120
-AMD,Ryzen 9 7950X3D,AM5,16,,4.2,5.7,Radeon,120
-Intel,Core Ultra 5 225F,LGA1851,10,,3.3,4.9,,65
-AMD,Ryzen 7 8700F,AM5,8,,4.1,5,,65
-Intel,Core Ultra 5 245K,LGA1851,14,,4.2,5.2,Intel Xe,125
-AMD,Ryzen 9 7950X,AM5,16,,4.5,5.7,Radeon,170
-AMD,Ryzen 5 8600G,AM5,6,,4.3,5,Radeon 760M,65
-AMD,Ryzen 3 3200G,AM4,4,,3.6,4,Radeon Vega 8,65
-AMD,Ryzen 5 5600GT,AM4,6,,3.6,4.6,Radeon Vega 7,65
-Intel,Core i5-10400F,LGA1200,6,,2.9,4.3,,65
-Intel,Core i7-9700K,LGA1151,8,,3.6,4.9,Intel UHD Graphics 630,95
-AMD,Ryzen 5 2600,AM4,6,,3.4,3.9,,65
-AMD,Ryzen 5 3600X,AM4,6,,3.8,4.4,,95
-Intel,Core i3-14100F,LGA1700,4,,3.5,4.7,,58
-Intel,Core i7-13700K,LGA1700,16,,3.4,5.4,Intel UHD Graphics 770,125
-AMD,Ryzen 5 7500F,AM5,6,,3.7,5,,65
-Intel,Core i7-14700F,LGA1700,20,,2.1,5.4,,65
-Intel,Core i9-14900KS,LGA1700,24,,3.2,6.2,Intel UHD Graphics 770,150
-AMD,Ryzen 5 3400G,AM4,4,,3.7,4.2,Radeon Vega 11,65
-Intel,Pentium E2220,LGA775,2,,2.4,,,65
-AMD,Ryzen 5 5600XT,AM4,6,,3.7,4.7,,65
-Intel,Core i7-8700K,LGA1151,6,,3.7,4.7,Intel UHD Graphics 630,95
-Intel,Core i9-9900K,LGA1151,8,,3.6,5,Intel UHD Graphics 630,95
-Intel,Core Ultra 5 245KF,LGA1851,14,,4.2,5.2,,125
-AMD,Ryzen 9 3900X,AM4,12,,3.8,4.6,,105
-Intel,Core i7-7700K,LGA1151,4,,4.2,4.5,Intel HD Graphics 630,91
-AMD,Ryzen 7 2700X,AM4,8,,3.7,4.3,,105
-AMD,Ryzen 3 4100,AM4,4,,3.8,4,,65
-AMD,Ryzen 9 7900,AM5,12,,3.7,5.4,Radeon,65
-AMD,Ryzen 5 5500GT,AM4,6,,3.6,4.4,Radeon Vega 7,65
-Intel,Core i7-10700K,LGA1200,8,,3.8,5.1,Intel UHD Graphics 630,125
-Intel,Core i9-13900K,LGA1700,24,,3,5.8,Intel UHD Graphics 770,125
-Intel,Xeon E5-2687W V4,LGA2011-3,12,,3,3.5,,160
-AMD,Ryzen 9 5900XT,AM4,16,,3.3,4.8,,105
-AMD,Threadripper 3970X,sTRX4,32,,3.7,4.5,,280
-Intel,Core i3-6100,LGA1151,2,,3.7,,Intel HD Graphics 530,51
-Intel,Core i9-12900KF,LGA1700,16,,3.2,5.2,,125
-Intel,Core i3-12100,LGA1700,4,,3.3,4.3,Intel UHD Graphics 730,60
-Intel,Core i5-9400F,LGA1151,6,,2.9,4.1,,65
-Intel,Core i5-12400,LGA1700,6,,2.5,4.4,Intel UHD Graphics 730,65
-Intel,Core i5-13600K,LGA1700,14,,3.5,5.1,Intel UHD Graphics 770,125
-AMD,Ryzen 7 7700,AM5,8,,3.6,5.3,Radeon,65
-AMD,Ryzen 9 7900X3D,AM5,12,,4.4,5.6,Radeon,120
-AMD,Ryzen 5 9600,AM5,6,,3.8,5.2,Radeon,65
-Intel,Core i7-6700K,LGA1151,4,,4,4.2,Intel HD Graphics 530,91
-Intel,Core i5-11400F,LGA1200,6,,2.6,4.4,,65
-AMD,Ryzen 7 3800X,AM4,8,,3.9,4.5,,105
-Intel,Core i5-13600KF,LGA1700,14,,3.5,5.1,,125
-Intel,Core Ultra 5 225,LGA1851,10,,3.3,4.9,Intel Xe,65
-Intel,Core i5-9600K,LGA1151,6,,3.7,4.6,Intel UHD Graphics 630,95
-Intel,Core i7-13700KF,LGA1700,16,,3.4,5.4,,125
-Intel,Core i7-12700F,LGA1700,12,,2.1,4.9,,65
-Intel,Core i7-11700K,LGA1200,8,,3.6,5,Intel UHD Graphics 750,125
-Intel,Core i7-8700,LGA1151,6,,3.2,4.6,Intel UHD Graphics 630,65
-AMD,Ryzen 5 2600X,AM4,6,,3.6,4.2,,95
-Intel,Core i7-7700,LGA1151,4,,3.6,4.2,Intel HD Graphics 630,65
-AMD,Ryzen 5 7400F,AM5,6,,3.7,4.7,,65
-Intel,Core i5-10400,LGA1200,6,,2.9,4.3,Intel UHD Graphics 630,65
-AMD,Ryzen 5 1600 (14nm),AM4,6,,3.2,3.6,,65
-Intel,Core i3-13100F,LGA1700,4,,3.4,4.5,,58
-Intel,Core i7-10700F,LGA1200,8,,2.9,4.8,,65
-Intel,Core i5-8400,LGA1151,6,,2.8,4,Intel UHD Graphics 630,65
-Intel,Core i9-10900K,LGA1200,10,,3.7,5.3,Intel UHD Graphics 630,125
-Intel,Core i5-6500,LGA1151,4,,3.2,3.6,Intel HD Graphics 530,65
-Intel,Core i7-6700,LGA1151,4,,3.4,4,Intel HD Graphics 530,65
-Intel,Core i7-4790K,LGA1150,4,,4,4.4,Intel HD Graphics 4600,88
-Intel,Core Ultra 9 285,LGA1851,24,,2.5,5.6,Intel Xe,65
-AMD,Ryzen 5 3600,AM4,6,,3.6,4.2,,65
-AMD,Ryzen 9 3950X,AM4,16,,3.5,4.7,,105
-AMD,Threadripper 3960X,sTRX4,24,,3.8,4.5,,280
-Intel,Core i9-11900K,LGA1200,8,,3.5,5.3,Intel UHD Graphics 750,125
-Intel,Core i3-10100F,LGA1200,4,,3.6,4.3,,65
-Intel,Core i5-14400,LGA1700,10,,2.5,4.7,Intel UHD Graphics 730,65
-Intel,Core i7-14700,LGA1700,20,,2.1,5.4,Intel UHD Graphics 770,65
-AMD,Ryzen 5 4600G,AM4,6,,3.7,4.2,Radeon Vega 7,65
-Intel,Core i7-13700F,LGA1700,16,,2.1,5.2,,65
-Intel,Core Ultra 7 265F,LGA1851,20,,2.4,5.3,,65
-Intel,Core i5-6600K,LGA1151,4,,3.5,3.9,Intel HD Graphics 530,91
-Intel,Xeon E5-2699 V4,LGA2011-3,22,,2.2,3.6,,145
-Intel,Core i3-14100,LGA1700,4,,3.5,4.7,Intel UHD Graphics 730,60
-Intel,Core i5-8600K,LGA1151,6,,3.6,4.3,Intel UHD Graphics 630,95
-Intel,Core i5-10600K,LGA1200,6,,4.1,4.8,Intel UHD Graphics 630,125
-AMD,Ryzen 3 3100,AM4,4,,3.6,3.9,,65
-Intel,Core i7-12700,LGA1700,12,,2.1,4.9,Intel UHD Graphics 770,65
-AMD,Ryzen 5 3500X,AM4,6,,3.6,4.1,,65
-Intel,Core i7-11700F,LGA1200,8,,2.5,4.9,,65
-Intel,Core i9-13900KS,LGA1700,24,,3,6,Intel UHD Graphics 770,150
-Intel,Core Ultra 7 265,LGA1851,20,,2.4,5.3,Intel Xe,65
-Intel,Core i3-8100,LGA1151,4,,3.6,,Intel UHD Graphics 630,65
-Intel,Pentium G640,LGA1155,2,,2.8,,Intel HD Graphics,65
-Intel,Core i9-12900KS,LGA1700,16,,3.4,5.5,Intel UHD Graphics 770,150
-AMD,Ryzen 7 2700,AM4,8,,3.2,4.1,,65
-Intel,Core i7-10700,LGA1200,8,,2.9,4.8,Intel UHD Graphics 630,65
-Intel,Core i9-10850K,LGA1200,10,,3.6,5.2,Intel UHD Graphics 630,125
-AMD,Ryzen 7 3700X,AM4,8,,3.6,4.4,,65
-Intel,Core i7-4770K,LGA1150,4,,3.5,3.9,Intel HD Graphics 4600,84
-Intel,Core i5-7500,LGA1151,4,,3.4,3.8,Intel HD Graphics 630,65
-Intel,Core i7-6950X,LGA2011-3,10,,3,3.5,,140
-Intel,Core i9-13900KF,LGA1700,24,,3,5.8,,125
-Intel,Core i5-14500,LGA1700,14,,2.6,5,Intel UHD Graphics 770,65
-Intel,Core i7-9700,LGA1151,8,,3,4.7,Intel HD Graphics 630,65
-Intel,Core i9-9900KF,LGA1151,8,,3.6,5,,95
-AMD,Ryzen 7 1700,AM4,8,,3,3.7,,65
-AMD,Ryzen 5 3600,AM4,6,,3.6,4.2,,65
-Intel,Core i5-13500,LGA1700,14,,2.5,4.8,Intel UHD Graphics 770,65
-Intel,Core i7-3770,LGA1155,4,,3.4,,Intel HD Graphics 4000,77
-Intel,Core i7-9700F,LGA1151,8,,3,4.7,,65
-AMD,Athlon 3000G (14nm),AM4,2,,3.5,,Radeon Vega 3,35
-Intel,Xeon E5-2630 V2,LGA2011,6,,2.6,3.1,,80
-Intel,Core i5-13400,LGA1700,10,,2.5,4.6,Intel UHD Graphics 730,65
-Intel,Core i5-11400,LGA1200,6,,2.6,4.4,Intel UHD Graphics 730,65
-Intel,Xeon E5-2680 V4,LGA2011-3,14,,2.4,3.3,,120
-Intel,Core i5-11600K,LGA1200,6,,3.9,4.9,Intel UHD Graphics 750,125
-AMD,Ryzen 5 3600XT,AM4,6,,3.8,4.5,,95
-Intel,Core i7-3770K,LGA1155,4,,3.5,,Intel HD Graphics 4000,77
-AMD,Ryzen 5 2400G,AM4,4,,3.6,3.9,Radeon Vega 11,65
-AMD,Ryzen 3 2200G,AM4,4,,3.5,3.7,Radeon Vega 8,65
-Intel,Core i5-4690,LGA1150,4,,3.5,3.9,Intel HD Graphics 4600,84
-Intel,Core i7-4790,LGA1150,4,,3.6,4,Intel HD Graphics 4600,84
-Intel,Core i5-12500,LGA1700,6,,3,4.6,Intel UHD Graphics 770,65
-AMD,EPYC 4564P,SP6,16,,4.5,5.7,Radeon,170
-Intel,Core i5-8500,LGA1151,6,,3,4.1,Intel UHD Graphics 630,65
-Intel,Core Ultra 5 235,LGA1851,14,,3.4,5,Intel Xe,65
-AMD,Ryzen 9 3900XT,AM4,12,,3.8,4.7,,105
-Intel,Core i7-4770,LGA1150,4,,3.4,3.9,Intel HD Graphics 4600,84
-AMD,Ryzen 5 3500,AM4,6,,3.6,4.1,,65
-Intel,Celeron G5900,LGA1200,2,,3.4,,Intel UHD Graphics 610,58
-Intel,Core i5-2400,LGA1155,4,,3.1,,Intel HD Graphics 2000,95
-AMD,EPYC 4585PX,SP6,16,,4.3,5.7,Radeon,170
-Intel,Core i5-7600K,LGA1151,4,,3.8,4.2,Intel HD Graphics 630,91
-Intel,Core i5-7400,LGA1151,4,,3,3.5,Intel HD Graphics 630,65
-Intel,Core i7-9700KF,LGA1151,8,,3.6,4.9,,95
-AMD,Ryzen 7 1700X,AM4,8,,3.4,3.8,,95
-Intel,Core i7-10700KF,LGA1200,8,,3.8,5.1,,125
-Intel,Core i7-11700KF,LGA1200,8,,3.6,5,,125
-Intel,Core i5-4690K,LGA1150,4,,3.5,3.9,Intel HD Graphics 4600,88
-AMD,Ryzen 5 5600X3D,AM4,6,,3.3,4.4,,105
-AMD,Ryzen 9 PRO 7945,AM5,12,,3.7,5.4,Radeon,65
-Intel,Core i3-10100,LGA1200,4,,3.6,4.3,Intel UHD Graphics 630,65
-Intel,Core i9-10900KF,LGA1200,10,,3.7,5.3,,125
-Intel,Core i5-11600KF,LGA1200,6,,3.9,4.9,,125
-AMD,Ryzen 5 1600X,AM4,6,,3.6,4,,95
-Intel,Core i5-3470,LGA1155,4,,3.2,,Intel HD Graphics 2500,77
-Intel,Core i9-10980XE,LGA2066,18,,3,4.8,,165
-Intel,Core i5-4590,LGA1150,4,,3.3,3.7,Intel HD Graphics 4600,84
-Intel,Core i9-9980XE,LGA2066,18,,3,4.4,,165
-Intel,Core i5-9400,LGA1151,6,,2.9,4.1,Intel UHD Graphics 630,65
+brand,model,benchmark,socketType,cores,threads,baseClock,boostClock,integratedGraphics,tdp
+AMD,Ryzen 7 9800X3D,123.0,AM5,8,,4.7,5.2,Radeon,120
+AMD,Ryzen 7 7800X3D,118.0,AM5,8,,4.2,5.0,Radeon,120
+AMD,Ryzen 5 7600X,110.0,AM5,6,,4.7,5.3,Radeon,105
+AMD,Ryzen 5 9600X,114.0,AM5,6,,3.9,5.4,Radeon,65
+AMD,Ryzen 9 9950X3D,120.0,AM5,16,,4.3,5.7,Radeon,170
+AMD,Ryzen 7 9700X,116.0,AM5,8,,3.8,5.5,Radeon,65
+AMD,Ryzen 5 5500,85.9,AM4,6,,3.6,4.2,,65
+AMD,Ryzen 7 7700X,112.0,AM5,8,,4.5,5.4,Radeon,105
+AMD,Ryzen 5 5600,93.3,AM4,6,,3.5,4.4,,65
+AMD,Ryzen 5 3600,83.1,AM4,6,,3.6,4.2,,65
+Intel,Core i7-14700K,130.0,LGA1700,20,,3.4,5.6,Intel UHD Graphics 770,125
+AMD,Ryzen 5 5600X,95.9,AM4,6,,3.7,4.6,,65
+AMD,Ryzen 7 5800X,97.9,AM4,8,,3.8,4.7,,105
+AMD,Ryzen 5 7500F,103.0,AM5,6,,3.7,5.0,,65
+AMD,Ryzen 9 9900X,117.0,AM5,12,,4.4,5.6,Radeon,120
+AMD,Ryzen 5 7600,106.0,AM5,6,,3.8,5.1,Radeon,65
+AMD,Ryzen 7 5700X,96.0,AM4,8,,3.4,4.6,,65
+Intel,Core i5-12400F,98.1,LGA1700,6,,2.5,4.4,,65
+Intel,Core i5-14600K,124.0,LGA1700,14,,3.5,5.3,Intel UHD Graphics 770,125
+Intel,Core i9-14900K,131.0,LGA1700,24,,3.2,6.0,Intel UHD Graphics 770,125
+Intel,Core Ultra 7 265K,119.0,LGA1851,20,,3.9,5.5,Intel Xe,125
+AMD,Ryzen 9 7900X,113.0,AM5,12,,4.7,5.6,Radeon,170
+Intel,Core Ultra 9 285K,121.0,LGA1851,24,,3.7,5.7,Intel Xe,125
+AMD,Ryzen 9 9950X,118.0,AM5,16,,4.3,5.7,Radeon,170
+Intel,Core i5-14400F,107.0,LGA1700,10,,2.5,4.7,,65
+Intel,Core i7-12700KF,114.0,LGA1700,12,,3.6,5.0,,125
+AMD,Threadripper 3990X,,sTRX4,64,,2.9,4.3,,280
+AMD,Ryzen 5 8500G,89.0,AM5,6,,4.1,5.0,Radeon 740M,65
+AMD,Ryzen 5 7600X3D,106.0,AM5,6,,4.1,4.7,Radeon,65
+AMD,Ryzen 7 3700X,85.9,AM4,8,,3.6,4.4,,65
+AMD,Ryzen 7 5800XT,99.0,AM4,8,,3.8,4.8,,105
+AMD,Ryzen 5 4500,76.2,AM4,6,,3.6,4.1,,65
+AMD,Ryzen 9 5950X,100.0,AM4,16,,3.4,4.9,,105
+AMD,Ryzen 5 8400F,92.9,AM5,6,,4.2,4.7,,65
+AMD,Ryzen 5 5600G,85.9,AM4,6,,3.9,4.4,Radeon Vega 7,65
+AMD,Ryzen 9 9900X3D,119.0,AM5,12,,4.4,5.5,Radeon,120
+AMD,Ryzen 7 7700,109.0,AM5,8,,3.6,5.3,Radeon,65
+Intel,Core i5-12600KF,109.0,LGA1700,10,,3.7,4.9,,125
+AMD,Ryzen 7 5700X3D,97.0,AM4,8,,3.0,4.1,,105
+AMD,Ryzen 7 5700G,88.0,AM4,8,,3.8,4.6,Radeon Vega 8,65
+AMD,Ryzen 9 5900X,99.0,AM4,12,,3.7,4.8,,105
+Intel,Core Ultra 7 265KF,119.0,LGA1851,20,,3.9,5.5,,125
+AMD,Ryzen 7 5700,,AM4,8,,3.7,4.6,,65
+Intel,Core i7-12700K,114.0,LGA1700,12,,3.6,5.0,Intel UHD Graphics 770,125
+AMD,Ryzen 7 5800X3D,104.0,AM4,8,,3.4,4.5,,105
+Intel,Core i5-14600KF,124.0,LGA1700,14,,3.5,5.3,,125
+Intel,Core i5-13400F,106.0,LGA1700,10,,2.5,4.6,,65
+Intel,Core i5-12600K,109.0,LGA1700,10,,3.7,4.9,Intel UHD Graphics 770,125
+Intel,Core i7-14700KF,130.0,LGA1700,20,,3.4,5.6,,125
+Intel,Core i3-12100F,94.1,LGA1700,4,,3.3,4.3,,58
+Intel,Core i9-12900K,117.0,LGA1700,16,,3.2,5.2,Intel UHD Graphics 770,125
+AMD,Ryzen 7 8700G,95.0,AM5,8,,4.2,5.1,Radeon 780M,65
+Intel,Core i9-14900KF,131.0,LGA1700,24,,3.2,6.0,,125
+AMD,Ryzen 7 7800X3D,118.0,AM5,8,,4.2,5.0,Radeon,120
+AMD,Ryzen 9 7950X3D,116.0,AM5,16,,4.2,5.7,Radeon,120
+Intel,Core Ultra 5 225F,,LGA1851,10,,3.3,4.9,,65
+AMD,Ryzen 7 8700F,97.8,AM5,8,,4.1,5.0,,65
+Intel,Core Ultra 5 245K,117.0,LGA1851,14,,4.2,5.2,Intel Xe,125
+AMD,Ryzen 9 7950X,114.0,AM5,16,,4.5,5.7,Radeon,170
+AMD,Ryzen 5 8600G,92.2,AM5,6,,4.3,5.0,Radeon 760M,65
+AMD,Ryzen 3 3200G,62.7,AM4,4,,3.6,4.0,Radeon Vega 8,65
+AMD,Ryzen 5 5600GT,87.1,AM4,6,,3.6,4.6,Radeon Vega 7,65
+Intel,Core i5-10400F,85.2,LGA1200,6,,2.9,4.3,,65
+Intel,Core i7-9700K,96.9,LGA1151,8,,3.6,4.9,Intel UHD Graphics 630,95
+AMD,Ryzen 5 2600,73.3,AM4,6,,3.4,3.9,,65
+AMD,Ryzen 5 3600X,84.1,AM4,6,,3.8,4.4,,95
+Intel,Core i3-14100F,97.2,LGA1700,4,,3.5,4.7,,58
+Intel,Core i7-13700K,126.0,LGA1700,16,,3.4,5.4,Intel UHD Graphics 770,125
+AMD,Ryzen 5 7500F,103.0,AM5,6,,3.7,5.0,,65
+Intel,Core i7-14700F,121.0,LGA1700,20,,2.1,5.4,,65
+Intel,Core i9-14900KS,133.0,LGA1700,24,,3.2,6.2,Intel UHD Graphics 770,150
+AMD,Ryzen 5 3400G,68.1,AM4,4,,3.7,4.2,Radeon Vega 11,65
+Intel,Pentium E2220,,LGA775,2,,2.4,,,65
+AMD,Ryzen 5 5600XT,,AM4,6,,3.7,4.7,,65
+Intel,Core i7-8700K,88.4,LGA1151,6,,3.7,4.7,Intel UHD Graphics 630,95
+Intel,Core i9-9900K,97.9,LGA1151,8,,3.6,5.0,Intel UHD Graphics 630,95
+Intel,Core Ultra 5 245KF,117.0,LGA1851,14,,4.2,5.2,,125
+AMD,Ryzen 9 3900X,87.9,AM4,12,,3.8,4.6,,105
+Intel,Core i7-7700K,84.2,LGA1151,4,,4.2,4.5,Intel HD Graphics 630,91
+AMD,Ryzen 7 2700X,75.7,AM4,8,,3.7,4.3,,105
+AMD,Ryzen 3 4100,73.0,AM4,4,,3.8,4.0,,65
+AMD,Ryzen 9 7900,109.0,AM5,12,,3.7,5.4,Radeon,65
+AMD,Ryzen 5 5500GT,83.9,AM4,6,,3.6,4.4,Radeon Vega 7,65
+Intel,Core i7-10700K,96.5,LGA1200,8,,3.8,5.1,Intel UHD Graphics 630,125
+Intel,Core i9-13900K,129.0,LGA1700,24,,3.0,5.8,Intel UHD Graphics 770,125
+Intel,Xeon E5-2687W V4,,LGA2011-3,12,,3.0,3.5,,160
+AMD,Ryzen 9 5900XT,98.0,AM4,16,,3.3,4.8,,105
+AMD,Threadripper 3970X,,sTRX4,32,,3.7,4.5,,280
+Intel,Core i3-6100,55.4,LGA1151,2,,3.7,,Intel HD Graphics 530,51
+Intel,Core i9-12900KF,117.0,LGA1700,16,,3.2,5.2,,125
+Intel,Core i3-12100,94.2,LGA1700,4,,3.3,4.3,Intel UHD Graphics 730,60
+Intel,Core i5-9400F,84.8,LGA1151,6,,2.9,4.1,,65
+Intel,Core i5-12400,98.2,LGA1700,6,,2.5,4.4,Intel UHD Graphics 730,65
+Intel,Core i5-13600K,122.0,LGA1700,14,,3.5,5.1,Intel UHD Graphics 770,125
+AMD,Ryzen 7 7700,109.0,AM5,8,,3.6,5.3,Radeon,65
+AMD,Ryzen 9 7900X3D,115.0,AM5,12,,4.4,5.6,Radeon,120
+AMD,Ryzen 5 9600,,AM5,6,,3.8,5.2,Radeon,65
+Intel,Core i7-6700K,80.8,LGA1151,4,,4.0,4.2,Intel HD Graphics 530,91
+Intel,Core i5-11400F,94.0,LGA1200,6,,2.6,4.4,,65
+AMD,Ryzen 7 3800X,87.0,AM4,8,,3.9,4.5,,105
+Intel,Core i5-13600KF,122.0,LGA1700,14,,3.5,5.1,,125
+Intel,Core Ultra 5 225,,LGA1851,10,,3.3,4.9,Intel Xe,65
+Intel,Core i5-9600K,93.2,LGA1151,6,,3.7,4.6,Intel UHD Graphics 630,95
+Intel,Core i7-13700KF,126.0,LGA1700,16,,3.4,5.4,,125
+Intel,Core i7-12700F,109.0,LGA1700,12,,2.1,4.9,,65
+Intel,Core i7-11700K,101.0,LGA1200,8,,3.6,5.0,Intel UHD Graphics 750,125
+Intel,Core i7-8700,87.0,LGA1151,6,,3.2,4.6,Intel UHD Graphics 630,65
+AMD,Ryzen 5 2600X,74.0,AM4,6,,3.6,4.2,,95
+Intel,Core i7-7700,76.2,LGA1151,4,,3.6,4.2,Intel HD Graphics 630,65
+AMD,Ryzen 5 7400F,,AM5,6,,3.7,4.7,,65
+Intel,Core i5-10400,84.5,LGA1200,6,,2.9,4.3,Intel UHD Graphics 630,65
+AMD,Ryzen 5 1600 (14nm),,AM4,6,,3.2,3.6,,65
+Intel,Core i3-13100F,96.0,LGA1700,4,,3.4,4.5,,58
+Intel,Core i7-10700F,93.2,LGA1200,8,,2.9,4.8,,65
+Intel,Core i5-8400,81.8,LGA1151,6,,2.8,4.0,Intel UHD Graphics 630,65
+Intel,Core i9-10900K,99.6,LGA1200,10,,3.7,5.3,Intel UHD Graphics 630,125
+Intel,Core i5-6500,63.6,LGA1151,4,,3.2,3.6,Intel HD Graphics 530,65
+Intel,Core i7-6700,72.3,LGA1151,4,,3.4,4.0,Intel HD Graphics 530,65
+Intel,Core i7-4790K,78.9,LGA1150,4,,4.0,4.4,Intel HD Graphics 4600,88
+Intel,Core Ultra 9 285,,LGA1851,24,,2.5,5.6,Intel Xe,65
+AMD,Ryzen 5 3600,83.1,AM4,6,,3.6,4.2,,65
+AMD,Ryzen 9 3950X,89.3,AM4,16,,3.5,4.7,,105
+AMD,Threadripper 3960X,,sTRX4,24,,3.8,4.5,,280
+Intel,Core i9-11900K,103.0,LGA1200,8,,3.5,5.3,Intel UHD Graphics 750,125
+Intel,Core i3-10100F,80.4,LGA1200,4,,3.6,4.3,,65
+Intel,Core i5-14400,107.0,LGA1700,10,,2.5,4.7,Intel UHD Graphics 730,65
+Intel,Core i7-14700,121.0,LGA1700,20,,2.1,5.4,Intel UHD Graphics 770,65
+AMD,Ryzen 5 4600G,78.0,AM4,6,,3.7,4.2,Radeon Vega 7,65
+Intel,Core i7-13700F,121.0,LGA1700,16,,2.1,5.2,,65
+Intel,Core Ultra 7 265F,,LGA1851,20,,2.4,5.3,,65
+Intel,Core i5-6600K,72.4,LGA1151,4,,3.5,3.9,Intel HD Graphics 530,91
+Intel,Xeon E5-2699 V4,,LGA2011-3,22,,2.2,3.6,,145
+Intel,Core i3-14100,97.1,LGA1700,4,,3.5,4.7,Intel UHD Graphics 730,60
+Intel,Core i5-8600K,90.7,LGA1151,6,,3.6,4.3,Intel UHD Graphics 630,95
+Intel,Core i5-10600K,92.2,LGA1200,6,,4.1,4.8,Intel UHD Graphics 630,125
+AMD,Ryzen 3 3100,74.6,AM4,4,,3.6,3.9,,65
+Intel,Core i7-12700,108.0,LGA1700,12,,2.1,4.9,Intel UHD Graphics 770,65
+AMD,Ryzen 5 3500X,81.7,AM4,6,,3.6,4.1,,65
+Intel,Core i7-11700F,98.2,LGA1200,8,,2.5,4.9,,65
+Intel,Core i9-13900KS,131.0,LGA1700,24,,3.0,6.0,Intel UHD Graphics 770,150
+Intel,Core Ultra 7 265,,LGA1851,20,,2.4,5.3,Intel Xe,65
+Intel,Core i3-8100,70.6,LGA1151,4,,3.6,,Intel UHD Graphics 630,65
+Intel,Pentium G640,48.3,LGA1155,2,,2.8,,Intel HD Graphics,65
+Intel,Core i9-12900KS,119.0,LGA1700,16,,3.4,5.5,Intel UHD Graphics 770,150
+AMD,Ryzen 7 2700,73.8,AM4,8,,3.2,4.1,,65
+Intel,Core i7-10700,92.6,LGA1200,8,,2.9,4.8,Intel UHD Graphics 630,65
+Intel,Core i9-10850K,98.9,LGA1200,10,,3.6,5.2,Intel UHD Graphics 630,125
+AMD,Ryzen 7 3700X,85.9,AM4,8,,3.6,4.4,,65
+Intel,Core i7-4770K,73.6,LGA1150,4,,3.5,3.9,Intel HD Graphics 4600,84
+Intel,Core i5-7500,66.8,LGA1151,4,,3.4,3.8,Intel HD Graphics 630,65
+Intel,Core i7-6950X,86.8,LGA2011-3,10,,3.0,3.5,,140
+Intel,Core i9-13900KF,129.0,LGA1700,24,,3.0,5.8,,125
+Intel,Core i5-14500,114.0,LGA1700,14,,2.6,5.0,Intel UHD Graphics 770,65
+Intel,Core i7-9700,92.0,LGA1151,8,,3.0,4.7,Intel HD Graphics 630,65
+Intel,Core i9-9900KF,97.8,LGA1151,8,,3.6,5.0,,95
+AMD,Ryzen 7 1700,69.0,AM4,8,,3.0,3.7,,65
+AMD,Ryzen 5 3600,83.1,AM4,6,,3.6,4.2,,65
+Intel,Core i5-13500,113.0,LGA1700,14,,2.5,4.8,Intel UHD Graphics 770,65
+Intel,Core i7-3770,69.0,LGA1155,4,,3.4,,Intel HD Graphics 4000,77
+Intel,Core i7-9700F,92.0,LGA1151,8,,3.0,4.7,,65
+AMD,Athlon 3000G (14nm),,AM4,2,,3.5,,Radeon Vega 3,35
+Intel,Xeon E5-2630 V2,,LGA2011,6,,2.6,3.1,,80
+Intel,Core i5-13400,106.0,LGA1700,10,,2.5,4.6,Intel UHD Graphics 730,65
+Intel,Core i5-11400,94.2,LGA1200,6,,2.6,4.4,Intel UHD Graphics 730,65
+Intel,Xeon E5-2680 V4,,LGA2011-3,14,,2.4,3.3,,120
+Intel,Core i5-11600K,99.3,LGA1200,6,,3.9,4.9,Intel UHD Graphics 750,125
+AMD,Ryzen 5 3600XT,84.8,AM4,6,,3.8,4.5,,95
+Intel,Core i7-3770K,72.4,LGA1155,4,,3.5,,Intel HD Graphics 4000,77
+AMD,Ryzen 5 2400G,62.5,AM4,4,,3.6,3.9,Radeon Vega 11,65
+AMD,Ryzen 3 2200G,60.5,AM4,4,,3.5,3.7,Radeon Vega 8,65
+Intel,Core i5-4690,67.1,LGA1150,4,,3.5,3.9,Intel HD Graphics 4600,84
+Intel,Core i7-4790,71.4,LGA1150,4,,3.6,4.0,Intel HD Graphics 4600,84
+Intel,Core i5-12500,99.2,LGA1700,6,,3.0,4.6,Intel UHD Graphics 770,65
+AMD,EPYC 4564P,,SP6,16,,4.5,5.7,Radeon,170
+Intel,Core i5-8500,82.1,LGA1151,6,,3.0,4.1,Intel UHD Graphics 630,65
+Intel,Core Ultra 5 235,,LGA1851,14,,3.4,5.0,Intel Xe,65
+AMD,Ryzen 9 3900XT,88.7,AM4,12,,3.8,4.7,,105
+Intel,Core i7-4770,70.5,LGA1150,4,,3.4,3.9,Intel HD Graphics 4600,84
+AMD,Ryzen 5 3500,80.9,AM4,6,,3.6,4.1,,65
+Intel,Celeron G5900,55.5,LGA1200,2,,3.4,,Intel UHD Graphics 610,58
+Intel,Core i5-2400,60.6,LGA1155,4,,3.1,,Intel HD Graphics 2000,95
+AMD,EPYC 4585PX,,SP6,16,,4.3,5.7,Radeon,170
+Intel,Core i5-7600K,75.8,LGA1151,4,,3.8,4.2,Intel HD Graphics 630,91
+Intel,Core i5-7400,63.5,LGA1151,4,,3.0,3.5,Intel HD Graphics 630,65
+Intel,Core i7-9700KF,97.1,LGA1151,8,,3.6,4.9,,95
+AMD,Ryzen 7 1700X,71.0,AM4,8,,3.4,3.8,,95
+Intel,Core i7-10700KF,96.3,LGA1200,8,,3.8,5.1,,125
+Intel,Core i7-11700KF,102.0,LGA1200,8,,3.6,5.0,,125
+Intel,Core i5-4690K,69.6,LGA1150,4,,3.5,3.9,Intel HD Graphics 4600,88
+AMD,Ryzen 5 5600X3D,100.0,AM4,6,,3.3,4.4,,105
+AMD,Ryzen 9 PRO 7945,,AM5,12,,3.7,5.4,Radeon,65
+Intel,Core i3-10100,79.9,LGA1200,4,,3.6,4.3,Intel UHD Graphics 630,65
+Intel,Core i9-10900KF,99.5,LGA1200,10,,3.7,5.3,,125
+Intel,Core i5-11600KF,99.1,LGA1200,6,,3.9,4.9,,125
+AMD,Ryzen 5 1600X,73.7,AM4,6,,3.6,4.0,,95
+Intel,Core i5-3470,63.1,LGA1155,4,,3.2,,Intel HD Graphics 2500,77
+Intel,Core i9-10980XE,84.2,LGA2066,18,,3.0,4.8,,165
+Intel,Core i5-4590,63.5,LGA1150,4,,3.3,3.7,Intel HD Graphics 4600,84
+Intel,Core i9-9980XE,83.0,LGA2066,18,,3.0,4.4,,165
+Intel,Core i5-9400,86.5,LGA1151,6,,2.9,4.1,Intel UHD Graphics 630,65

@@ -9,8 +9,8 @@ import org.example.backend_pcbuild.models.ComponentType;
 public class GraphicsCardDto extends BaseOfferDto {
     private Integer vram;
     private String gddr;
-    private Integer boostClock;
-    private Integer coreClock;
+    private Double boostClock;
+    private Double coreClock;
     private Double powerDraw;
     private Double lengthInMM;
 
