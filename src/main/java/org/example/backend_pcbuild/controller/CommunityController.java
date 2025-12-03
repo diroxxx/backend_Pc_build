@@ -62,6 +62,9 @@ public class CommunityController {
     @Autowired
     private PostImageService postImageService;
 
+    @Autowired
+    private ReactionCommentRepository reactionCommentRepository;
+
 
     @GetMapping("/")
     public List<Post> getAllPosts() {
@@ -225,7 +228,7 @@ public class CommunityController {
         long likes = reactionRepository.countByPostIdAndLikeReaction(postId, true);
         long dislikes = reactionRepository.countByPostIdAndLikeReaction(postId, false);
 
-        return (int) (likes - dislikes); // Pozostaw tak, jak jest.
+        return (int) (likes - dislikes);
     }
 
     @GetMapping("/posts/{postId}/vote/status")
@@ -247,7 +250,6 @@ public class CommunityController {
 
         if (existingVoteOpt.isPresent()) {
             Reaction vote = existingVoteOpt.get();
-            // 3. Mapowanie typu głosu z Boolean na String
             if (vote.getLikeReaction()) {
                 return ResponseEntity.ok("upvote");
             } else {
@@ -340,7 +342,6 @@ public class CommunityController {
             return ResponseEntity.ok(imageDTOs);
 
         } catch (EntityNotFoundException e) {
-            // Zwracanie 404 NOT FOUND, jeśli post nie istnieje
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Post nie znaleziony o ID: " + postId);
 
         } catch (Exception e) {
@@ -354,7 +355,6 @@ public class CommunityController {
     @Transactional
     public ResponseEntity<Post> updatePost(@PathVariable Long postId, @RequestBody UpdatePostDTO dto) {
 
-        // 1. Uwierzytelnienie (Bez zmian)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -364,11 +364,9 @@ public class CommunityController {
         User currentUser = userRepository.findByEmail(principalUserDto.getEmail())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found."));
 
-        // 2. Pobranie Posta (Bez zmian)
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found."));
 
-        // 3. Autoryzacja: Tylko autor lub admin (Bez zmian)
         boolean isAuthor = post.getUser().getId().equals(currentUser.getId());
         boolean isAdmin = principalUserDto.getRole().equals("ADMIN");
 
@@ -376,12 +374,10 @@ public class CommunityController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        // 4. ⭐ WALIDACJA I AKTUALIZACJA TYLKO TREŚCI ⭐
         if (dto.getContent() == null || dto.getContent().trim().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Content cannot be empty.");
         }
 
-        // Aktualizujemy tylko treść
         post.setContent(dto.getContent());
 
         return ResponseEntity.ok(postRepository.save(post));
@@ -415,7 +411,6 @@ public class CommunityController {
             reactionRepository.deleteAllByPostId(postId);
             postImageRepository.deleteAllByPostId(postId);
 
-            // 5. Usunięcie głównej encji
             postRepository.delete(post);
 
             return ResponseEntity.noContent().build();
@@ -423,5 +418,106 @@ public class CommunityController {
             System.err.println("Błąd bazy danych podczas usuwania posta " + postId + ": " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Database error during post deletion. Check related entities.");
         }
+    }
+
+    @GetMapping("/{commentId}/vote/status")
+    public ResponseEntity<String> getUserCommentVoteStatus(@PathVariable Long commentId) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() ||
+                authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.ok(null);
+        }
+
+        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
+        User user = userRepository.findByEmail(principalUserDto.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found."));
+
+        Long userId = user.getId();
+
+        var existingVoteOpt = reactionCommentRepository.findByCommentIdAndUserId(commentId, userId);
+
+        if (existingVoteOpt.isPresent()) {
+            ReactionComment vote = existingVoteOpt.get();
+            return ResponseEntity.ok(vote.getLikeReaction() ? "upvote" : "downvote");
+        } else {
+            return ResponseEntity.ok(null);
+        }
+    }
+
+    @PostMapping("/comments/{commentId}/vote")
+    @Transactional
+    public ResponseEntity<Integer> castCommentVote(
+            @PathVariable Long commentId,
+            @RequestParam String type
+    ) {
+
+        // 1. Uwierzytelnienie użytkownika
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() ||
+                authentication.getPrincipal().equals("anonymousUser")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
+        User user = userRepository.findByEmail(principalUserDto.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found."));
+
+        Long userId = user.getId();
+
+        // 2. Pobranie komentarza
+        PostComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found."));
+
+        // 3. Ustalenie typu głosu
+        final boolean isLike;
+        if ("upvote".equalsIgnoreCase(type)) {
+            isLike = true;
+        } else if ("downvote".equalsIgnoreCase(type)) {
+            isLike = false;
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid vote type. Must be 'upvote' or 'downvote'.");
+        }
+
+        try {
+            Optional<ReactionComment> existingVoteOpt =
+                    reactionCommentRepository.findByCommentIdAndUserId(commentId, userId);
+
+            if (existingVoteOpt.isPresent()) {
+                ReactionComment existingVote = existingVoteOpt.get();
+
+
+                if (existingVote.getLikeReaction() == isLike) {
+                    reactionCommentRepository.delete(existingVote);
+                }
+                // SCENARIUSZ 2 — zmiana głosu
+                else {
+                    existingVote.setLikeReaction(isLike);
+                    reactionCommentRepository.save(existingVote);
+                }
+            }
+            // SCENARIUSZ 3 — nowy głos
+            else {
+                ReactionComment newVote = new ReactionComment();
+                newVote.setComment(comment);
+                newVote.setUser(user);
+                newVote.setLikeReaction(isLike);
+                reactionCommentRepository.save(newVote);
+            }
+
+            // 5. Zwróć net score komentarza
+            return ResponseEntity.ok(getCommentNetScore(commentId));
+
+        } catch (DataAccessException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Database error during comment vote: " + e.getMessage()
+            );
+        }
+    }
+    private Integer getCommentNetScore(Long commentId) {
+        int upvotes = reactionCommentRepository.countByCommentIdAndLikeReaction(commentId, true);
+        int downvotes = reactionCommentRepository.countByCommentIdAndLikeReaction(commentId, false);
+        return upvotes - downvotes;
     }
 }
