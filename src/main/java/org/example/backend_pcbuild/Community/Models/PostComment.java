@@ -3,10 +3,10 @@ package org.example.backend_pcbuild.Community.Models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import org.example.backend_pcbuild.Community.Models.Post;
 import org.example.backend_pcbuild.models.User;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table
@@ -32,5 +32,10 @@ public class PostComment {
 
     @NotNull
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ReactionComment> reactions;
+
+
 
 }

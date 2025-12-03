@@ -16,10 +16,6 @@ public interface PostCommentRepository extends JpaRepository<PostComment,Long> {
     @Query("SELECT pc FROM PostComment pc JOIN FETCH pc.user u WHERE pc.post.id = :postId ORDER BY pc.createdAt ASC")
     List<PostComment> findCommentsByPostId(@Param("postId") Long postId);
 
-//    Optional<PostComment> findById(Long postcommandId);
-
-//    Optional<PostComment> findByUsername(String username);
-
     @Modifying
     @Transactional
     @Query("DELETE FROM PostComment c WHERE c.post.id = :postId")
