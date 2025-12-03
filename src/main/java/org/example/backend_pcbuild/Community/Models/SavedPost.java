@@ -2,13 +2,17 @@ package org.example.backend_pcbuild.Community.Models;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.backend_pcbuild.models.User;
 
 @Entity
 @Data
-@NoArgsConstructor
+@Builder             // <-- Wymaga konstruktora ze wszystkimi polami
+@AllArgsConstructor  // <-- Naprawia błąd Buildera
+@NoArgsConstructor   // <-- Wymagane przez Hibernate (JPA)
 @Table(
         name = "saved_post",
         uniqueConstraints = {

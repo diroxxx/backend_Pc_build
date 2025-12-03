@@ -9,9 +9,10 @@ import org.example.backend_pcbuild.Community.Models.*;
 import org.example.backend_pcbuild.Community.Repository.*;
 import org.example.backend_pcbuild.Community.Service.CommunityService;
 import org.example.backend_pcbuild.Community.Service.PostImageService;
+import org.example.backend_pcbuild.Community.Service.SavedPostService;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
-import org.example.backend_pcbuild.LoginAndRegister.dto.PostResponseDto;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
+import org.example.backend_pcbuild.UserProfile.SavedPostRepository;
 import org.example.backend_pcbuild.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -20,13 +21,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -64,6 +65,12 @@ public class CommunityController {
 
     @Autowired
     private ReactionCommentRepository reactionCommentRepository;
+
+    @Autowired
+    private final SavedPostService savedPostService;
+
+    @Autowired
+    private SavedPostRepository savedPostRepository;
 
 
     @GetMapping("/")
@@ -520,4 +527,64 @@ public class CommunityController {
         int downvotes = reactionCommentRepository.countByCommentIdAndLikeReaction(commentId, false);
         return upvotes - downvotes;
     }
+
+    private Long getUserIdFromPrincipal(Principal principal) {
+        if (principal == null) {
+            // Zwykle rzucany przez mechanizmy autoryzacji Spring Security wcześniej
+            throw new SecurityException("Użytkownik niezalogowany.");
+        }
+        // Zakładamy, że Principal.getName() zwraca ID użytkownika jako String
+        return Long.parseLong(principal.getName());
+    }
+
+//    @PostMapping("/{postId}/save")
+//    public ResponseEntity<String> savePost(@PathVariable Long postId, Principal principal) {
+//        Long userId = getUserIdFromPrincipal(principal);
+//        try {
+//            savedPostService.savePost(userId, postId);
+//            return new ResponseEntity<>("Post zapisany pomyślnie.", HttpStatus.CREATED);
+//        } catch (RuntimeException e) {
+//            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+//        }
+//    }
+//    @DeleteMapping("/{postId}/save")
+//    public ResponseEntity<String> unsavePost(@PathVariable Long postId, Principal principal) {
+//        Long userId = getUserIdFromPrincipal(principal);
+//        try {
+//            savedPostService.unsavePost(userId, postId);
+//            return new ResponseEntity<>("Post usunięty z listy zapisanych.", HttpStatus.NO_CONTENT);
+//        } catch (RuntimeException e) {
+//            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+//        }
+//    }
+//
+//
+//    private User getAuthenticatedUser() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//
+//        if (authentication == null || !authentication.isAuthenticated() ||
+//                authentication.getPrincipal().equals("anonymousUser")) {
+//            // Zwracamy wyjątek 401, ponieważ użytkownik musi być zalogowany
+//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
+//        }
+//
+//        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
+//
+//        return userRepository.findByEmail(principalUserDto.getEmail())
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found in database."));
+//    }
+//    @GetMapping("/saved")
+//    public ResponseEntity<List<Post>> getSavedPosts() {
+//
+//        // 1. Uwierzytelnienie i Pobranie Użytkownika
+//        User user = getAuthenticatedUser();
+//        Long userId = user.getId();
+//
+//        // 2. Pobranie listy postów z serwisu
+//        List<Post> savedPosts = savedPostService.getSavedPosts(userId);
+//
+//        // 3. Zwrócenie listy postów
+//        return ResponseEntity.ok(savedPosts);
+//    }
+
 }
