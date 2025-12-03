@@ -59,4 +59,10 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PostImage> images;
 
+
+    @EqualsAndHashCode.Exclude
+    @JsonIgnore
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<SavedPost> savedByUsers;
+
 }

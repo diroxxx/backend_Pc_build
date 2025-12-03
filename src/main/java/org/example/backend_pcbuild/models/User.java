@@ -7,9 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.backend_pcbuild.Community.Models.Post;
-import org.example.backend_pcbuild.Community.Models.PostComment;
-import org.example.backend_pcbuild.Community.Models.Reaction;
+import org.example.backend_pcbuild.Community.Models.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -61,4 +59,12 @@ public class User {
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Computer> computers;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<SavedPost> savedPosts = new HashSet<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ReactionComment> commentReactions = new HashSet<>();
 }
