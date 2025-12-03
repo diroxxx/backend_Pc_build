@@ -677,17 +677,7 @@ public class ComponentService {
     }
 
 
-    public Component findByComponentByModelAndType(String model, ComponentType type) {
-        List<Component> allByComponentTypeAndModel = componentRepository.findAllByComponentTypeAndModel(model, type);
-//        System.out.println(allByComponentTypeAndModel.size());
 
-        if( allByComponentTypeAndModel.isEmpty() ) return null;
-
-        for (Component component : allByComponentTypeAndModel) {
-            System.out.println(component.toString());
-        }
-        return allByComponentTypeAndModel.get(0);
-    }
 
 
     private Integer getIntegerValue(Map<String, Object> data, String key) {

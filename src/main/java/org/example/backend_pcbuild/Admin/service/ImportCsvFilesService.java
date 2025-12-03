@@ -134,7 +134,6 @@ public class ImportCsvFilesService {
     }
     @Transactional
     public Integer importGamesFromCsv(InputStream inputStream) throws IOException {
-        // ładowanie katalogu (możesz zmienić na query w razie potrzeby)
         List<GpuModel> models = gpuModelRepository.findAll();
         List<Processor> processors = processorRepository.findAll();
 
@@ -144,7 +143,6 @@ public class ImportCsvFilesService {
             for (Game game : games) {
                 game.decodeImageFromBase64();
 
-                // CPU - minimal
                 Optional<Processor> minCpuOpt = findProcessorFromGameField(game.getMinCpu(), processors);
                 if (minCpuOpt.isPresent()) {
                     Processor minCpu = minCpuOpt.get();
@@ -157,11 +155,9 @@ public class ImportCsvFilesService {
                     log.warn("Nie znaleziono CPU (MIN) dla gry {}: '{}'", game.getTitle(), game.getMinCpu());
                 }
 
-                // CPU - recommended
                 Optional<Processor> recCpuOpt = findProcessorFromGameField(game.getRecCpu(), processors);
                 if (recCpuOpt.isPresent()) {
                     Processor recCpu = recCpuOpt.get();
-                    // unikamy duplikatu (gdy min==rec znalezione ten sam procesor)
                     boolean duplicate = game.getGameCpuRequirements().stream()
                             .anyMatch(r -> r.getProcessor() != null && r.getProcessor().equals(recCpu) && r.getRecGameLevel() == RecGameLevel.MIN);
                     if (!duplicate) {
