@@ -170,7 +170,6 @@ public class GameController {
 //            throw new AppException("Brak danych do zapisu", HttpStatus.BAD_REQUEST);
 //        }
 //        System.out.println(file.getOriginalFilename());
-
         try{
 //            gameService.updateGameReqInfo(dto, file);
             gameService.updateGameReqInfoBulk(dto, file);

@@ -39,7 +39,6 @@ public class GameService {
         dto.setId(game.getId());
         dto.setTitle(game.getTitle());
         dto.setImageUrl("/api/games/" + game.getId() + "/image");
-//        dto.setFile(game.getImage());
 
         return dto;
     }
@@ -197,6 +196,7 @@ public class GameService {
     @Transactional
     public void updateGameReqInfoBulk(GameReqCompDto dto, MultipartFile file) throws IOException {
         Game game = gameRepository.findById(dto.getId()).orElseThrow();
+
         if (file != null && !file.isEmpty()) game.setImage(file.getBytes());
         if (dto.getTitle() != null && !dto.getTitle().isBlank()) game.setTitle(dto.getTitle());
 
@@ -226,6 +226,7 @@ public class GameService {
             toSaveGpu.add(ggr);
         }
         gameGpuRequirementsRepository.saveAll(toSaveGpu);
+        gameRepository.save(game);
 
     }
 

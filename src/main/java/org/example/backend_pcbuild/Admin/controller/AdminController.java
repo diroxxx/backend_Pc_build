@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.dto.*;
 import org.example.backend_pcbuild.Admin.repository.OfferUpdateConfigRepository;
+import org.example.backend_pcbuild.Admin.service.AdminService;
 import org.example.backend_pcbuild.Admin.service.OfferUpdateConfigService;
 import org.example.backend_pcbuild.Admin.service.OfferUpdateService;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
@@ -23,6 +24,8 @@ import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.repository.query.Param;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -64,7 +67,7 @@ public class AdminController {
     private final OfferUpdateService offerUpdateService;
     private final ComponentService componentService;
     private final OfferUpdateConfigService configService;
-
+    private final AdminService adminService;
 
 
     @RabbitListener(queues = {
@@ -360,14 +363,15 @@ public class AdminController {
 
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @GetMapping("/users")
-    public ResponseEntity<List<UserDto>> getUsers() {
-        List<UserDto> users = userRepository.findAll().stream()
-                .map(userMapper::toUserDto)
-                .toList();
-        return ResponseEntity.ok(users);
+    @DeleteMapping("/users")
+    public ResponseEntity<?> deleteUserByEmail(@RequestParam("email") String email) {
+        boolean existed = userRepository.existsByEmail(email);
+        if (!existed) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Użytkownik nie znaleziony"));
+        }
+        adminService.deleteUserByEmail(email);
+        return ResponseEntity.ok(Map.of("message", "Użytkownik został usunięty"));
     }
-
 }
 
 

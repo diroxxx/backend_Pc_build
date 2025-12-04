@@ -22,12 +22,13 @@ public class Game {
     @CsvBindByName(column = "title")
     private String title;
 
+    @Lob
+    private byte[] image;
+
     @Transient
     @CsvBindByName(column = "image_base64")
     @Lob
     private String imageBase64;
-    @Lob
-    private byte[] image;
 
     @Transient
     private String minCpu;

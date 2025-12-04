@@ -16,4 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmailAndRole(String email, UserRole role);
 
 
+    void deleteByEmail(String email);
+
+    boolean existsByEmail(String email);
 }
