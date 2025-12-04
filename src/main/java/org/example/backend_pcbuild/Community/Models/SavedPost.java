@@ -10,9 +10,9 @@ import org.example.backend_pcbuild.models.User;
 
 @Entity
 @Data
-@Builder             // <-- Wymaga konstruktora ze wszystkimi polami
-@AllArgsConstructor  // <-- Naprawia błąd Buildera
-@NoArgsConstructor   // <-- Wymagane przez Hibernate (JPA)
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(
         name = "saved_post",
         uniqueConstraints = {

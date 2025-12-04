@@ -213,7 +213,6 @@ public class CommunityController {
                 reactionRepository.save(newVote);
             }
 
-            // 5. Obliczenie i zwrot nowej punktacji netto
             return ResponseEntity.ok(getNetScore(postId));
 
         } catch (DataAccessException e) {
@@ -240,7 +239,7 @@ public class CommunityController {
 
     @GetMapping("/posts/{postId}/vote/status")
     public ResponseEntity<String> getUserVoteStatus(@PathVariable Long postId) {
-        // 1. Uwierzytelnienie i Pobranie Użytkownika
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() ||
                 authentication.getPrincipal().equals("anonymousUser")) {

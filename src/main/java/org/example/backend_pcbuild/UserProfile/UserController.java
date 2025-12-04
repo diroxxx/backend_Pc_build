@@ -79,15 +79,13 @@ public class UserController {
     @GetMapping("/posts/user/{username}")
     public ResponseEntity<List<UserPostsDTO>> getPostsByUsername(@PathVariable String username) {
 
-        // Pobranie użytkownika po username
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "User not found with username: " + username));
 
-        // Pobranie postów użytkownika
+
         List<Post> userPosts = postRepository.findByUserId(user.getId());
 
-        // Mapowanie Post -> UserPostsDTO z użyciem buildera
         List<UserPostsDTO> dtoList = userPosts.stream()
                 .map(post -> UserPostsDTO.builder()
                         .id(post.getId())
@@ -115,13 +113,29 @@ public class UserController {
         List<SavedPost> savedEntities = savedPostRepository.findByUserId(user.getId());
 
 
+//        List<SavedPostDTO> savedPosts = savedEntities.stream()
+//                .map(savedPost -> SavedPostDTO.builder()
+//                        .id(savedPost.getId())
+//                        .postId(savedPost.getPost().getId())
+//                        .userId(savedPost.getUser().getId())
+//                        .title(savedPost.getPost().getTitle())
+//                        .content(savedPost.getPost().getContent())
+//                        .category(CategoryDTO.builder()
+//                                .id(savedPost.getPost().getCategory().getId())
+//                                .name(savedPost.getPost().getCategory().getName())
+//                                .build())
+//                        .build())
+//                .collect(Collectors.toList());
         List<SavedPostDTO> savedPosts = savedEntities.stream()
                 .map(savedPost -> SavedPostDTO.builder()
-                        .id(savedPost.getId()) // ID samego zapisu (jeśli potrzebne)
-                        .postId(savedPost.getPost().getId()) // ID zapisanego posta
-                        .userId(savedPost.getUser().getId()) // ID użytkownika (opcjonalne, bo znamy go z URL)
+                        .id(savedPost.getId())
+                        .postId(savedPost.getPost().getId())
+                        .userId(savedPost.getUser().getId())
                         .title(savedPost.getPost().getTitle())
                         .content(savedPost.getPost().getContent())
+                        // --- DODANE MAPOWANIE AUTORA ---
+                        .authorName(savedPost.getPost().getUser().getUsername())
+                        // -------------------------------
                         .category(CategoryDTO.builder()
                                 .id(savedPost.getPost().getCategory().getId())
                                 .name(savedPost.getPost().getCategory().getName())
@@ -137,7 +151,6 @@ public class UserController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            // Bezpieczne pobieranie emaila (działa dla UserDto i UserDetails)
             String email;
             Object principal = authentication.getPrincipal();
             if (principal instanceof UserDto) {
@@ -158,11 +171,9 @@ public class UserController {
                 return ResponseEntity.badRequest().body("Post is already saved.");
             }
 
-            // Użycie settera zamiast buildera (dla pewności, że zadziała bez konfiguracji Lomboka)
             SavedPost savedPost = new SavedPost();
             savedPost.setUser(user);
             savedPost.setPost(post);
-            // savedPost.setCreatedAt(LocalDateTime.now()); // Odkomentuj jeśli nie masz @PrePersist
 
             savedPostRepository.save(savedPost);
 
@@ -173,7 +184,6 @@ public class UserController {
         }
     }
 
-    // --- 2. USUWANIE Z ZAPISANYCH (POPRAWIONE) ---
     @DeleteMapping("/posts/{postId}/unsave")
     @Transactional
     public ResponseEntity<?> unsavePost(@PathVariable Long postId) {
@@ -204,14 +214,10 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error unsaving post: " + e.getMessage());
         }
     }
-
-    // --- 3. SPRAWDZANIE STATUSU (CZY ZAPISANY?) ---
-    // Frontend potrzebuje tego, żeby wiedzieć czy wyświetlić pustą czy pełną ikonkę zakładki
     @GetMapping("posts/{postId}/isSaved")
     public ResponseEntity<Boolean> isPostSaved(@PathVariable Long postId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // Jeśli użytkownik niezalogowany -> false
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
             return ResponseEntity.ok(false);
         }

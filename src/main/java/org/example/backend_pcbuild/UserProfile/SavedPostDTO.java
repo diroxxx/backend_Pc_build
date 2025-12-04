@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.backend_pcbuild.Community.DTO.CategoryDTO;
+import org.example.backend_pcbuild.models.User;
 
 @Data
 @Builder
@@ -17,4 +18,6 @@ public class SavedPostDTO {
     private String title;
     private String content;
     private CategoryDTO category;
+
+    private String authorName;
 }
