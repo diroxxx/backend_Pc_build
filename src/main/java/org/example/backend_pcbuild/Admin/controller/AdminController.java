@@ -185,18 +185,48 @@ public class AdminController {
         }
     }
 
-    private Map<String, Object> convertOfferDtoToMap(ComponentOfferDto dto) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("brand", dto.getBrand());
-        map.put("category", dto.getCategory());
-        map.put("img", dto.getImg());
-        map.put("title", dto.getTitle());
-        map.put("model", dto.getModel());
-        map.put("price", dto.getPrice());
-        map.put("shop", dto.getShop());
-        map.put("status", dto.getStatus());
-        map.put("url", dto.getUrl());
-        return map;
+
+
+    private void recomputeAndSaveGlobalOfferUpdate(OfferUpdate offerUpdate) {
+        long total = offerUpdate.getShopOfferUpdates().size();
+        long completed = offerUpdate.getShopOfferUpdates().stream()
+                .filter(su -> su.getStatus() == ShopUpdateStatus.COMPLETED).count();
+        long failed = offerUpdate.getShopOfferUpdates().stream()
+                .filter(su -> su.getStatus() == ShopUpdateStatus.FAILED).count();
+        long running = offerUpdate.getShopOfferUpdates().stream()
+                .filter(su -> su.getStatus() == ShopUpdateStatus.RUNNING).count();
+
+        if (running > 0) {
+            offerUpdate.setStatus(OfferUpdateStatus.RUNNING);
+        } else {
+            if (failed == total) {
+                offerUpdate.setStatus(OfferUpdateStatus.FAILED);
+            } else if (completed == total) {
+                offerUpdate.setStatus(OfferUpdateStatus.COMPLETED);
+            } else {
+                offerUpdate.setStatus(OfferUpdateStatus.RUNNING);
+            }
+            if (offerUpdate.getFinishedAt() == null) {
+                offerUpdate.setFinishedAt(LocalDateTime.now());
+            }
+        }
+        offerUpdateRepository.save(offerUpdate);
+    }
+
+    private void updateShopStatusBasedOnTypes(ShopOfferUpdate shop, Long offerUpdateId, String shopName) {
+        // Sprawdzamy oba typy
+        boolean addedCompleted = offerUpdateService.checkIfUpdateTypeIsCompleted(offerUpdateId, shopName, UpdateChangeType.ADDED);
+        boolean deletedCompleted = offerUpdateService.checkIfUpdateTypeIsCompleted(offerUpdateId, shopName, UpdateChangeType.DELETED);
+
+        if (shop.getStatus() == ShopUpdateStatus.FAILED) {
+
+        } else if (addedCompleted && deletedCompleted) {
+            shop.setStatus(ShopUpdateStatus.COMPLETED);
+        } else if (addedCompleted || deletedCompleted) {
+            shop.setStatus(ShopUpdateStatus.PARTIAL_COMPLETED);
+        } else {
+            shop.setStatus(ShopUpdateStatus.RUNNING);
+        }
     }
 
     @RabbitListener(queues = {
@@ -214,64 +244,28 @@ public class AdminController {
             String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
             ScrapingOfferDto dto = objectMapper.readValue(json, ScrapingOfferDto.class);
 
-            if (dto == null) {
-                throw new IllegalArgumentException("ScrapingOfferDto is null");
-            }
-
             Long offerUpdateId = dto.getUpdateId();
             String shopName = dto.getShopName();
 
-            if (offerUpdateId == null || shopName == null || shopName.isBlank()) {
-                throw new IllegalArgumentException("Invalid payload: updateId=" + offerUpdateId +
-                        ", shopName=" + shopName);
-            }
-
             shopOfferUpdate = shopOfferUpdateRepository
                     .findFirstByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateId, shopName)
-                    .orElseThrow(() -> new IllegalStateException(
-                            "No ShopOfferUpdate for OfferUpdate.id=" + offerUpdateId + " and shop=" + shopName));
+                    .orElseThrow(() -> new IllegalStateException("No ShopOfferUpdate for OfferUpdate.id=" + offerUpdateId + " and shop=" + shopName));
 
             List<ComponentOfferDto> components = dto.getComponentsData();
-            if (components == null) {
-                components = List.of();
-            }
-            System.out.println("zapisywanie dla sklepu " + shopName + ", ilsoc: " + components.size());
+            if (components == null) components = new ArrayList<>();
 
             offerService.saveOffersTemplate(components, shopOfferUpdate);
 
-            offerUpdate = shopOfferUpdate.getOfferUpdate();
-
-            boolean anyFailed = offerUpdate.getShopOfferUpdates().stream()
-                    .anyMatch(su -> su.getStatus() == ShopUpdateStatus.FAILED);
-
-            boolean allDone = offerUpdate.getShopOfferUpdates().stream()
-                    .allMatch(su -> su.getStatus() == ShopUpdateStatus.COMPLETED
-                            || su.getStatus() == ShopUpdateStatus.FAILED);
-
-            if (allDone) {
-                offerUpdate.setStatus(anyFailed ? OfferUpdateStatus.FAILED : OfferUpdateStatus.COMPLETED);
-                offerUpdate.setFinishedAt(LocalDateTime.now());
-            }
-
-            boolean isDeleted = offerUpdateService.checkIfUpdateTypeIsCompleted(offerUpdateId, shopName, UpdateChangeType.DELETED);
-            System.out.println("isDeleted: " + isDeleted);
-            shopOfferUpdate.setStatus(isDeleted ? ShopUpdateStatus.COMPLETED : ShopUpdateStatus.RUNNING);
+            // zaktualizuj status sklepu patrząc na oba typy
+            updateShopStatusBasedOnTypes(shopOfferUpdate, offerUpdateId, shopName);
             shopOfferUpdateRepository.save(shopOfferUpdate);
 
-            offerUpdateRepository.save(offerUpdate);
+            // zaktualizuj globalny status
+            offerUpdate = shopOfferUpdate.getOfferUpdate();
+            recomputeAndSaveGlobalOfferUpdate(offerUpdate);
 
             OfferShopUpdateInfoDto.ShopUpdateInfoDto shopUpdateInfo =
                     offerUpdateService.getShopUpdateInfo(shopName, offerUpdateId);
-
-
-            boolean offerUpdateFinished = offerUpdateService.isOfferUpdateFinished(offerUpdateId);
-            if (offerUpdateFinished) {
-                Optional<OfferUpdate> byId = offerUpdateRepository.findById(offerUpdateId);
-                if (byId.isPresent()){
-                    byId.get().setFinishedAt(LocalDateTime.now());
-                    offerUpdateRepository.save(byId.get());
-                }
-            }
 
             messagingTemplate.convertAndSend("/topic/offers/" + offerUpdateId, shopUpdateInfo);
 
@@ -297,56 +291,227 @@ public class AdminController {
     })
     @Transactional
     public void handleOffersDeleted(Message amqpMessage) {
+        OfferUpdate offerUpdate = null;
+        ShopOfferUpdate shopOfferUpdate = null;
+
         try {
             String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
             JsonNode node = objectMapper.readTree(json);
 
-            if (!node.has("updateId") || !node.has("shop")) {
-                System.out.println("Brak updateId lub shop w wiadomości: " + json);
-                return;
-            }
-
             Long offerUpdateId = node.get("updateId").asLong();
             String shopName = node.get("shop").asText();
-
-            System.out.println("Deleting shop " + shopName);
 
             List<String> urls = new ArrayList<>();
             if (node.has("urls") && node.get("urls").isArray()) {
                 urls = objectMapper.convertValue(node.get("urls"), new TypeReference<List<String>>() {});
             }
 
-            ShopOfferUpdate shopOfferUpdate = shopOfferUpdateRepository
+            shopOfferUpdate = shopOfferUpdateRepository
                     .findFirstByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateId, shopName)
                     .orElseThrow(() -> new IllegalStateException("No ShopOfferUpdate for OfferUpdate.id=" + offerUpdateId + " and shop=" + shopName));
 
             offerService.softDeleteByUrls(urls, shopOfferUpdate);
 
-            boolean isAdded = offerUpdateService.checkIfUpdateTypeIsCompleted(offerUpdateId, shopName, UpdateChangeType.ADDED);
-            shopOfferUpdate.setStatus(isAdded ? ShopUpdateStatus.COMPLETED : ShopUpdateStatus.RUNNING);
+            // zaktualizuj status sklepu patrząc na oba typy
+            updateShopStatusBasedOnTypes(shopOfferUpdate, offerUpdateId, shopName);
             shopOfferUpdateRepository.save(shopOfferUpdate);
+
+            // zaktualizuj globalny status
+            offerUpdate = shopOfferUpdate.getOfferUpdate();
+            recomputeAndSaveGlobalOfferUpdate(offerUpdate);
 
             OfferShopUpdateInfoDto.ShopUpdateInfoDto shopUpdateInfo =
                     offerUpdateService.getShopUpdateInfo(shopName, offerUpdateId);
 
-            boolean offerUpdateFinished = offerUpdateService.isOfferUpdateFinished(offerUpdateId);
-            if (offerUpdateFinished) {
-                Optional<OfferUpdate> byId = offerUpdateRepository.findById(offerUpdateId);
-                if (byId.isPresent()){
-                    byId.get().setFinishedAt(LocalDateTime.now());
-                    offerUpdateRepository.save(byId.get());
-                }
-            }
-
-
-            System.out.println("Usunięto oferty dla sklepu " + shopName);
             messagingTemplate.convertAndSend("/topic/offers/" + offerUpdateId, shopUpdateInfo);
 
         } catch (Exception e) {
             e.printStackTrace();
+            if (shopOfferUpdate != null) {
+                shopOfferUpdate.setStatus(ShopUpdateStatus.FAILED);
+                shopOfferUpdateRepository.save(shopOfferUpdate);
+            }
             throw new AmqpRejectAndDontRequeueException(e);
         }
     }
+
+
+
+
+
+
+
+
+
+//    @RabbitListener(queues = {
+//            "offersAdded.olx",
+//            "offersAdded.allegro",
+//            "offersAdded.x-kom",
+//            "offersAdded.allegroLokalnie"
+//    })
+//    @Transactional
+//    public void handleOffersAdded(Message amqpMessage) {
+//        OfferUpdate offerUpdate = null;
+//        ShopOfferUpdate shopOfferUpdate = null;
+//
+//        try {
+//            String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
+//            ScrapingOfferDto dto = objectMapper.readValue(json, ScrapingOfferDto.class);
+//
+//            if (dto == null) {
+//                throw new IllegalArgumentException("ScrapingOfferDto is null");
+//            }
+//
+//            Long offerUpdateId = dto.getUpdateId();
+//            String shopName = dto.getShopName();
+//
+//            if (offerUpdateId == null || shopName == null || shopName.isBlank()) {
+//                throw new IllegalArgumentException("Invalid payload: updateId=" + offerUpdateId +
+//                        ", shopName=" + shopName);
+//            }
+//
+//            shopOfferUpdate = shopOfferUpdateRepository
+//                    .findFirstByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateId, shopName)
+//                    .orElseThrow(() -> new IllegalStateException(
+//                            "No ShopOfferUpdate for OfferUpdate.id=" + offerUpdateId + " and shop=" + shopName));
+//
+//            List<ComponentOfferDto> components = dto.getComponentsData();
+//            if (components == null) {
+//                components = new ArrayList<>();
+//            }
+//            System.out.println("zapisywanie dla sklepu " + shopName + ", ilsoc: " + components.size());
+//
+//            offerService.saveOffersTemplate(components, shopOfferUpdate);
+//
+//            offerUpdate = shopOfferUpdate.getOfferUpdate();
+//
+//            boolean anyFailed = offerUpdate.getShopOfferUpdates().stream()
+//                    .anyMatch(su -> su.getStatus() == ShopUpdateStatus.FAILED);
+//
+//            boolean allDone = offerUpdate.getShopOfferUpdates().stream()
+//                    .allMatch(su -> su.getStatus() == ShopUpdateStatus.COMPLETED
+//                            || su.getStatus() == ShopUpdateStatus.FAILED);
+//
+//            if (allDone) {
+//                offerUpdate.setStatus(anyFailed ? OfferUpdateStatus.FAILED : OfferUpdateStatus.COMPLETED);
+//                offerUpdate.setFinishedAt(LocalDateTime.now());
+//            }
+//            if (shopOfferUpdate.getStatus() == ShopUpdateStatus.PARTIAL_COMPLETED || shopOfferUpdate.getStatus() == ShopUpdateStatus.COMPLETED) {
+//                offerUpdate.setFinishedAt(LocalDateTime.now());
+//                shopOfferUpdate.setStatus(ShopUpdateStatus.COMPLETED);
+//            } else if (shopOfferUpdate.getStatus() != ShopUpdateStatus.FAILED) {
+//                shopOfferUpdate.setStatus(ShopUpdateStatus.PARTIAL_COMPLETED);
+//            }
+//
+//            boolean isDeleted = offerUpdateService.checkIfUpdateTypeIsCompleted(offerUpdateId, shopName, UpdateChangeType.DELETED);
+//            System.out.println("isDeleted: " + isDeleted);
+//            shopOfferUpdate.setStatus(isDeleted ? ShopUpdateStatus.COMPLETED : ShopUpdateStatus.RUNNING);
+//
+//            shopOfferUpdateRepository.save(shopOfferUpdate);
+//
+//            offerUpdateRepository.save(offerUpdate);
+//
+//            OfferShopUpdateInfoDto.ShopUpdateInfoDto shopUpdateInfo =
+//                    offerUpdateService.getShopUpdateInfo(shopName, offerUpdateId);
+//
+//
+//            boolean offerUpdateFinished = offerUpdateService.isOfferUpdateFinished(offerUpdateId);
+//            if (offerUpdateFinished) {
+//                Optional<OfferUpdate> byId = offerUpdateRepository.findById(offerUpdateId);
+//                if (byId.isPresent()){
+//                    byId.get().setFinishedAt(LocalDateTime.now());
+//                    offerUpdateRepository.save(byId.get());
+//                }
+//            }
+//
+//            messagingTemplate.convertAndSend("/topic/offers/" + offerUpdateId, shopUpdateInfo);
+//
+//        } catch (Exception e) {
+//            if (offerUpdate != null) {
+//                offerUpdate.setStatus(OfferUpdateStatus.FAILED);
+//                offerUpdate.setFinishedAt(LocalDateTime.now());
+//                offerUpdateRepository.save(offerUpdate);
+//            }
+//            if (shopOfferUpdate != null) {
+//                shopOfferUpdate.setStatus(ShopUpdateStatus.FAILED);
+//                shopOfferUpdateRepository.save(shopOfferUpdate);
+//            }
+//            throw new AmqpRejectAndDontRequeueException(e);
+//        }
+//    }
+//
+//    @RabbitListener(queues = {
+//            "offersDeleted.olx",
+//            "offersDeleted.allegro",
+//            "offersDeleted.x-kom",
+//            "offersDeleted.allegroLokalnie"
+//    })
+//    @Transactional
+//    public void handleOffersDeleted(Message amqpMessage) {
+//
+//        OfferUpdate offerUpdate = null;
+//        try {
+//            String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
+//            JsonNode node = objectMapper.readTree(json);
+//
+//            if (!node.has("updateId") || !node.has("shop")) {
+//                System.out.println("Brak updateId lub shop w wiadomości: " + json);
+//                return;
+//            }
+//
+//            Long offerUpdateId = node.get("updateId").asLong();
+//            String shopName = node.get("shop").asText();
+//
+//            System.out.println("Deleting shop " + shopName);
+//
+//            List<String> urls = new ArrayList<>();
+//            if (node.has("urls") && node.get("urls").isArray()) {
+//                urls = objectMapper.convertValue(node.get("urls"), new TypeReference<List<String>>() {});
+//            }
+//
+//            ShopOfferUpdate shopOfferUpdate = shopOfferUpdateRepository
+//                    .findFirstByOfferUpdate_IdAndShop_NameIgnoreCase(offerUpdateId, shopName)
+//                    .orElseThrow(() -> new IllegalStateException("No ShopOfferUpdate for OfferUpdate.id=" + offerUpdateId + " and shop=" + shopName));
+//
+//            offerService.softDeleteByUrls(urls, shopOfferUpdate);
+//
+//
+//            boolean isAdded = offerUpdateService.checkIfUpdateTypeIsCompleted(offerUpdateId, shopName, UpdateChangeType.ADDED);
+//            shopOfferUpdate.setStatus(isAdded ? ShopUpdateStatus.COMPLETED : ShopUpdateStatus.RUNNING);
+//
+//            shopOfferUpdateRepository.save(shopOfferUpdate);
+//
+//
+//            OfferShopUpdateInfoDto.ShopUpdateInfoDto shopUpdateInfo =
+//                    offerUpdateService.getShopUpdateInfo(shopName, offerUpdateId);
+//
+//            boolean offerUpdateFinished = offerUpdateService.isOfferUpdateFinished(offerUpdateId);
+//
+//            offerUpdate =  shopOfferUpdate.getOfferUpdate();
+//
+//            if (shopOfferUpdate.getStatus() == ShopUpdateStatus.PARTIAL_COMPLETED || shopOfferUpdate.getStatus() == ShopUpdateStatus.COMPLETED) {
+//                offerUpdate.setFinishedAt(LocalDateTime.now());
+//                shopOfferUpdate.setStatus(ShopUpdateStatus.COMPLETED);
+//            } else if (shopOfferUpdate.getStatus() != ShopUpdateStatus.FAILED) {
+//                shopOfferUpdate.setStatus(ShopUpdateStatus.PARTIAL_COMPLETED);
+//            }
+//
+//            if (offerUpdateFinished) {
+//                Optional<OfferUpdate> byId = offerUpdateRepository.findById(offerUpdateId);
+//                if (byId.isPresent()){
+//                    byId.get().setFinishedAt(LocalDateTime.now());
+//                    offerUpdateRepository.save(byId.get());
+//                }
+//            }
+//
+//            System.out.println("Usunięto oferty dla sklepu " + shopName);
+//            messagingTemplate.convertAndSend("/topic/offers/" + offerUpdateId, shopUpdateInfo);
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            throw new AmqpRejectAndDontRequeueException(e);
+//        }
+//    }
 
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")

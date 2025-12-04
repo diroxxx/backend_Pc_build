@@ -150,14 +150,11 @@ public class OfferUpdateService {
 
     public boolean isOfferUpdateFinished(Long offerUpdateId) {
         return offerUpdateRepository.findById(offerUpdateId)
-                .map(offerUpdate -> {
-                    return offerUpdate.getShopOfferUpdates().stream()
-                            .allMatch(shopOfferUpdate -> shopOfferUpdate.getStatus() == ShopUpdateStatus.COMPLETED)
-                            ||
-                            offerUpdate.getShopOfferUpdates().stream().
-                                    anyMatch(shopOfferUpdate -> shopOfferUpdate.getStatus() == ShopUpdateStatus.FAILED);
-
-                }).orElse(false);
+                .map(offerUpdate -> offerUpdate.getShopOfferUpdates().stream()
+                        .allMatch(shopOfferUpdate -> shopOfferUpdate.getStatus() == ShopUpdateStatus.COMPLETED)
+                        ||
+                        offerUpdate.getShopOfferUpdates().stream().
+                                anyMatch(shopOfferUpdate -> shopOfferUpdate.getStatus() == ShopUpdateStatus.FAILED)).orElse(false);
     }
 
     public Runnable scheduledAutomaticOfferUpdate() {

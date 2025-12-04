@@ -335,8 +335,6 @@ public class OfferService {
             List<?> itemsForCategory = categoryMap.getOrDefault(category, Collections.emptyList());
 
             //if a brand from a database doesn't exist in title, create new component and offer with status
-
-
 //            for (String brand : brands) {
 //                if ( !offerDto.getTitle().toLowerCase().contains(brand.toLowerCase())) {
 //
