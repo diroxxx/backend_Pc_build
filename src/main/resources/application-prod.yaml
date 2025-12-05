@@ -22,3 +22,9 @@ spring:
 #  INSERT INTO shop(name) VALUES('allegroLokalnie');
 #  INSERT INTO offer_update_config(type, interval_time) VALUES('MANUAL', NULL);
 #  INSERT INTO offer_update_config(type, interval_time) VALUES('AUTOMATIC', NULL);
+
+#categorie
+  #INSERT INTO CATEGORY(name) VALUES('newsy'),
+  #INSERT INTO CATEGORY(name) VALUES('pomoc'),
+  #INSERT INTO CATEGORY(name) VALUES('zestawy'),
+  #INSERT INTO CATEGORY(name) VALUES('ogólne');
