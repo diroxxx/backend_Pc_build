@@ -11,17 +11,12 @@ import java.util.Optional;
 public interface PostRepository extends JpaRepository<Post,Long> {
     List<Post> findByUserId(Long userId);
 
-
-    /**
-     * Wyszukuje wszystkie posty należące do danej kategorii (po ID kategorii).
-     */
     List<Post> findByCategoryId(Long categoryId);
 
-    /**
-     * Wyszukuje posty, których tytuł lub treść zawiera określony ciąg znaków (częściowe dopasowanie, ignorując wielkość liter).
-     */
     List<Post> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCase(String title, String content);
 
+
+    List<Post> findByCategory_Name(String categoryName);
     @Query("SELECT p FROM Post p LEFT JOIN FETCH p.images i WHERE p.id = :id")
     Optional<Post> findByIdWithImages(@Param("id") Long id);
 }

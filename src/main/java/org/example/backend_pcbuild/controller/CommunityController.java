@@ -160,6 +160,17 @@ public class CommunityController {
     }
 
 
+    @GetMapping("/categories/id/{categoryId}")
+    public ResponseEntity<List<Post>> getPostsByCategoryId(@PathVariable Long categoryId){
+        List<Post> posts = postRepository.findByCategoryId(categoryId);
+
+        if (posts.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(posts);
+    }
+
+
     @PostMapping("/posts/{postId}/vote")
     @Transactional // Wymagana transakcja do modyfikacji danych
     public ResponseEntity<Integer> castVote(
@@ -585,5 +596,6 @@ public class CommunityController {
 //        // 3. Zwrócenie listy postów
 //        return ResponseEntity.ok(savedPosts);
 //    }
+
 
 }

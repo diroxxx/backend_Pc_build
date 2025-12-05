@@ -113,19 +113,6 @@ public class UserController {
         List<SavedPost> savedEntities = savedPostRepository.findByUserId(user.getId());
 
 
-//        List<SavedPostDTO> savedPosts = savedEntities.stream()
-//                .map(savedPost -> SavedPostDTO.builder()
-//                        .id(savedPost.getId())
-//                        .postId(savedPost.getPost().getId())
-//                        .userId(savedPost.getUser().getId())
-//                        .title(savedPost.getPost().getTitle())
-//                        .content(savedPost.getPost().getContent())
-//                        .category(CategoryDTO.builder()
-//                                .id(savedPost.getPost().getCategory().getId())
-//                                .name(savedPost.getPost().getCategory().getName())
-//                                .build())
-//                        .build())
-//                .collect(Collectors.toList());
         List<SavedPostDTO> savedPosts = savedEntities.stream()
                 .map(savedPost -> SavedPostDTO.builder()
                         .id(savedPost.getId())

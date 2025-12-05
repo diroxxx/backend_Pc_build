@@ -31,12 +31,13 @@ public class Post {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonIgnoreProperties({"id", "email", "password", "role", "posts", "comments", "computers"})
+//    @JsonIgnoreProperties({"id", "email", "password", "role", "posts", "comments", "computers"})
+    @JsonIgnoreProperties("posts")
     private User user;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "category_id")
-    @JsonIgnoreProperties({"id", "posts"})
+    @JsonIgnoreProperties("posts")
     private Category category;
 
 
