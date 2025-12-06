@@ -13,14 +13,4 @@ public class AdminService {
     private final UserRepository userRepository;
 
 
-
-
-    @Transactional
-    public void deleteUserByEmail(String email) {
-        boolean existed = userRepository.existsByEmail(email);
-        if (!existed) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Użytkownik nie znaleziony");
-        }
-        userRepository.deleteByEmail(email);
-    }
 }

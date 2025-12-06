@@ -44,6 +44,16 @@ public class UsersController {
         }
         userService.editUser(userToUpdate);
         return ResponseEntity.ok(Map.of("message", "Użytkownik został zaktualizowany"));
+    }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @DeleteMapping
+    public ResponseEntity<?> deleteUserByEmail(@RequestParam("email") String email) {
+        boolean existed = userService.findUSerByEmail(email) != null;
+        if (!existed) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Użytkownik nie znaleziony"));
+        }
+        userService.deleteUserByEmail(email);
+        return ResponseEntity.ok(Map.of("message", "Użytkownik został usunięty"));
     }
 }

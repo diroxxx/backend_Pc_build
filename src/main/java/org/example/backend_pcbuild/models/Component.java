@@ -15,21 +15,15 @@ public class Component {
 
     private String model;
 
-    private Integer benchmark;
-
     @Enumerated(EnumType.STRING)
     private ComponentType componentType;
 
-
-//    @ManyToOne( optional = false)
-//    @JoinColumn(name = "brand_id", nullable = false)
     @ManyToOne
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
     @OneToMany(mappedBy = "component", cascade = CascadeType.ALL)
     private Set<Offer> offers = new HashSet<Offer>();
-
 
     @OneToOne(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
     private GraphicsCard graphicsCard;
@@ -54,9 +48,5 @@ public class Component {
 
     @OneToOne(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
     private Storage storage;
-
-
-
-
 
 }

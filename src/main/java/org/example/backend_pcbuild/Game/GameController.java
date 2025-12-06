@@ -2,9 +2,8 @@ package org.example.backend_pcbuild.Game;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.backend_pcbuild.Admin.service.OfferAdminService;
 import org.example.backend_pcbuild.Component.service.ComponentService;
-import org.example.backend_pcbuild.Offer.dto.OfferComponentMapper;
-import org.example.backend_pcbuild.YoutubeGameRecomendation.dto.GameFpsConfigDto;
 import org.example.backend_pcbuild.configuration.JwtConfig.AppException;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.OfferRepository;
@@ -17,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +30,7 @@ public class GameController {
     private final GameService gameService;
     private final ComponentService componentService;
     private final OfferRepository offerRepository;
+    private final OfferAdminService offerService;
 
 
     @GetMapping("/{id}/image")
@@ -53,8 +52,9 @@ public class GameController {
     }
 
     @GetMapping("/cpu-gpu")
-    public ResponseEntity<?> getCpuGpuInfo(@Param("gameTitle") String gameTitle, @Param("budget") Double budget) {
-        if (gameTitle == null || budget == null) {
+    public ResponseEntity<?> getCpuGpuInfo(@RequestParam("gameTitle") String gameTitle,
+                                           @RequestParam(value = "budget", required = false) double budget) {
+        if (gameTitle == null || gameTitle.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -79,43 +79,28 @@ public class GameController {
                 .filter(r -> r.getRecGameLevel() == RecGameLevel.REC)
                 .findFirst();
 
-        if (minCpuReq.isPresent() && minCpuReq.get().getProcessor() != null) {
-            Processor proc = minCpuReq.get().getProcessor();
-            Component component = proc.getComponent();
+        minCpuReq.flatMap(r -> {
+            Processor proc = r.getProcessor();
+            return proc == null ? Optional.empty() : offerService.findBestForCpu(offerRepository, proc.getComponent(), budget);
+        }).ifPresent(o -> recGameDto.getMinRec().add(OfferRecDto.toDto(o)));
 
-            if (component != null) {
-                Optional<Offer> cheapestCpu = offerRepository.findCheapestNative(component.getId());
-                cheapestCpu.ifPresent(o -> recGameDto.getMinRec().add(OfferRecDto.toDto(o)));
-            }
-        }
+        minGpuReq.flatMap(r -> {
+            GpuModel gm = r.getGpuModel();
+            return gm == null ? Optional.empty() : offerService.findBestForGpuModel(offerRepository, gm, budget);
+        }).ifPresent(o -> recGameDto.getMinRec().add(OfferRecDto.toDto(o)));
 
-        if (minGpuReq.isPresent() && minGpuReq.get().getGpuModel() != null) {
-            GpuModel gm = minGpuReq.get().getGpuModel();
-            List<Offer> cheapestGpu = offerRepository.findTopByGpuModelOrderByPriceAsc(gm);
-            System.out.println(cheapestGpu.size());
-            if (!cheapestGpu.isEmpty()) recGameDto.getMinRec().add(OfferRecDto.toDto(cheapestGpu.get(0)));
-        }
+        recCpuReq.flatMap(r -> {
+            Processor proc = r.getProcessor();
+            return proc == null ? Optional.empty() : offerService.findBestForCpu(offerRepository, proc.getComponent(), budget);
+        }).ifPresent(o -> recGameDto.getMaxRec().add(OfferRecDto.toDto(o)));
 
-        if (recCpuReq.isPresent() && recCpuReq.get().getProcessor() != null) {
-            Processor proc = recCpuReq.get().getProcessor();
-            Component component = proc.getComponent();
-            if (component != null) {
-                Optional<Offer> recCpuOffer = offerRepository.findCheapestNative(component.getId());
-                recCpuOffer.ifPresent(o -> recGameDto.getMaxRec().add(OfferRecDto.toDto(o)));
-            }
-        }
-
-        if (recGpuReq.isPresent() && recGpuReq.get().getGpuModel() != null) {
-            GpuModel gm = recGpuReq.get().getGpuModel();
-            List<Offer> recGpuOffer = offerRepository.findTopByGpuModelOrderByPriceAsc(gm);
-            System.out.println(recGpuOffer.size());
-            if (!recGpuOffer.isEmpty()) recGameDto.getMaxRec().add(OfferRecDto.toDto(recGpuOffer.get(0)));
-
-        }
+        recGpuReq.flatMap(r -> {
+            GpuModel gm = r.getGpuModel();
+            return gm == null ? Optional.empty() : offerService.findBestForGpuModel(offerRepository, gm, budget);
+        }).ifPresent(o -> recGameDto.getMaxRec().add(OfferRecDto.toDto(o)));
 
         return ResponseEntity.ok(recGameDto);
     }
-
 
     @GetMapping("/specs")
     public ResponseEntity<List<GameReqCompDto>> getAllSpecsOfGames() {
@@ -162,16 +147,10 @@ public class GameController {
     @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateGameReqInfo(@RequestPart(value = "file", required = false) MultipartFile file, @RequestPart(value = "dto",required = false) GameReqCompDto dto) {
 
-
         if (file == null && dto == null) {
             throw new AppException("Zadne zmiany nie zostały wprowadzone", HttpStatus.BAD_REQUEST);
         }
-//        if(file == null ){
-//            throw new AppException("Brak danych do zapisu", HttpStatus.BAD_REQUEST);
-//        }
-//        System.out.println(file.getOriginalFilename());
         try{
-//            gameService.updateGameReqInfo(dto, file);
             gameService.updateGameReqInfoBulk(dto, file);
 
         }catch (Exception e){
@@ -180,8 +159,4 @@ public class GameController {
 
         return ResponseEntity.ok(Map.of("message", "Gra została zaktualizowana"));
     }
-
-
-
-
 }

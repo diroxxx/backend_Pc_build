@@ -24,7 +24,6 @@ public class OfferUpdateConfig {
     //in minutes
     private String intervalTime;
 
-
     @OneToMany(mappedBy = "offerUpdateConfig" , cascade = CascadeType.ALL)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

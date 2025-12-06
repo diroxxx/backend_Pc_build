@@ -16,5 +16,4 @@ public class Storage {
     @JoinColumn(name = "component_id")
     private Component component;
 
-
 }

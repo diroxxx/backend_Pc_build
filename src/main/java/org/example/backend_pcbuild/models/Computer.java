@@ -27,7 +27,6 @@ public class Computer {
 
     private Boolean is_visible;
 
-
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @EqualsAndHashCode.Exclude
@@ -35,10 +34,6 @@ public class Computer {
     private User user;
 
     @OneToMany(mappedBy = "computer", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @EqualsAndHashCode.Exclude
     private List<ComputerOffer> computer_offer = new ArrayList<>();
-
-
-
 
 }

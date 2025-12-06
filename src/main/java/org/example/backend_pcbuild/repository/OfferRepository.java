@@ -3,6 +3,7 @@ package org.example.backend_pcbuild.repository;
 import org.example.backend_pcbuild.models.Component;
 import org.example.backend_pcbuild.models.GpuModel;
 import org.example.backend_pcbuild.models.Offer;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -83,10 +84,51 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Offer> findTopByGpuModelOrderByPriceAsc(@Param("gpuModel") GpuModel gpuModel);
 
 
-    Optional<Offer> findFirstByComponentOrderByPriceAsc(Component component);
+    @Query("SELECT o FROM Offer o " +
+            "JOIN o.component comp " +
+            "JOIN comp.graphicsCard g " +
+            "WHERE comp.id = :componentId  " +
+            "ORDER BY o.price ASC")
+    List<Offer> findTopByComponentIdOrderByPriceAsc(@Param("componentId") Long componentId);
+
+    @Query("SELECT o FROM Offer o " +
+            "JOIN o.component comp on comp = o.component " +
+            "JOIN comp.graphicsCard g on comp.graphicsCard = g " +
+            "WHERE g.benchmark >= :benchmark and o.price <= :budget " +
+            "ORDER BY o.price DESC")
+    List<Offer> findGpuModelTopByBenchmarkAndBudgetOrderByPriceDesc(@Param("benchmark") Double benchmark, @Param("budget") Double budget );
+
+
+    @Query("SELECT o FROM Offer o " +
+            "JOIN o.component comp " +
+            "JOIN comp.processor p " +
+            "WHERE comp.id = :compId " +
+            "and  o.price <= :budget " +
+            "ORDER BY o.price DESC")
+    List<Offer> findCpuTopByBenchmarkAndBudgetOrderByPriceDesc(@Param("benchmark") Double benchmark, @Param("budget") Double budget );
+
 
     @Query(value = "SELECT * FROM offer o WHERE o.component_id = :componentId ORDER BY o.price ASC LIMIT 1", nativeQuery = true)
     Optional<Offer> findCheapestNative(@Param("componentId") Long componentId);
+
+
+
+    @Query("SELECT o FROM Offer o WHERE o.component = :component ORDER BY o.price ASC")
+    List<Offer> findByComponentOrderByPriceAsc(@Param("component") Component component);
+
+    @Query("SELECT o FROM Offer o JOIN o.component comp WHERE comp.id = :componentId and o.price <= :price ORDER BY o.price ASC")
+    List<Offer> findByComponentOrderByBudgetPriceAsc(@Param("componentId") Long componentId, @Param("price") double price);
+
+
+
+    @Query("SELECT o FROM Offer o JOIN o.component comp JOIN comp.graphicsCard g WHERE g.gpuModel = :gpuModel ORDER BY o.price ASC")
+    List<Offer> findByGpuModelOrderByPriceAsc(@Param("gpuModel") GpuModel gpuModel);
+
+    @Query("SELECT o FROM Offer o JOIN o.component comp JOIN comp.graphicsCard g WHERE g.gpuModel = :gpuModel and o.price <= :price ORDER BY o.price ASC")
+    List<Offer> findByGpuModelOrderByBudgetPriceAsc(@Param("gpuModel") GpuModel gpuModel, @Param("price") double price);
+
+    @Query("SELECT o FROM Offer o JOIN o.component comp JOIN comp.graphicsCard g WHERE g.gpuModel = :gpuModel AND o.price <= :price ORDER BY o.price ASC")
+    List<Offer> findByGpuModelAndPriceLessThanEqualOrderByPriceAsc(@Param("gpuModel") GpuModel gpuModel, @Param("price") double price, Pageable pageable);
 
 
 

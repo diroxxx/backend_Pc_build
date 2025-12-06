@@ -12,10 +12,10 @@ import java.util.Objects;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 
 public class ComputerOffer {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-
     private Long id;
 
     @ManyToOne
@@ -27,7 +27,4 @@ public class ComputerOffer {
     @JoinColumn(name = "offer", nullable = false)
     @EqualsAndHashCode.Exclude
     private Offer offer;
-
-
-
 }

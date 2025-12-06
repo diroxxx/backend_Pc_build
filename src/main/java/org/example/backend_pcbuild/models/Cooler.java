@@ -25,7 +25,4 @@ public class Cooler {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "component_id")
     private Component component;
-
-
-
 }

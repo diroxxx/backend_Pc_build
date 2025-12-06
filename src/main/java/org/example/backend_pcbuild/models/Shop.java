@@ -25,13 +25,11 @@ public class Shop {
     @Size(min = 2, max = 100)
     private String name;
 
-
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JsonIgnore
     private Set<Offer> offers = new HashSet<>();
-
 
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ShopOfferUpdate> shopOfferUpdates = new HashSet<>();

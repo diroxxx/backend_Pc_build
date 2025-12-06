@@ -1,13 +1,16 @@
 package org.example.backend_pcbuild.Admin.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.dto.UserToShowDto;
 import org.example.backend_pcbuild.Admin.dto.UserToUpdate;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.models.User;
 import org.example.backend_pcbuild.models.UserRole;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.CharBuffer;
 import java.util.ArrayList;
@@ -70,6 +73,16 @@ public class UserService {
                 user.setUsername(userToUpdate.getNickname());
             }
             userRepository.save(user);
+        }
+    }
+    @Transactional
+    public void deleteUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Użytkownik nie znaleziony"));
+        try {
+            userRepository.delete(user);
+        }catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
