@@ -45,4 +45,9 @@ public class Game {
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL)
     private List<GameCpuRequirements> gameCpuRequirements = new ArrayList<>();
 
+    public void decodeImageFromBase64() {
+        if (imageBase64 != null && !imageBase64.isEmpty()) {
+            this.image = Base64.getDecoder().decode(imageBase64);
+        }
+    }
 }

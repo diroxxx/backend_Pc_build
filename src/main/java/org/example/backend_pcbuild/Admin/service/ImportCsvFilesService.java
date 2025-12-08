@@ -139,68 +139,9 @@ public class ImportCsvFilesService {
 
         try (Reader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             List<Game> games = prepareCsvToParse(reader, Game.class);
-
-//            for (Game game : games) {
-//                game.decodeImageFromBase64();
-//
-//                Optional<Processor> minCpuOpt = findProcessorFromGameField(game.getMinCpu(), processors);
-//                if (minCpuOpt.isPresent()) {
-//                    Processor minCpu = minCpuOpt.get();
-//                    GameCpuRequirements reqMinCpu = new GameCpuRequirements();
-//                    reqMinCpu.setProcessor(minCpu);
-//                    reqMinCpu.setRecGameLevel(RecGameLevel.MIN);
-//                    reqMinCpu.setGame(game);
-//                    game.getGameCpuRequirements().add(reqMinCpu);
-//                } else {
-//                    log.warn("Nie znaleziono CPU (MIN) dla gry {}: '{}'", game.getTitle(), game.getMinCpu());
-//                }
-//
-//                Optional<Processor> recCpuOpt = findProcessorFromGameField(game.getRecCpu(), processors);
-//                if (recCpuOpt.isPresent()) {
-//                    Processor recCpu = recCpuOpt.get();
-//                    boolean duplicate = game.getGameCpuRequirements().stream()
-//                            .anyMatch(r -> r.getProcessor() != null && r.getProcessor().equals(recCpu) && r.getRecGameLevel() == RecGameLevel.MIN);
-//                    if (!duplicate) {
-//                        GameCpuRequirements reqRecCpu = new GameCpuRequirements();
-//                        reqRecCpu.setProcessor(recCpu);
-//                        reqRecCpu.setRecGameLevel(RecGameLevel.REC);
-//                        reqRecCpu.setGame(game);
-//                        game.getGameCpuRequirements().add(reqRecCpu);
-//                    }
-//                } else {
-//                    log.warn("Nie znaleziono CPU (REC) dla gry {}: '{}'", game.getTitle(), game.getRecCpu());
-//                }
-//
-//                // GPU - minimal
-//                Optional<GpuModel> minGpuOpt = findGpuModelFromGameField(game.getMinGpu(), models);
-//                if (minGpuOpt.isPresent()) {
-//                    GpuModel minGpu = minGpuOpt.get();
-//                    GameGpuRequirements reqMinGpu = new GameGpuRequirements();
-//                    reqMinGpu.setGpuModel(minGpu);
-//                    reqMinGpu.setRecGameLevel(RecGameLevel.MIN);
-//                    reqMinGpu.setGame(game);
-//                    game.getGameGpuRequirements().add(reqMinGpu);
-//                } else {
-//                    log.warn("Nie znaleziono GPU (MIN) dla gry {}: '{}'", game.getTitle(), game.getMinGpu());
-//                }
-//
-//                // GPU - recommended
-//                Optional<GpuModel> recGpuOpt = findGpuModelFromGameField(game.getRecGpu(), models);
-//                if (recGpuOpt.isPresent()) {
-//                    GpuModel recGpu = recGpuOpt.get();
-//                    boolean duplicate = game.getGameGpuRequirements().stream()
-//                            .anyMatch(r -> r.getGpuModel() != null && r.getGpuModel().equals(recGpu) && r.getRecGameLevel() == RecGameLevel.MIN);
-//                    if (!duplicate) {
-//                        GameGpuRequirements reqRecGpu = new GameGpuRequirements();
-//                        reqRecGpu.setGpuModel(recGpu);
-//                        reqRecGpu.setRecGameLevel(RecGameLevel.REC);
-//                        reqRecGpu.setGame(game);
-//                        game.getGameGpuRequirements().add(reqRecGpu);
-//                    }
-//                } else {
-//                    log.warn("Nie znaleziono GPU (REC) dla gry {}: '{}'", game.getTitle(), game.getRecGpu());
-//                }
-//            }
+            for (Game game : games) {
+                game.decodeImageFromBase64();
+            }
 
             gameRepository.saveAll(games);
             return games.size();
@@ -211,7 +152,6 @@ public class ImportCsvFilesService {
         List<String> tokens = splitAlternatives(gameField);
         for (String token : tokens) {
             String t = normalize(token);
-            // najpierw direct contain on component.model (case-insensitive)
             Optional<Processor> found = allProcessors.stream()
                     .filter(p -> {
                         String compModel = p.getComponent() != null && p.getComponent().getModel() != null
