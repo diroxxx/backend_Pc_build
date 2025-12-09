@@ -10,4 +10,6 @@ public interface ReactionCommentRepository extends JpaRepository<ReactionComment
     Optional<ReactionComment> findByCommentIdAndUserId(Long commentId, Long userId);
 
     long countByCommentIdAndLikeReaction(Long commentId, Boolean likeReaction);
+
+    void deleteAllByCommentId(Long commentId);
 }

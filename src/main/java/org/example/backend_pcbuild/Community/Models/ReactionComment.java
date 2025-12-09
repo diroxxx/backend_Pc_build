@@ -3,10 +3,13 @@ package org.example.backend_pcbuild.Community.Models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.example.backend_pcbuild.models.User;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "comment_reactions",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"user_id", "comment_id"})
