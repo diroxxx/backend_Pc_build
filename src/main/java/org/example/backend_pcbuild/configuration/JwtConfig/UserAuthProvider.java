@@ -44,7 +44,7 @@ public class UserAuthProvider {
 
     public String createToken(UserDto login) {
         Date now  = new Date();
-        Date validity = new Date(now.getTime() + 3_600_000);
+        Date validity = new Date(now.getTime() + 7_200_000);
 //        Date validity = new Date(now.getTime() + 10_000);
 
         return com.auth0.jwt.JWT.create()

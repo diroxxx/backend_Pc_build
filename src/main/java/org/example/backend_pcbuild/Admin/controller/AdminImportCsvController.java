@@ -3,6 +3,7 @@ package org.example.backend_pcbuild.Admin.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.service.ImportCsvFilesService;
 import org.example.backend_pcbuild.models.ComponentType;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +18,8 @@ public class AdminImportCsvController {
 
     private final ImportCsvFilesService importCsvFilesService;
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @PostMapping(value = "/components", consumes = "multipart/form-data")
+//    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping(value = "/components", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Integer> importCsv(@RequestPart("file") MultipartFile file, @RequestParam("componentType") ComponentType componentType) {
         try{
             Integer imported = importCsvFilesService.importComponentsFromCsv(file,componentType);
