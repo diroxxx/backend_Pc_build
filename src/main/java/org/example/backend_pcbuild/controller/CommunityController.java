@@ -13,7 +13,6 @@ import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
 import org.example.backend_pcbuild.UserProfile.SavedPostRepository;
 import org.example.backend_pcbuild.models.User;
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,31 +41,46 @@ public class CommunityController {
     private final UserRepository userRepository;
     private final PostCommentRepository commentRepository;
     private final CommunityService communityService;
-    private final ReactionRepository reactionRepository; // Zostawione tylko dla metody deletePost
+    private final ReactionRepository reactionRepository;
     private final PostImageRepository postImageRepository;
     private final PostImageService postImageService;
     private final SavedPostService savedPostService;
     private final SavedPostRepository savedPostRepository;
     private final ReactionCommentRepository reactionCommentRepository;
 
-    @GetMapping("/")
-    public List<Post> getAllPosts() {
-        return postRepository.findAll();
-    }
+//    @GetMapping("/")
+//    public List<Post> getAllPosts() {
+//        return postRepository.findAll();
+//    }
+@GetMapping("/")
+public List<PostPreviewDTO> getAllPosts() {
+    return postRepository.findAll().stream()
+            .map(post -> {
+                // Sprawdzamy, czy post ma jakieś zdjęcia
+                Long firstImageId = null;
+                if (post.getImages() != null && !post.getImages().isEmpty()) {
+                    // Bierzemy ID pierwszego zdjęcia z listy
+                    firstImageId = post.getImages().iterator().next().getId();
+                    // lub post.getImages().get(0).getId() jeśli to Lista
+                }
+
+                // Tworzymy proste DTO
+                return new PostPreviewDTO(
+                        post.getId(),
+                        post.getTitle(),
+                        post.getContent().length() > 100 ? post.getContent().substring(0, 100) + "..." : post.getContent(), // Skrót treści
+                        post.getUser().getUsername(), // Zakładam, że user ma username
+                        post.getCreatedAt(),
+                        firstImageId // Przekazujemy ID lub null
+                );
+            })
+            .collect(Collectors.toList());
+}
 
     @PostMapping("/posts")
     public Post createPost(@RequestBody CreatePostDTO dto) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated() ||
-                authentication.getPrincipal().equals("anonymousUser")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
-        }
-
-        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
-
-        User user = userRepository.findByEmail(principalUserDto.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found in database."));
+        User user = getAuthenticatedUser();
 
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
@@ -93,17 +107,8 @@ public class CommunityController {
 
     @PostMapping("/posts/{postId}/comments")
     public PostComment addComment(@PathVariable Long postId, @RequestBody PostComment dto) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated() ||
-                authentication.getPrincipal().equals("anonymousUser")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
-        }
-
-        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
-
-        User user = userRepository.findByEmail(principalUserDto.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found in database."));
+        User user = getAuthenticatedUser();
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found."));
@@ -212,20 +217,14 @@ public class CommunityController {
     @PutMapping("/posts/{postId}")
     @Transactional
     public ResponseEntity<Post> updatePost(@PathVariable Long postId, @RequestBody UpdatePostDTO dto) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
 
-        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
-        User currentUser = userRepository.findByEmail(principalUserDto.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found."));
+        User currentUser = getAuthenticatedUser();
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found."));
 
         boolean isAuthor = post.getUser().getId().equals(currentUser.getId());
-        boolean isAdmin = principalUserDto.getRole().equals("ADMIN");
+        boolean isAdmin = String.valueOf(currentUser.getRole()).equals("ADMIN");
 
         if (!isAuthor && !isAdmin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -244,20 +243,13 @@ public class CommunityController {
     @DeleteMapping("/posts/delete/{postId}")
     @Transactional
     public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
-        User currentUser = userRepository.findByEmail(principalUserDto.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found."));
+        User currentUser = getAuthenticatedUser();
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found."));
 
         boolean isAuthor = post.getUser().getId().equals(currentUser.getId());
-        boolean isAdmin = principalUserDto.getRole().equals("ADMIN");
+        boolean isAdmin = String.valueOf(currentUser.getRole()).equals("ADMIN");
 
         if (!isAuthor && !isAdmin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -266,8 +258,8 @@ public class CommunityController {
         try {
 
             if (post.getComments() != null && !post.getComments().isEmpty()) {
-
                 List<PostComment> commentsToDelete = new ArrayList<>(post.getComments());
+
 
                 post.setComments(new HashSet<>());
 
@@ -276,10 +268,8 @@ public class CommunityController {
                         reactionCommentRepository.deleteAll(comment.getReactions());
                     }
                 }
-
                 commentRepository.deleteAll(commentsToDelete);
             }
-
 
             reactionRepository.deleteAllByPostId(postId);
             postImageRepository.deleteAllByPostId(postId);
@@ -290,6 +280,23 @@ public class CommunityController {
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error deleting post: " + e.getMessage());
+        }
+    }
+
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() ||
+                "anonymousUser".equals(authentication.getPrincipal())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
+        }
+
+        try {
+            UserDto principalUserDto = (UserDto) authentication.getPrincipal();
+            return userRepository.findByEmail(principalUserDto.getEmail())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found in database."));
+        } catch (ClassCastException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid authentication principal.");
         }
     }
 }
