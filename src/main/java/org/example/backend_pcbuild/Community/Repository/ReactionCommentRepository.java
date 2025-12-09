@@ -9,5 +9,5 @@ public interface ReactionCommentRepository extends JpaRepository<ReactionComment
 
     Optional<ReactionComment> findByCommentIdAndUserId(Long commentId, Long userId);
 
-    int countByCommentIdAndLikeReaction(Long commentId, boolean likeReaction);
+    long countByCommentIdAndLikeReaction(Long commentId, Boolean likeReaction);
 }
