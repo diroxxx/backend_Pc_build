@@ -131,10 +131,6 @@ public class ReactionController {
         return (int) (likes - dislikes);
     }
 
-    // ==========================================
-    // REAKCJE NA KOMENTARZE
-    // ==========================================
-
     @PostMapping("/comments/{commentId}/vote")
     @Transactional
     public ResponseEntity<Integer> castCommentVote(@PathVariable Long commentId, @RequestParam String type) {
