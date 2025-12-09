@@ -43,5 +43,19 @@ public interface OfferUpdateRepository extends JpaRepository<OfferUpdate, Long> 
     ORDER BY offerCount DESC
 """)
     List<OfferUpdateShopsOffersAmountStatsProjection> findOfferStatsByShop();
+
+
+//    @Query("""
+//       select ouc from OfferUpdate ou
+//       join OfferUpdateConfig ouc on ou.offerUpdateConfig = ouc
+//       where ou.finishedAt = (select max(ou2.finishedAt) from OfferUpdate ou2)
+//
+//
+//
+//""")
+//    Optional <OfferUpdate> findByFinishedAtLast();
+
+    Optional<OfferUpdate> findFirstByOrderByFinishedAtDesc();
+
 }
 

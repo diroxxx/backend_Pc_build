@@ -230,6 +230,11 @@ public class OfferUpdateService {
             }
         }
     }
+
+    public OfferUpdateType getLastUpdateType() {
+        Optional<OfferUpdate> firstByOrderByFinishedAtDesc = offerUpdateRepository.findFirstByOrderByFinishedAtDesc();
+        return firstByOrderByFinishedAtDesc.map(offerUpdate -> offerUpdate.getOfferUpdateConfig().getType()).orElse(null);
+    }
 }
 
 

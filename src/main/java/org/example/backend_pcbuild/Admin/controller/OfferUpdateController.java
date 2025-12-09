@@ -3,6 +3,7 @@ package org.example.backend_pcbuild.Admin.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Admin.dto.OfferShopUpdateInfoDto;
 import org.example.backend_pcbuild.Admin.dto.OfferUpdateStatsDTO;
+import org.example.backend_pcbuild.Admin.dto.OfferUpdateType;
 import org.example.backend_pcbuild.Admin.repository.OfferUpdateRepository;
 import org.example.backend_pcbuild.Admin.service.OfferUpdateService;
 import org.example.backend_pcbuild.Offer.service.OfferService;
@@ -38,6 +39,13 @@ public class OfferUpdateController {
     @GetMapping("stats/shops")
     public ResponseEntity<List<OfferUpdateRepository.OfferUpdateShopsOffersAmountStatsProjection>> getOffersShopsAmountStats() {
         return ResponseEntity.ok(offerUpdateService.getOffersShopsAmountStats());
+    }
+
+    @GetMapping("/lastUpdateType")
+    public ResponseEntity<?> getLastUpdateType() {
+        OfferUpdateType lastUpdateType = offerUpdateService.getLastUpdateType();
+
+        return ResponseEntity.ok(lastUpdateType);
     }
 
 }

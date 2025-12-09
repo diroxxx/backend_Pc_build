@@ -121,13 +121,17 @@ public class GameService {
 
 
     public List<GpuRecDto> getAllGpuModels() {
-        return gpuModelRepository.findAll().stream().map(GpuRecDto::toDto).toList();
+        return gpuModelRepository.findAll().stream()
+                .map(GpuRecDto::toDto).toList();
 
 
     }
 
     public List<CpuRecDto> getAllProcessors() {
-        return processorRepository.findAll().stream().map(CpuRecDto::toDto).toList();
+        return processorRepository.findAll().stream()
+                .filter(p -> p.getBenchmark() != null)
+                .sorted(Comparator.comparing(Processor::getBenchmark).reversed())
+                .map(CpuRecDto::toDto).toList();
     }
     @Transactional
     public void deleteGame(Long id) {
@@ -230,106 +234,6 @@ public class GameService {
 
     }
 
-
-
-//    @Transactional
-//    public void updateGameReqInfo(GameReqCompDto dto, MultipartFile file) throws IOException {
-//        Game game = gameRepository.findById(dto.getId()).orElseThrow(() -> new NoSuchElementException("Game not found"));
-//
-//        if (file != null && !file.isEmpty()) {
-//            game.setImage(file.getBytes());
-//        }
-//        if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
-//            game.setTitle(dto.getTitle());
-//        }
-//
-//        List<CpuRecDto> incomingCpu = dto.getCpuSpecs() == null ? List.of() : dto.getCpuSpecs();
-//        List<GpuRecDto> incomingGpu = dto.getGpuSpecs() == null ? List.of() : dto.getGpuSpecs();
-//
-//        List<Long> cpuIds = incomingCpu.stream().map(CpuRecDto::getProcessorId).filter(Objects::nonNull).toList();
-//        List<Long> gpuIds = incomingGpu.stream().map(GpuRecDto::getGpuModelId).filter(Objects::nonNull).toList();
-//
-//        Map<Long, Processor> procMap = processorRepository.findAllById(cpuIds)
-//                .stream().collect(Collectors.toMap(Processor::getId, p -> p));
-//        Map<Long, GpuModel> gpuMap = gpuModelRepository.findAllById(gpuIds)
-//                .stream().collect(Collectors.toMap(GpuModel::getId, g -> g));
-//
-//        Map<Long, GameCpuRequirements> existingCpuMap = game.getGameCpuRequirements().stream()
-//                .filter(gcr -> gcr.getProcessor() != null && (gcr.getProcessor().getId() != null))
-//                .collect(Collectors.toMap(gcr -> gcr.getProcessor().getId(), gcr -> gcr));
-//
-//        Set<Long> incomingCpuIdSet = new HashSet<>(cpuIds);
-//
-//        for (CpuRecDto cpuRecDto : incomingCpu) {
-//            Long pid = cpuRecDto.getProcessorId();
-//            if (pid == null) continue;
-//            Processor proc = procMap.get(pid);
-//            if (proc == null) {
-//                continue;
-//            }
-//            GameCpuRequirements existing = existingCpuMap.get(pid);
-//            if (existing != null) {
-//                existing.setRecGameLevel(cpuRecDto.getRecGameLevel());
-//                existingCpuMap.remove(pid);
-//            } else {
-//                GameCpuRequirements newGcr = new GameCpuRequirements();
-//                newGcr.setProcessor(proc);
-//                newGcr.setRecGameLevel(cpuRecDto.getRecGameLevel());
-//                newGcr.setGame(game);
-//                game.getGameCpuRequirements().add(newGcr);
-//            }
-//        }
-//
-//        if (!existingCpuMap.isEmpty()) {
-//            Iterator<GameCpuRequirements> it = game.getGameCpuRequirements().iterator();
-//            while (it.hasNext()) {
-//                GameCpuRequirements gcr = it.next();
-//                Long existingPid = gcr.getProcessor() != null ? gcr.getProcessor().getId() : null;
-//                if (existingPid != null && !incomingCpuIdSet.contains(existingPid)) {
-//                    it.remove();
-//                }
-//            }
-//        }
-//
-//        Map<Long, GameGpuRequirements> existingGpuMap = game.getGameGpuRequirements().stream()
-//                .filter(ggr -> ggr.getGpuModel() != null && ggr.getGpuModel().getId() != null)
-//                .collect(Collectors.toMap(ggr -> ggr.getGpuModel().getId(), ggr -> ggr));
-//
-//        Set<Long> incomingGpuIdSet = new HashSet<>(gpuIds);
-//
-//        for (GpuRecDto gpuRecDto : incomingGpu) {
-//            Long gid = gpuRecDto.getGpuModelId();
-//            if (gid == null) continue;
-//            GpuModel gpuModel = gpuMap.get(gid);
-//            if (gpuModel == null) {
-//                continue;
-//            }
-//            GameGpuRequirements existing = existingGpuMap.get(gid);
-//            if (existing != null) {
-//                existing.setRecGameLevel(gpuRecDto.getRecGameLevel());
-//                existingGpuMap.remove(gid);
-//            } else {
-//                GameGpuRequirements newGgr = new GameGpuRequirements();
-//                newGgr.setGpuModel(gpuModel);
-//                newGgr.setRecGameLevel(gpuRecDto.getRecGameLevel());
-//                newGgr.setGame(game);
-//                game.getGameGpuRequirements().add(newGgr);
-//            }
-//        }
-//
-//        if (!existingGpuMap.isEmpty()) {
-//            Iterator<GameGpuRequirements> it = game.getGameGpuRequirements().iterator();
-//            while (it.hasNext()) {
-//                GameGpuRequirements ggr = it.next();
-//                Long existingGid = ggr.getGpuModel() != null ? ggr.getGpuModel().getId() : null;
-//                if (existingGid != null && !incomingGpuIdSet.contains(existingGid)) {
-//                    it.remove();
-//                }
-//            }
-//        }
-//
-//        gameRepository.save(game);
-//    }
 
     public byte[] getImageBytes(Long id) {
         Optional<Game> byId = gameRepository.findById(id);

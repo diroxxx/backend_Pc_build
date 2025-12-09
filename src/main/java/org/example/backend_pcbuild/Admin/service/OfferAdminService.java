@@ -17,7 +17,7 @@ public class OfferAdminService {
 
     public  Optional<Offer> findBestForCpu(OfferRepository repo, Component comp, double budget) {
         if (comp == null) return Optional.empty();
-        if (budget == 0) {
+        if (budget == 0 ) {
             List<Offer> list = repo.findByComponentOrderByPriceAsc(comp);
             return  list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
         } else {
