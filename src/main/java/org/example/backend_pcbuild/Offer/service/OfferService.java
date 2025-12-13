@@ -270,8 +270,6 @@ public class OfferService {
         else if (sortBy == SortByOffers.NEWEST)
             stream = stream.sorted(Comparator.comparing(BaseOfferDto::getId).reversed());
 
-
-
         List<BaseOfferDto> filtered = stream.toList();
 
         int start = (int) pageable.getOffset();
@@ -340,40 +338,20 @@ public class OfferService {
 //
 //                }
 //            }
-            System.out.println("=== Processing Offer ===");
-            System.out.println("Title: " + offerDto.getTitle());
-            System.out.println("Items for category " + category + ": " + itemsForCategory.size());
+
             saveOffer(offerDto, update, itemsForCategory, category);
 
         });
     }
 
-
-
     @Transactional
     public boolean saveOffer(ComponentOfferDto offerDto, ShopOfferUpdate update , List<?> itemsForCategory,ComponentType category) {
-        System.out.println("=== Processing Offer ===");
+        System.out.println("Processing Offer");
         System.out.println("Title: " + offerDto.getTitle());
         System.out.println("Brand: " + offerDto.getBrand());
         System.out.println("Model: " + offerDto.getModel());
         System.out.println("Category: " + offerDto.getCategory());
 
-        Optional<Offer> existingOfferOpt = offerRepository
-                .findByShopNameAndWebsiteUrlIgnoreCaseTrim(offerDto.getShop(), offerDto.getUrl());
-
-        if (existingOfferOpt.isPresent()) {
-            Offer existingOffer = existingOfferOpt.get();
-
-            boolean alreadyLinked = existingOffer.getOfferShopOfferUpdates().stream()
-                    .anyMatch(link -> link.getShopOfferUpdate().getId().equals(update.getId()));
-
-            if (alreadyLinked) {
-                System.out.println("Skipping - offer already linked to this update: " + offerDto.getUrl());
-                return false;
-            }
-            System.out.println("Skipping existing offer (no new record for this update): " + offerDto.getUrl());
-            return false;
-        }
 
         Component bestComponent = offerMatchingService.matchOfferToComponent(
                 category,
@@ -430,7 +408,7 @@ public class OfferService {
         return true;
     }
 
-    public  List<ComponentStatsDto>  getCountsOffersByComponents() {
+    public List<ComponentStatsDto>  getCountsOffersByComponents() {
         var totals = offerRepository.getOfferStatsTotal();
         var details = offerRepository.getOfferStatsByComponentAndShop();
 

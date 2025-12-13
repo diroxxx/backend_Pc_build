@@ -150,7 +150,32 @@ public class ComputerService {
         }
 
         computerRepository.delete(computer);
-        System.out.println("🗑️ Deleted computer: " + computer.getName() + " (ID: " + computerId + ")");
-
+        System.out.println("Deleted computer: " + computer.getName() + " (ID: " + computerId + ")");
     }
+
+    @Transactional
+    public  void updateUserComputerFromGuest(String email, List<ComputerDto> computerDtos) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isPresent()) {
+            User user1 = user.get();
+
+            computerDtos.stream()
+                    .forEach(computerDto -> {
+
+                        Computer computer = new Computer();
+                        computer.setName(computerDto.getName());
+                        computer.setPrice(computerDto.getPrice());
+                        computer.setUser(user1);
+                        user1.getComputers().add(computer);
+                        Computer save = computerRepository.save(computer);
+
+                        computerDto.getOffers().stream()
+                                        .forEach(baseOfferDto -> {
+
+                                            updateComputerFromDto(save.getId(), baseOfferDto.getWebsiteUrl());
+                                        });
+                    });
+        }
+    }
+
 }

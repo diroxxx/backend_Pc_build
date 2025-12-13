@@ -24,11 +24,11 @@ public class ComputerController {
         List<ComputerDto> allComputersByUserEmail = computerService.getAllComputersByUserEmail(email);
 
 //            System.out.println(allComputersByUserEmail.size());
-            for (ComputerDto computer : allComputersByUserEmail) {
-                System.out.println(computer.getName());
-                System.out.println(computer.getOffers().size());
-                System.out.println("-".repeat(100));
-            }
+        for (ComputerDto computer : allComputersByUserEmail) {
+            System.out.println(computer.getName());
+            System.out.println(computer.getOffers().size());
+            System.out.println("-".repeat(100));
+        }
         return ResponseEntity.ok(allComputersByUserEmail);
     }
 
@@ -45,8 +45,7 @@ public class ComputerController {
             return ResponseEntity.ok("Computer has been successfully saved" + email);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
-        }
-        catch (StackOverflowError e) {
+        } catch (StackOverflowError e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("StackOverflow error - check entity relationships");
@@ -82,7 +81,17 @@ public class ComputerController {
         return ResponseEntity.ok("Computer has been successfully updated");
     }
 
+    @PostMapping("/users/{email}/computers/migrate")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    public ResponseEntity<?> updateComputers(@PathVariable String email, @RequestBody List<ComputerDto> computers) {
 
-
-
+        if (email.isBlank() || email.isEmpty()) {
+            return ResponseEntity.badRequest().body("Email cannot be null or empty.");
+        }
+        if (computers.isEmpty()) {
+            return ResponseEntity.ok().build();
+        }
+        computerService.updateUserComputerFromGuest(email, computers);
+        return ResponseEntity.ok("Computers have been successfully updated");
+    }
 }

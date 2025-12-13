@@ -42,6 +42,7 @@ public class UserAuthProvider {
         secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
     }
 
+
     public String createToken(UserDto login) {
         Date now  = new Date();
         Date validity = new Date(now.getTime() + 7_200_000);
