@@ -1,7 +1,7 @@
 spring:
   datasource:
   #    url: jdbc:h2:mem:devdb
-    url: jdbc:h2:file:./dbTest/test3db
+    url: jdbc:h2:file:./dbTest/test4db
     driver-class-name: org.h2.Driver
     username: sa
     password: ""

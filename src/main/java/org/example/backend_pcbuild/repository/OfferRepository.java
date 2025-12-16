@@ -126,21 +126,21 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
 
     // OfferRepository.java (fragment)
     @Query("""
-    SELECT o FROM Offer o
-    JOIN Component c ON o.component.id = c.id
-    LEFT JOIN Brand b ON c.brand.id = b.id
-    LEFT JOIN Shop s ON o.shop.id = s.id
-    WHERE o.isVisible = true 
-      AND (:componentType IS NULL OR c.componentType = :componentType)
-      AND (:brand IS NULL OR LOWER(b.name) = LOWER(:brand))
-      AND (:minPrice IS NULL OR o.price >= :minPrice)
-      AND (:maxPrice IS NULL OR o.price <= :maxPrice)
-      AND (:shopName IS NULL OR LOWER(s.name) = LOWER(:shopName))
-      AND (:componentCondition IS NULL OR o.condition = :componentCondition)
-     AND (:querySearch IS NULL OR (
-                 LOWER(o.title) LIKE CONCAT('%', LOWER(:querySearch), '%')
-           ))
-""")
+        SELECT o FROM Offer o
+        JOIN o.component c
+        LEFT JOIN c.brand b
+        LEFT JOIN o.shop s
+        WHERE o.isVisible = true
+          AND (:componentType IS NULL OR c.componentType = :componentType)
+          AND (:brand IS NULL OR LOWER(b.name) = LOWER(:brand))
+          AND (:minPrice IS NULL OR o.price >= :minPrice)
+          AND (:maxPrice IS NULL OR o.price <= :maxPrice)
+          AND (:shopName IS NULL OR LOWER(s.name) = LOWER(:shopName))
+          AND (:componentCondition IS NULL OR o.condition = :componentCondition)
+          AND (:querySearch IS NULL OR (
+                LOWER(o.title) LIKE CONCAT('%', LOWER(:querySearch), '%')
+          ))
+    """)
     Page<Offer> findOfferByFiltersProd(
             @Param("componentType") ComponentType componentType,
             @Param("brand") String brand,
@@ -157,29 +157,29 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
 //      )
 
     @Query("""
-        select o from Offer o
-        inner join Component c on o.component = c
-        inner join Brand b on b = c.brand
-        inner join Shop s on o.shop = s
-        where o.isVisible = true 
-            and (:componentType is null or c.componentType = :componentType) 
-            and (:brand is null or LOWER(b) = LOWER(:brand))
-            and (:minPrice is null or o.price >= :minPrice)
-            and (:maxPrice is null or o.price <= :maxPrice)
-            and (:shopName is null or LOWER(s.name) = LOWER(:shopName))
-            and (:componentCondition is null or o.condition = :componentCondition)
-             and (:querySearch is null or (
-                         lower(o.title) like lower(concat('%', :querySearch, '%'))
-                    ))
-""")
+        SELECT o FROM Offer o
+        JOIN o.component c
+        LEFT JOIN c.brand b
+        LEFT JOIN o.shop s
+        WHERE o.isVisible = true
+          AND (:componentType IS NULL OR c.componentType = :componentType)
+          AND (:brand IS NULL OR LOWER(b.name) = LOWER(:brand))
+          AND (:minPrice IS NULL OR o.price >= :minPrice)
+          AND (:maxPrice IS NULL OR o.price <= :maxPrice)
+          AND (:shopName IS NULL OR LOWER(s.name) = LOWER(:shopName))
+          AND (:componentCondition IS NULL OR o.condition = :componentCondition)
+          AND (:querySearch IS NULL OR (
+                LOWER(o.title) LIKE CONCAT('%', LOWER(:querySearch), '%')
+          ))
+    """)
     Page<Offer> findOfferByFiltersDev(
             @Param("componentType") ComponentType componentType,
             @Param("brand") String brand,
             @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double MaxPrice,
+            @Param("maxPrice") Double maxPrice,
             @Param("componentCondition") ComponentCondition componentCondition,
-            @Param("shopName")String shopName,
-            @Param("querySearch")String querySearch,
+            @Param("shopName") String shopName,
+            @Param("querySearch") String querySearch,
             Pageable pageable
     );
 
