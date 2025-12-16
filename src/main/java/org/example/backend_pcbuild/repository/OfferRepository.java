@@ -1,8 +1,7 @@
 package org.example.backend_pcbuild.repository;
 
-import org.example.backend_pcbuild.models.Component;
-import org.example.backend_pcbuild.models.GpuModel;
-import org.example.backend_pcbuild.models.Offer;
+import org.example.backend_pcbuild.models.*;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -76,42 +75,6 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
         Long getTotal();
     }
 
-    @Query("SELECT o FROM Offer o " +
-            "JOIN o.component comp " +
-            "JOIN comp.graphicsCard g " +
-            "WHERE g.gpuModel = :gpuModel " +
-            "ORDER BY o.price ASC")
-    List<Offer> findTopByGpuModelOrderByPriceAsc(@Param("gpuModel") GpuModel gpuModel);
-
-
-    @Query("SELECT o FROM Offer o " +
-            "JOIN o.component comp " +
-            "JOIN comp.graphicsCard g " +
-            "WHERE comp.id = :componentId  " +
-            "ORDER BY o.price ASC")
-    List<Offer> findTopByComponentIdOrderByPriceAsc(@Param("componentId") Long componentId);
-
-    @Query("SELECT o FROM Offer o " +
-            "JOIN o.component comp on comp = o.component " +
-            "JOIN comp.graphicsCard g on comp.graphicsCard = g " +
-            "WHERE g.benchmark >= :benchmark and o.price <= :budget " +
-            "ORDER BY o.price DESC")
-    List<Offer> findGpuModelTopByBenchmarkAndBudgetOrderByPriceDesc(@Param("benchmark") Double benchmark, @Param("budget") Double budget );
-
-
-    @Query("SELECT o FROM Offer o " +
-            "JOIN o.component comp " +
-            "JOIN comp.processor p " +
-            "WHERE comp.id = :compId " +
-            "and  o.price <= :budget " +
-            "ORDER BY o.price DESC")
-    List<Offer> findCpuTopByBenchmarkAndBudgetOrderByPriceDesc(@Param("benchmark") Double benchmark, @Param("budget") Double budget );
-
-
-    @Query(value = "SELECT * FROM offer o WHERE o.component_id = :componentId ORDER BY o.price ASC LIMIT 1", nativeQuery = true)
-    Optional<Offer> findCheapestNative(@Param("componentId") Long componentId);
-
-
 
     @Query("SELECT o FROM Offer o WHERE o.component = :component ORDER BY o.price ASC")
     List<Offer> findByComponentOrderByPriceAsc(@Param("component") Component component);
@@ -131,5 +94,93 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Offer> findByGpuModelAndPriceLessThanEqualOrderByPriceAsc(@Param("gpuModel") GpuModel gpuModel, @Param("price") double price, Pageable pageable);
 
 
+//    @Query("""
+//        select o from Offer o
+//        inner join Component c on o.component.id = c.id
+//        inner join Brand b on b.id = c.brand.id
+//        inner join Shop s on o.shop.id = s.id
+//        where o.isVisible = true
+//            and (:componentType is null or c.componentType = :componentType)
+//            and (:brand is null or LOWER(b) = LOWER(:brand))
+//            and (:minPrice is null or o.price >= :minPrice)
+//            and (:maxPrice is null or o.price <= :maxPrice)
+//            and (:shopName is null or LOWER(s.name) = LOWER(:shopName))
+//            and (:componentCondition is null or o.condition = :componentCondition)
+//
+//
+//
+//
+//""")
+//    Page<Offer> findOfferByFiltersProd(
+//            @Param("componentType")ComponentType componentType,
+//            @Param("brand") String brand,
+//            @Param("minPrice") Double minPrice,
+//            @Param("maxPrice") Double MaxPrice,
+//            @Param("componentCondition")ComponentCondition componentCondition,
+//            @Param("shopName")String shopName,
+//            @Param("querySearch")String querySearch,
+//            Pageable pageable
+//            );
+
+
+
+    // OfferRepository.java (fragment)
+    @Query("""
+    SELECT o FROM Offer o
+    JOIN Component c ON o.component.id = c.id
+    LEFT JOIN Brand b ON c.brand.id = b.id
+    LEFT JOIN Shop s ON o.shop.id = s.id
+    WHERE o.isVisible = true 
+      AND (:componentType IS NULL OR c.componentType = :componentType)
+      AND (:brand IS NULL OR LOWER(b.name) = LOWER(:brand))
+      AND (:minPrice IS NULL OR o.price >= :minPrice)
+      AND (:maxPrice IS NULL OR o.price <= :maxPrice)
+      AND (:shopName IS NULL OR LOWER(s.name) = LOWER(:shopName))
+      AND (:componentCondition IS NULL OR o.condition = :componentCondition)
+     AND (:querySearch IS NULL OR (
+                 LOWER(o.title) LIKE CONCAT('%', LOWER(:querySearch), '%')
+           ))
+""")
+    Page<Offer> findOfferByFiltersProd(
+            @Param("componentType") ComponentType componentType,
+            @Param("brand") String brand,
+            @Param("minPrice") Double minPrice,
+            @Param("maxPrice") Double maxPrice,
+            @Param("componentCondition") ComponentCondition componentCondition,
+            @Param("shopName") String shopName,
+            @Param("querySearch") String querySearch,
+            Pageable pageable
+    );
+//    AND (
+//           :querySearch IS NULL
+//                    OR FREETEXT(o.title, :querySearch)
+//      )
+
+    @Query("""
+        select o from Offer o
+        inner join Component c on o.component = c
+        inner join Brand b on b = c.brand
+        inner join Shop s on o.shop = s
+        where o.isVisible = true 
+            and (:componentType is null or c.componentType = :componentType) 
+            and (:brand is null or LOWER(b) = LOWER(:brand))
+            and (:minPrice is null or o.price >= :minPrice)
+            and (:maxPrice is null or o.price <= :maxPrice)
+            and (:shopName is null or LOWER(s.name) = LOWER(:shopName))
+            and (:componentCondition is null or o.condition = :componentCondition)
+             and (:querySearch is null or (
+                         lower(o.title) like lower(concat('%', :querySearch, '%'))
+                    ))
+""")
+    Page<Offer> findOfferByFiltersDev(
+            @Param("componentType") ComponentType componentType,
+            @Param("brand") String brand,
+            @Param("minPrice") Double minPrice,
+            @Param("maxPrice") Double MaxPrice,
+            @Param("componentCondition") ComponentCondition componentCondition,
+            @Param("shopName")String shopName,
+            @Param("querySearch")String querySearch,
+            Pageable pageable
+    );
 
 }

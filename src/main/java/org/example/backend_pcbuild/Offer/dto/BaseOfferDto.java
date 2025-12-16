@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.backend_pcbuild.models.ComponentType;
-import org.example.backend_pcbuild.models.ItemCondition;
+import org.example.backend_pcbuild.models.ComponentCondition;
 
 
 
@@ -35,7 +35,7 @@ public abstract class BaseOfferDto {
     private String title;
     private String brand;
     private String model;
-    private ItemCondition condition;
+    private ComponentCondition condition;
     private String photoUrl;
     private String websiteUrl;
     private Double price;

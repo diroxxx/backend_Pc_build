@@ -2,7 +2,7 @@ package org.example.backend_pcbuild.Game;
 
 import lombok.Data;
 import org.example.backend_pcbuild.models.ComponentType;
-import org.example.backend_pcbuild.models.ItemCondition;
+import org.example.backend_pcbuild.models.ComponentCondition;
 import org.example.backend_pcbuild.models.Offer;
 
 @Data
@@ -10,7 +10,7 @@ public class OfferRecDto {
     private String title;
     private String brand;
     private String model;
-    private ItemCondition condition;
+    private ComponentCondition condition;
     private String photoUrl;
     private String websiteUrl;
     private Double price;

@@ -1,5 +1,5 @@
 package org.example.backend_pcbuild.models;
 
-public enum ItemCondition {
+public enum ComponentCondition {
     USED, NEW
 }

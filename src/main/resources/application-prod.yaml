@@ -14,6 +14,10 @@ spring:
         dialect: org.hibernate.dialect.SQLServer2012Dialect
         format_sql: true
 
+app:
+  search:
+    useFullTextSearch: true
+
 
 #  INSERT INTO app_user (email, password, username, role)
 #  VALUES ('admin1@wp.pl', '$2a$10$Ex02DfV0RrCd2ugBxnbEnOqnNy9tr.6pu0ZFVdbbSqRZHv9O1K0hu', 'admin1', 'ADMIN');

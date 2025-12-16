@@ -41,7 +41,7 @@ public class Offer {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "item_condition")
-    private ItemCondition condition;
+    private ComponentCondition condition;
 
     private Boolean isVisible;
 

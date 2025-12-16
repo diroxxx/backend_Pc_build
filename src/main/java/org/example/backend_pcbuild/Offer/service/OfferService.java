@@ -8,10 +8,10 @@ import org.example.backend_pcbuild.Admin.dto.ComponentOfferDto;
 import org.example.backend_pcbuild.Offer.dto.*;
 import org.example.backend_pcbuild.models.*;
 import org.example.backend_pcbuild.repository.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -146,143 +146,243 @@ public class OfferService {
         return result;
     }
 
-    public Page<BaseOfferDto> getAllOffersV2(Pageable pageable,
-                                              ComponentType componentType,
-                                              String brand,
-                                              Double minPrize,
-                                              Double maxPrize,
-                                              ItemCondition itemCondition,
-                                              String shopName,
-                                              SortByOffers sortBy,
-                                              String querySearch) {
+//    public Page<BaseOfferDto> getAllOffersV2(Pageable pageable,
+//                                              ComponentType componentType,
+//                                              String brand,
+//                                              Double minPrize,
+//                                              Double maxPrize,
+//                                              ComponentCondition componentCondition,
+//                                              String shopName,
+//                                              SortByOffers sortBy,
+//                                              String querySearch) {
+//
+//        List<BaseOfferDto> result = new ArrayList<>();
+//
+//        if(componentType == null || componentType == ComponentType.GRAPHICS_CARD) {
+//            List<GraphicsCardDto> gpus = graphicsCardRepository.findAll().stream()
+//                    .flatMap(gc -> gc.getComponent().getOffers().stream()
+//                            .filter(Offer::getIsVisible)
+//                            .map(offer -> OfferComponentMapper.toDto(gc, offer)))
+//                    . toList();
+//            result.addAll(gpus);
+//        }
+//
+//        if(componentType == null || componentType == ComponentType.PROCESSOR) {
+//            List<ProcessorDto> processors = processorRepository.findAll().stream()
+//                    .flatMap(cpu -> cpu.getComponent().getOffers().stream()
+//                            .filter(Offer::getIsVisible)
+//                            .map(offer -> OfferComponentMapper.toDto(cpu, offer)))
+//                    .toList();
+//            result.addAll(processors);
+//        }
+//
+//        if (componentType == null || componentType == ComponentType.CPU_COOLER) {
+//            List<CoolerDto> coolers = coolerRepository.findAll().stream()
+//                    .flatMap(c -> c.getComponent().getOffers().stream()
+//                            .filter(Offer::getIsVisible)
+//                            .map(offer -> OfferComponentMapper.toDto(c, offer)))
+//                    .toList();
+//            result.addAll(coolers);
+//        }
+//
+//        if (componentType == null || componentType == ComponentType.MEMORY) {
+//            List<MemoryDto> memories = memoryRepository.findAll().stream()
+//                    .flatMap(m -> m.getComponent().getOffers().stream()
+//                            .filter(Offer::getIsVisible)
+//                            .map(offer -> OfferComponentMapper.toDto(m, offer)))
+//                    .toList();
+//            result.addAll(memories);
+//        }
+//
+//        if (componentType == null || componentType == ComponentType.MOTHERBOARD) {
+//            List<MotherboardDto> motherboards = motherboardRepository.findAll().stream()
+//                    .flatMap(mb -> mb.getComponent().getOffers().stream()
+//                            .filter(Offer::getIsVisible)
+//                            .map(offer -> OfferComponentMapper.toDto(mb, offer)))
+//                    .toList();
+//            result.addAll(motherboards);
+//        }
+//
+//        if (componentType == null || componentType == ComponentType.POWER_SUPPLY) {
+//            List<PowerSupplyDto> powerSupplies = powerSupplyRepository.findAll().stream()
+//                    .flatMap(ps -> ps.getComponent().getOffers().stream()
+//                            .filter(Offer::getIsVisible)
+//                            .map(offer -> OfferComponentMapper.toDto(ps, offer)))
+//                    .toList();
+//            result.addAll(powerSupplies);
+//        }
+//
+//        if (componentType == null || componentType == ComponentType.STORAGE) {
+//            List<StorageDto> storages = storageRepository.findAll().stream()
+//                    .flatMap(s -> s.getComponent().getOffers().stream()
+//                            .filter(Offer::getIsVisible)
+//                            .map(offer -> OfferComponentMapper.toDto(s, offer)))
+//                    .toList();
+//            result.addAll(storages);
+//        }
+//
+//        if (componentType == null || componentType == ComponentType.CASE_PC) {
+//
+//            List<CaseDto> casesPc = caseRepository.findAll().stream()
+//                    .flatMap(c -> c.getComponent().getOffers().stream()
+//                            .filter(Offer::getIsVisible)
+//                            .map(offer -> OfferComponentMapper.toDto(c, offer)))
+//                    .toList();
+//            result.addAll(casesPc);
+//        }
+//
+//        Stream<BaseOfferDto> stream = result.stream();
+//        if (brand != null && !brand.isBlank()) {
+//            stream = stream.filter(o -> o.getBrand() != null && o.getBrand().equalsIgnoreCase(brand));
+//        }
+//
+//        if (shopName != null && !shopName.isBlank()) {
+//            stream = stream.filter(o -> o.getShopName() != null && o.getShopName().equalsIgnoreCase(shopName));
+//        }
+//
+//        if (minPrize != null) {
+//            stream = stream.filter(o -> o.getPrice() >= minPrize);
+//        }
+//
+//        if (maxPrize != null) {
+//            stream = stream.filter(o -> o.getPrice() <= maxPrize);
+//        }
+//
+//        if (componentCondition != null) {
+//            stream = stream.filter(o -> o.getCondition() == componentCondition);
+//        }
+//
+//        if (querySearch != null && !querySearch.isBlank()) {
+//            String query = querySearch.toLowerCase().replaceAll("[^a-z0-9 ]", " ");
+//            stream = stream.filter(o -> {
+//                String title = o.getTitle().toLowerCase().replaceAll("[^a-z0-9 ]", " ");
+//                return Arrays.stream(title.split("\\s+"))
+//                        .anyMatch(word -> similarity.apply(word, query) > 0.85)
+//                        || similarity.apply(title, query) > 0.85;
+//            });
+//        }
+//
+//
+//        if (sortBy == SortByOffers.CHEAPEST)
+//            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getPrice));
+//        else if (sortBy == SortByOffers.EXPENSIVE)
+//            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getPrice).reversed());
+//        else if (sortBy == SortByOffers.NEWEST)
+//            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getId).reversed());
+//
+//        List<BaseOfferDto> filtered = stream.toList();
+//
+//        int start = (int) pageable.getOffset();
+//        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+//
+//        List<BaseOfferDto> pagedList;
+//        if (start >= filtered.size()) {
+//            pagedList = List.of();
+//        } else {
+//            pagedList = filtered.subList(start, end);
+//        }
+//        return new PageImpl<>(pagedList, pageable, filtered.size());
+//    }
 
-        List<BaseOfferDto> result = new ArrayList<>();
-
-        if(componentType == null || componentType == ComponentType.GRAPHICS_CARD) {
-            List<GraphicsCardDto> gpus = graphicsCardRepository.findAll().stream()
-                    .flatMap(gc -> gc.getComponent().getOffers().stream()
-                            .filter(Offer::getIsVisible)
-                            .map(offer -> OfferComponentMapper.toDto(gc, offer)))
-                    . toList();
-            result.addAll(gpus);
-        }
-
-        if(componentType == null || componentType == ComponentType.PROCESSOR) {
-            List<ProcessorDto> processors = processorRepository.findAll().stream()
-                    .flatMap(cpu -> cpu.getComponent().getOffers().stream()
-                            .filter(Offer::getIsVisible)
-                            .map(offer -> OfferComponentMapper.toDto(cpu, offer)))
-                    .toList();
-            result.addAll(processors);
-        }
-
-        if (componentType == null || componentType == ComponentType.CPU_COOLER) {
-            List<CoolerDto> coolers = coolerRepository.findAll().stream()
-                    .flatMap(c -> c.getComponent().getOffers().stream()
-                            .filter(Offer::getIsVisible)
-                            .map(offer -> OfferComponentMapper.toDto(c, offer)))
-                    .toList();
-            result.addAll(coolers);
-        }
-
-        if (componentType == null || componentType == ComponentType.MEMORY) {
-            List<MemoryDto> memories = memoryRepository.findAll().stream()
-                    .flatMap(m -> m.getComponent().getOffers().stream()
-                            .filter(Offer::getIsVisible)
-                            .map(offer -> OfferComponentMapper.toDto(m, offer)))
-                    .toList();
-            result.addAll(memories);
-        }
-
-        if (componentType == null || componentType == ComponentType.MOTHERBOARD) {
-            List<MotherboardDto> motherboards = motherboardRepository.findAll().stream()
-                    .flatMap(mb -> mb.getComponent().getOffers().stream()
-                            .filter(Offer::getIsVisible)
-                            .map(offer -> OfferComponentMapper.toDto(mb, offer)))
-                    .toList();
-            result.addAll(motherboards);
-        }
-
-        if (componentType == null || componentType == ComponentType.POWER_SUPPLY) {
-            List<PowerSupplyDto> powerSupplies = powerSupplyRepository.findAll().stream()
-                    .flatMap(ps -> ps.getComponent().getOffers().stream()
-                            .filter(Offer::getIsVisible)
-                            .map(offer -> OfferComponentMapper.toDto(ps, offer)))
-                    .toList();
-            result.addAll(powerSupplies);
-        }
-
-        if (componentType == null || componentType == ComponentType.STORAGE) {
-            List<StorageDto> storages = storageRepository.findAll().stream()
-                    .flatMap(s -> s.getComponent().getOffers().stream()
-                            .filter(Offer::getIsVisible)
-                            .map(offer -> OfferComponentMapper.toDto(s, offer)))
-                    .toList();
-            result.addAll(storages);
-        }
-
-        if (componentType == null || componentType == ComponentType.CASE_PC) {
-
-            List<CaseDto> casesPc = caseRepository.findAll().stream()
-                    .flatMap(c -> c.getComponent().getOffers().stream()
-                            .filter(Offer::getIsVisible)
-                            .map(offer -> OfferComponentMapper.toDto(c, offer)))
-                    .toList();
-            result.addAll(casesPc);
-        }
-
-        Stream<BaseOfferDto> stream = result.stream();
-        if (brand != null && !brand.isBlank()) {
-            stream = stream.filter(o -> o.getBrand() != null && o.getBrand().equalsIgnoreCase(brand));
-        }
-
-        if (shopName != null && !shopName.isBlank()) {
-            stream = stream.filter(o -> o.getShopName() != null && o.getShopName().equalsIgnoreCase(shopName));
-        }
-
-        if (minPrize != null) {
-            stream = stream.filter(o -> o.getPrice() >= minPrize);
-        }
-
-        if (maxPrize != null) {
-            stream = stream.filter(o -> o.getPrice() <= maxPrize);
-        }
-
-        if (itemCondition != null) {
-            stream = stream.filter(o -> o.getCondition() == itemCondition);
-        }
-
-        if (querySearch != null && !querySearch.isBlank()) {
-            String query = querySearch.toLowerCase().replaceAll("[^a-z0-9 ]", " ");
-            stream = stream.filter(o -> {
-                String title = o.getTitle().toLowerCase().replaceAll("[^a-z0-9 ]", " ");
-                return Arrays.stream(title.split("\\s+"))
-                        .anyMatch(word -> similarity.apply(word, query) > 0.85)
-                        || similarity.apply(title, query) > 0.85;
-            });
-        }
 
 
-        if (sortBy == SortByOffers.CHEAPEST)
-            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getPrice));
-        else if (sortBy == SortByOffers.EXPENSIVE)
-            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getPrice).reversed());
-        else if (sortBy == SortByOffers.NEWEST)
-            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getId).reversed());
 
-        List<BaseOfferDto> filtered = stream.toList();
+    @Value("${app.search.useFullTextSearch:false}")
+    private boolean useFullTextSearch;
+    public Page<BaseOfferDto> getAllOffersV3(Pageable pageable,
+                                             ComponentType componentType,
+                                             String brand,
+                                             Double minPrize,
+                                             Double maxPrize,
+                                             ComponentCondition componentCondition,
+                                             String shopName,
+                                             String querySearch) {
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+        Page<Offer> page;
 
-        List<BaseOfferDto> pagedList;
-        if (start >= filtered.size()) {
-            pagedList = List.of();
+//        String componentTypeStr = (componentType != null) ? componentType.name() : null;
+//        String componentConditionStr = (componentCondition != null) ? componentCondition.name() : null;
+//        String qs = (querySearch != null && !querySearch.trim().isEmpty()) ? querySearch.trim() : null;
+
+        if (useFullTextSearch ) {
+            page =  offerRepository.findOfferByFiltersProd(
+                    componentType,
+                    brand, minPrize,
+                    maxPrize,
+                    componentCondition,
+                    shopName,
+                    querySearch,
+                    pageable
+            );
         } else {
-            pagedList = filtered.subList(start, end);
+            page =  offerRepository.findOfferByFiltersDev(
+                    componentType,
+                    brand, minPrize,
+                    maxPrize,
+                    componentCondition,
+                    shopName,
+                    querySearch,
+                    pageable
+            );
         }
-        return new PageImpl<>(pagedList, pageable, filtered.size());
+
+        List<BaseOfferDto> dtos = page.getContent().stream()
+                .map(offer -> {
+                    Component c = offer.getComponent();
+                    if (c == null) return null;
+                    switch (c.getComponentType()) {
+                        case PROCESSOR:
+                            return OfferComponentMapper.toDto(c.getProcessor(), offer);
+                        case GRAPHICS_CARD:
+                            return OfferComponentMapper.toDto(c.getGraphicsCard(), offer);
+                        case MEMORY:
+                            return OfferComponentMapper.toDto(c.getMemory(), offer);
+
+                        case STORAGE:
+                            return OfferComponentMapper.toDto(c.getStorage(), offer);
+                        case CASE_PC:
+                            return OfferComponentMapper.toDto(c.getCase_(), offer);
+                        case CPU_COOLER:
+                            return OfferComponentMapper.toDto(c.getCooler(), offer);
+
+                            case MOTHERBOARD:
+                            return OfferComponentMapper.toDto(c.getMotherboard(), offer);
+
+                            case POWER_SUPPLY:
+                            return OfferComponentMapper.toDto(c.getPowerSupply(), offer);
+
+                            default:
+                                return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+
+//        Stream<BaseOfferDto> stream = result.stream();
+
+
+//        if (querySearch != null && !querySearch.isBlank()) {
+//            String query = querySearch.toLowerCase().replaceAll("[^a-z0-9 ]", " ");
+//            stream = stream.filter(o -> {
+//                String title = o.getTitle().toLowerCase().replaceAll("[^a-z0-9 ]", " ");
+//                return Arrays.stream(title.split("\\s+"))
+//                        .anyMatch(word -> similarity.apply(word, query) > 0.85)
+//                        || similarity.apply(title, query) > 0.85;
+//            });
+//        }
+
+
+//        if (sortBy == SortByOffers.CHEAPEST)
+//            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getPrice));
+//        else if (sortBy == SortByOffers.EXPENSIVE)
+//            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getPrice).reversed());
+//        else if (sortBy == SortByOffers.NEWEST)
+//            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getId).reversed());
+
+        return new PageImpl<>(dtos, pageable, page.getTotalElements());
     }
+
 
     @Transactional
     public void saveOffersTemplate(List<ComponentOfferDto> offers, ShopOfferUpdate update) {
@@ -433,7 +533,7 @@ public class OfferService {
         String statusString = componentData.getStatus();
         if (statusString != null) {
             try {
-                offer.setCondition(ItemCondition.valueOf(statusString));
+                offer.setCondition(ComponentCondition.valueOf(statusString));
             } catch (IllegalArgumentException ignored) {}
         }
 
