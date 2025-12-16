@@ -16,7 +16,6 @@ public class PostImage {
 
 
     @Lob
-    @Column(columnDefinition = "LONGBLOB", nullable = false)
     private byte[] image;
 
 
