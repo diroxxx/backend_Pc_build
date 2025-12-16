@@ -130,8 +130,4 @@ public class UserAuthProvider {
             throw e;
         }
     }
-    public void deleteExistingRefreshToken(User user) {
-        refreshTokenRepository.deleteByEmail(user.getEmail());
-    }
-
 }

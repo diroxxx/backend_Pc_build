@@ -23,7 +23,8 @@ import org.example.backend_pcbuild.models.ItemCondition;
         @JsonSubTypes.Type(value = MemoryDto.class, name = "MEMORY"),
         @JsonSubTypes.Type(value = PowerSupplyDto.class, name = "POWER_SUPPLY"),
         @JsonSubTypes.Type(value = CoolerDto.class, name = "CPU_COOLER"),
-        @JsonSubTypes.Type(value = CaseDto.class, name = "CASE_PC")
+        @JsonSubTypes.Type(value = CaseDto.class, name = "CASE_PC"),
+        @JsonSubTypes.Type(value = StorageDto.class, name = "STORAGE")
 })
 
 @Data
