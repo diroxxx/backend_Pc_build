@@ -216,4 +216,5 @@ public class UserController {
         boolean isSaved = savedPostRepository.existsByUserIdAndPostId(user.getId(), postId);
         return ResponseEntity.ok(isSaved);
     }
+
 }

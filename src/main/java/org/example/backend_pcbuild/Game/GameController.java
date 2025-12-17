@@ -81,27 +81,6 @@ public class GameController {
                 .filter(r -> r.getRecGameLevel() == RecGameLevel.REC)
                 .findFirst();
 
-//        minCpuReq.flatMap(r -> {
-//            Processor proc = r.getProcessor();
-//            return proc == null ? Optional.empty() : offerService.findBestForCpu(offerRepository, proc.getComponent(), budget);
-//        }).ifPresent(o -> recGameDto.getMinRec().add(OfferRecDto.toDto(o)));
-//
-//        minGpuReq.flatMap(r -> {
-//            GpuModel gm = r.getGpuModel();
-//            return gm == null ? Optional.empty() : offerService.findBestForGpuModel(offerRepository, gm, budget);
-//        }).ifPresent(o -> recGameDto.getMinRec().add(OfferRecDto.toDto(o)));
-//
-//        recCpuReq.flatMap(r -> {
-//            Processor proc = r.getProcessor();
-//            return proc == null ? Optional.empty() : offerService.findBestForCpu(offerRepository, proc.getComponent(), budget);
-//        }).ifPresent(o -> recGameDto.getMaxRec().add(OfferRecDto.toDto(o)));
-//
-//        recGpuReq.flatMap(r -> {
-//            GpuModel gm = r.getGpuModel();
-//            return gm == null ? Optional.empty() : offerService.findBestForGpuModel(offerRepository, gm, budget);
-//        }).ifPresent(o -> recGameDto.getMaxRec().add(OfferRecDto.toDto(o)));
-
-
         minCpuReq
                 .map(GameCpuRequirements::getProcessor).flatMap(proc -> offerService.findBestForCpu(offerRepository, proc.getComponent(), budget)
                         .map(offer -> OfferComponentMapper.toDto(proc, offer))).ifPresent(dto -> recGameDto.getMinRec().add(dto));
@@ -111,10 +90,6 @@ public class GameController {
                 .map(GameGpuRequirements::getGpuModel)
                 .flatMap(gpu -> offerService.findBestForGpuModel(offerRepository, gpu, budget)
                         .map(offer -> OfferComponentMapper.toDto(offer.getComponent().getGraphicsCard(), offer))).ifPresent(dto -> recGameDto.getMinRec().add(dto));
-
-
-
-
 
         recCpuReq.map(GameCpuRequirements::getProcessor).flatMap(proc -> offerService.findBestForCpu(offerRepository, proc.getComponent(), budget)
                         .map(offer -> OfferComponentMapper.toDto(proc, offer))).ifPresent(dto -> recGameDto.getMaxRec().add(dto));
@@ -177,6 +152,11 @@ public class GameController {
         if (file == null && dto == null) {
             throw new AppException("Zadne zmiany nie zostały wprowadzone", HttpStatus.BAD_REQUEST);
         }
+
+        if (gameService.findByTitle(dto.getTitle()) != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Tytuł już istnieje w bazie"));
+        }
+
         try{
             gameService.updateGameReqInfoBulk(dto, file);
 

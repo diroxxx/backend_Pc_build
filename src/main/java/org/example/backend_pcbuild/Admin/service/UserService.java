@@ -6,7 +6,6 @@ import org.example.backend_pcbuild.Admin.dto.UserToShowDto;
 import org.example.backend_pcbuild.Admin.dto.UserToUpdate;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.models.User;
-import org.example.backend_pcbuild.models.UserRole;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +21,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    public User findUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
 
     public List<UserToShowDto> findAll() {
 
@@ -30,6 +32,7 @@ public class UserService {
         List<UserToShowDto> userToUpdateList = new ArrayList<>();
         for (User user : users) {
             UserToShowDto userToUpdate = new UserToShowDto();
+            userToUpdate.setId(user.getId());
             userToUpdate.setNickname(user.getUsername());
             userToUpdate.setEmail(user.getEmail());
             userToUpdate.setRole(user.getRole());
@@ -39,10 +42,15 @@ public class UserService {
 
     }
 
-    public User findUSerByEmail(String email) {
+    public User findUserByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
     }
 
+    public User findUSerByNickname(String nickname) {
+        return userRepository.findByUsername(nickname).orElse(null);
+    }
+
+    @Transactional
     public void addUser(UserToUpdate userToUpdate) {
         User user = userRepository.findByEmail(userToUpdate.getEmail()).orElse(null);
         if (user == null) {
@@ -51,16 +59,17 @@ public class UserService {
             newUser.setEmail(userToUpdate.getEmail());
             newUser.setUsername(userToUpdate.getEmail());
             newUser.setPassword(passwordEncoder.encode(CharBuffer.wrap(userToUpdate.getPassword())));
+            userRepository.save(newUser);
         }
     }
 
+    @Transactional
     public void editUser(UserToUpdate userToUpdate) {
-        User user = userRepository.findByEmail(userToUpdate.getEmail()).orElse(null);
+        User user = userRepository.findById(userToUpdate.getId()).orElse(null);
         if (user == null) {
             System.out.println("nie znalesiony z email: " + userToUpdate.getEmail());
         }
         if (user != null) {
-            System.out.println(userToUpdate.getEmail());
             if (!userToUpdate.getPassword().isEmpty()) {
                 user.setPassword(passwordEncoder.encode(CharBuffer.wrap(userToUpdate.getPassword())));
             }

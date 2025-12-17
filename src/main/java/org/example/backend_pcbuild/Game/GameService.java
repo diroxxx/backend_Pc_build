@@ -28,6 +28,7 @@ public class GameService {
         return byTitle.orElse(null);
     }
 
+
     public List<GameDto> getAllGames(){
         List<Game> games = gameRepository.findAll();
         return games.stream().map(this::convertToDTO).toList();

@@ -1,8 +1,6 @@
 package org.example.backend_pcbuild.Admin.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.backend_pcbuild.Admin.dto.UserDto;
 import org.example.backend_pcbuild.Admin.dto.UserToShowDto;
 import org.example.backend_pcbuild.Admin.dto.UserToUpdate;
 import org.example.backend_pcbuild.Admin.service.UserService;
@@ -18,7 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class UsersController {
+public class UserAdminController {
     private final UserService userService;
 
 
@@ -30,16 +28,23 @@ public class UsersController {
 
     @PostMapping
     public ResponseEntity<?> addNewUser(@RequestBody UserToUpdate userToUpdate) {
-        if (userService.findUSerByEmail(userToUpdate.getEmail()) == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Użytkownik nie znaleziony"));
+        System.out.println(userToUpdate);
+        if (userService.findUserByEmail(userToUpdate.getEmail()) != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Użytkownik o podanym emailu już istnieje"));
         }
+
+        if (userService.findUSerByNickname(userToUpdate.getNickname()) != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Użytkownik o podanym pseudonimie już istnieje"));
+        }
+
         userService.addUser(userToUpdate);
         return ResponseEntity.ok(Map.of("message", "Użytkownik został dodany"));
     }
 
     @PutMapping
     public ResponseEntity<?> updateUser(@RequestBody UserToUpdate userToUpdate) {
-        if (userService.findUSerByEmail(userToUpdate.getEmail()) == null) {
+        System.out.println(userToUpdate);
+        if (userService.findUserById(userToUpdate.getId()) == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Użytkownik nie znaleziony"));
         }
         userService.editUser(userToUpdate);
@@ -49,11 +54,29 @@ public class UsersController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping
     public ResponseEntity<?> deleteUserByEmail(@RequestParam("email") String email) {
-        boolean existed = userService.findUSerByEmail(email) != null;
+        boolean existed = userService.findUserByEmail(email) != null;
         if (!existed) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Użytkownik nie znaleziony"));
         }
         userService.deleteUserByEmail(email);
         return ResponseEntity.ok(Map.of("message", "Użytkownik został usunięty"));
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<?> checkUserNicknameAndEmailValid(@RequestParam("nickname") String nickname,
+                                                       @RequestParam("email") String email) {
+        if(nickname != null &&  !nickname.isBlank()) {
+            User user = userService.findUSerByNickname(nickname);
+            if (user != null) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Pseudonim już istnieje"));
+            }
+        }
+        if (email != null && !email.isBlank()) {
+            User user = userService.findUserByEmail(email);
+            if (user != null) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Email już istnieje"));
+            }
+        }
+        return ResponseEntity.ok().body(Map.of("message", "Dane są dostępne"));
     }
 }
