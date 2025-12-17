@@ -71,4 +71,12 @@ public class ComponentController {
         return ResponseEntity.ok(componentService.getFpsComponents());
     }
 
+    @GetMapping("/amount")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<?> getAmountOfComponents() {
+        int i = componentService.amountOfComponents();
+
+        return ResponseEntity.ok(i);
+    }
+
 }

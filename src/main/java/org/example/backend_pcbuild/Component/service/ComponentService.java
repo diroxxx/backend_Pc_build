@@ -677,6 +677,9 @@ public class ComponentService {
     }
 
 
+    public int amountOfComponents() {
+        return (int) componentRepository.count();
+    }
 
 
 
