@@ -114,6 +114,57 @@ public class CommunityController {
         return commentRepository.save(comment);
     }
 
+    @PutMapping("/comments/{commentId}")
+    @Transactional
+    public ResponseEntity<PostComment> updateComment(@PathVariable Long commentId, @RequestBody PostComment dto) {
+
+        User currentUser = getAuthenticatedUser();
+
+        PostComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Komentarz nie został znaleziony."));
+
+        if (!comment.getUser().getId().equals(currentUser.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        if (dto.getContent() == null || dto.getContent().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Treść komentarza nie może być pusta.");
+        }
+
+        comment.setContent(dto.getContent());
+        return ResponseEntity.ok(commentRepository.save(comment));
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    @Transactional
+    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
+        User currentUser = getAuthenticatedUser();
+
+        PostComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Komentarz nie został znaleziony."));
+
+        boolean isAuthor = comment.getUser().getId().equals(currentUser.getId());
+        boolean isAdmin = String.valueOf(currentUser.getRole()).equals("ADMIN");
+
+        if (!isAuthor && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        try {
+            if (comment.getReactions() != null && !comment.getReactions().isEmpty()) {
+                reactionCommentRepository.deleteAll(comment.getReactions());
+            }
+
+            commentRepository.delete(comment);
+
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Błąd podczas usuwania komentarza: " + e.getMessage());
+        }
+    }
+
+
     @GetMapping("/categories")
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
