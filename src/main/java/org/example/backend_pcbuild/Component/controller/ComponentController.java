@@ -72,11 +72,8 @@ public class ComponentController {
     }
 
     @GetMapping("/amount")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> getAmountOfComponents() {
-        int i = componentService.amountOfComponents();
-
-        return ResponseEntity.ok(i);
+        return ResponseEntity.ok(componentService.amountOfComponents());
     }
 
 }

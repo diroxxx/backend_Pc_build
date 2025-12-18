@@ -153,10 +153,6 @@ public class GameController {
             throw new AppException("Zadne zmiany nie zostały wprowadzone", HttpStatus.BAD_REQUEST);
         }
 
-        if (gameService.findByTitle(dto.getTitle()) != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "Tytuł już istnieje w bazie"));
-        }
-
         try{
             gameService.updateGameReqInfoBulk(dto, file);
 

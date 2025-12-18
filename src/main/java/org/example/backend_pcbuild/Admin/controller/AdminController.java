@@ -70,16 +70,6 @@ public class AdminController {
     private final AdminService adminService;
 
 
-    @RabbitListener(queues = {
-            "test1"
-    })
-    @Transactional
-    public void test(Message amqpMessage) {
-        String json = new String(amqpMessage.getBody(), StandardCharsets.UTF_8);
-        System.out.println(json);
-    }
-
-
     //TEST
     @GetMapping("/test")
     public ResponseEntity<List<OfferShopUpdateInfoDto>> getUpdateInfo(){
@@ -88,12 +78,12 @@ public class AdminController {
     }
 
     //        @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping(value = "/components",produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, List<Object>>> getComponents() {
-        Map<String, List<Object>> result = componentService.fetchComponentsAsMap();
-        componentService.saveBasedComponents(result);
-        return ResponseEntity.ok(result);
-    }
+//    @GetMapping(value = "/components",produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<Map<String, List<Object>>> getComponents() {
+//        Map<String, List<Object>> result = componentService.fetchComponentsAsMap();
+//        componentService.saveBasedComponents(result);
+//        return ResponseEntity.ok(result);
+//    }
 
 
     @PutMapping("/update/automatic")

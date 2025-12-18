@@ -2,7 +2,6 @@ package org.example.backend_pcbuild.Component.service;
 
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +19,8 @@ import org.springframework.data.domain.Pageable;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import jakarta.persistence.criteria.Predicate;
+
 
 @Service
 @RequiredArgsConstructor
@@ -31,21 +32,13 @@ public class ComponentService {
     private final BrandRepository brandRepository;
     private final GpuModelRepository gpuModelRepository;
 
-    public Map<String, List<Object>> fetchComponentsAsMap() {
-        return restClient.get()
-                .uri("http://127.0.0.1:5000/installComponents")
-                .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
-    }
+//    public Map<String, List<Object>> fetchComponentsAsMap() {
+//        return restClient.get()
+//                .uri("http://127.0.0.1:5000/installComponents")
+//                .retrieve()
+//                .body(new ParameterizedTypeReference<>() {});
+//    }
 
-    public List<BaseItemDto> getAllComponents() {
-        List<Component> components = componentRepository.findAll();
-
-        return components.stream()
-                .map(this::mapToDto)
-                .filter(Objects::nonNull)
-                .toList();
-    }
 
     public Page<BaseItemDto> getComponents(Pageable pageable, ComponentType type, String brand, String searchTerm) {
         Specification<Component> spec = Specification.not(null);
@@ -57,36 +50,62 @@ public class ComponentService {
         }
         if (brand != null && !brand.isEmpty()) {
             spec = spec.and((root, query, cb) ->
-                    cb.like(
-                            cb.lower(root.get("brand").get("name")),
-                            "%" + brand.toLowerCase() + "%"
-                    )
+                    cb.equal(cb.lower(root.get("brand").get("name")), brand.toLowerCase())
             );
         }
         if (searchTerm != null && !searchTerm.isEmpty()) {
             String term = "%" + searchTerm.toLowerCase() + "%";
 
             spec = spec.and((root, query, cb) -> {
+                query.distinct(true);
                 List<Predicate> predicates = new ArrayList<>();
+
                 predicates.add(cb.like(cb.lower(root.get("brand").get("name")), term));
                 predicates.add(cb.like(cb.lower(root.get("model")), term));
 
-                Join<Component, Processor> processorJoin = root.join("processor", JoinType.LEFT);
-                Join<Component, Memory> memoryJoin = root.join("memory", JoinType.LEFT);
-                Join<Component, GraphicsCard> gpuJoin = root.join("graphicsCard", JoinType.LEFT);
+                if (type == null || type == ComponentType.PROCESSOR) {
+                    Join<Component, Processor> p = root.join("processor", JoinType.LEFT);
+                    predicates.add(cb.like(cb.lower(cb.coalesce(p.get("socketType"), cb.literal(""))), term));
+                }
+                if (type == null || type == ComponentType.MEMORY) {
+                    Join<Component, Memory> m = root.join("memory", JoinType.LEFT);
+                    predicates.add(cb.like(cb.lower(cb.coalesce(m.get("type"), cb.literal(""))), term));
+                }
+                if (type == null || type == ComponentType.GRAPHICS_CARD) {
+                    Join<Component, GraphicsCard> g = root.join("graphicsCard", JoinType.LEFT);
+                    predicates.add(cb.like(cb.lower(cb.coalesce(g.get("gddr"), cb.literal(""))), term));
+                }
+                if (type == null || type == ComponentType.MOTHERBOARD) {
+                    Join<Component, Motherboard> mb = root.join("motherboard", JoinType.LEFT);
+                    predicates.add(cb.like(cb.lower(cb.coalesce(mb.get("chipset"), cb.literal(""))), term));
+                }
+                if (type == null || type == ComponentType.CASE_PC) {
+                    Join<Component, Case> cs = root.join("case_", JoinType.LEFT);
+                    predicates.add(cb.like(cb.lower(cb.coalesce(cs.get("format"), cb.literal(""))), term));
+                }
+                if (type == null || type == ComponentType.POWER_SUPPLY) {
+                    Join<Component, PowerSupply> ps = root.join("powerSupply", JoinType.LEFT);
+                    predicates.add(cb.like(cb.lower(cb.coalesce(ps.get("type"), cb.literal(""))), term));
+                }
 
-                predicates.add(cb.like(cb.lower(processorJoin.get("socketType")), term));
-                predicates.add(cb.like(cb.lower(memoryJoin.get("type")), term));
-                predicates.add(cb.like(cb.lower(gpuJoin.get("gddr")), term));
-                //to implement rest of components
                 return cb.or(predicates.toArray(new Predicate[0]));
             });
         }
 
         Page<Component> itemsPage = componentRepository.findAll(spec, pageable);
-
         return itemsPage.map(this::mapToDto);
     }
+
+
+    public Page<BaseItemDto> getComponentsV2(Pageable pageable, ComponentType type, String brand, String searchTerm) {
+
+       Page<Component> components = componentRepository.findAllByFilters(brand,type,searchTerm, pageable);
+
+        return components.map(this::mapToDto);
+    }
+
+
+
 
 
     private BaseItemDto mapToDto(Component component) {
