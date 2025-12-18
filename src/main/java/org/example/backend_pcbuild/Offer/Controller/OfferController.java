@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.Offer;
+package org.example.backend_pcbuild.Offer.Controller;
 
 
 import lombok.AllArgsConstructor;
