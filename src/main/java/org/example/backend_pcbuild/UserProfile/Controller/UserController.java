@@ -2,7 +2,6 @@ package org.example.backend_pcbuild.UserProfile.Controller;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.example.backend_pcbuild.Community.DTO.CategoryDTO;
 import org.example.backend_pcbuild.Community.Models.Post;
 import org.example.backend_pcbuild.Community.Models.SavedPost;
@@ -13,7 +12,6 @@ import org.example.backend_pcbuild.UserProfile.DTO.SavedPostDTO;
 import org.example.backend_pcbuild.UserProfile.DTO.UserPostsDTO;
 import org.example.backend_pcbuild.UserProfile.Repository.SavedPostRepository;
 import org.example.backend_pcbuild.models.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -26,34 +24,28 @@ import java.util.stream.Collectors;
 
 @RestController
 @AllArgsConstructor
-@NoArgsConstructor
 @RequestMapping("/community")
 public class UserController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PostRepository postRepository;
+    private final SavedPostRepository savedPostRepository;
 
-    @Autowired
-    private PostRepository postRepository;
-
-    @Autowired
-    private SavedPostRepository savedPostRepository;
-
-    @GetMapping("/posts/mine")
-    @Transactional
-    public ResponseEntity<List<UserPostsDTO>> getMyPosts() {
-
+    private User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if (authentication == null || !authentication.isAuthenticated() ||
                 "anonymousUser".equals(authentication.getPrincipal())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
         }
+        UserDto principal = (UserDto) authentication.getPrincipal();
+        return userRepository.findByEmail(principal.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
 
-        UserDto principalUserDto = (UserDto) authentication.getPrincipal();
-
-        User user = userRepository.findByEmail(principalUserDto.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated user not found."));
+    @GetMapping("/posts/mine")
+    @Transactional
+    public ResponseEntity<List<UserPostsDTO>> getMyPosts() {
+        User user = getAuthenticatedUser();
 
         List<Post> myPosts = postRepository.findByUserId(user.getId());
 
@@ -69,6 +61,7 @@ public class UserController {
                     .content(post.getContent())
                     .category(new CategoryDTO(post.getCategory().getId(), post.getCategory().getName()))
                     .imageId(imgId)
+                    .createdAt(post.getCreatedAt())
                     .build();
         }).toList();
 
@@ -101,6 +94,7 @@ public class UserController {
                                     .name(post.getCategory().getName())
                                     .build())
                             .imageId(imgId)
+                            .createdAt(post.getCreatedAt())
                             .build();
                 })
                 .toList();
@@ -136,59 +130,51 @@ public class UserController {
                                     .name(savedPost.getPost().getCategory().getName())
                                     .build())
                             .imageId(imgId)
+                            .createdAt(savedPost.getPost().getCreatedAt())
                             .build();
                 })
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(savedPosts);
     }
+
     @PostMapping("/posts/{postId}/save")
     public ResponseEntity<?> savePost(@PathVariable Long postId) {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String email = ((UserDto) authentication.getPrincipal()).getEmail();
-            User user = userRepository.findByEmail(email).orElseThrow();
-            Post post = postRepository.findById(postId).orElseThrow();
+        User user = getAuthenticatedUser();
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
-            if (savedPostRepository.existsByUserIdAndPostId(user.getId(), postId)) {
-                return ResponseEntity.badRequest().body("Post is already saved.");
-            }
-            SavedPost savedPost = new SavedPost();
-            savedPost.setUser(user);
-            savedPost.setPost(post);
-            savedPostRepository.save(savedPost);
-            return ResponseEntity.ok("Post saved successfully.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        if (savedPostRepository.existsByUserIdAndPostId(user.getId(), postId)) {
+            return ResponseEntity.badRequest().body("Post is already saved.");
         }
+
+        SavedPost savedPost = new SavedPost();
+        savedPost.setUser(user);
+        savedPost.setPost(post);
+        savedPostRepository.save(savedPost);
+
+        return ResponseEntity.ok("Post saved successfully.");
     }
 
     @DeleteMapping("/posts/{postId}/unsave")
     @Transactional
     public ResponseEntity<?> unsavePost(@PathVariable Long postId) {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String email = ((UserDto) authentication.getPrincipal()).getEmail();
-            User user = userRepository.findByEmail(email).orElseThrow();
+        User user = getAuthenticatedUser();
 
-            if (savedPostRepository.existsByUserIdAndPostId(user.getId(), postId)) {
-                savedPostRepository.deleteByUserIdAndPostId(user.getId(), postId);
-                return ResponseEntity.ok("Post removed from saved.");
-            }
-            return ResponseEntity.badRequest().body("Post was not saved.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        if (savedPostRepository.existsByUserIdAndPostId(user.getId(), postId)) {
+            savedPostRepository.deleteByUserIdAndPostId(user.getId(), postId);
+            return ResponseEntity.ok("Post removed from saved.");
         }
+        return ResponseEntity.badRequest().body("Post was not saved.");
     }
 
     @GetMapping("posts/{postId}/isSaved")
     public ResponseEntity<Boolean> isPostSaved(@PathVariable Long postId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+        try {
+            User user = getAuthenticatedUser();
+            return ResponseEntity.ok(savedPostRepository.existsByUserIdAndPostId(user.getId(), postId));
+        } catch (ResponseStatusException e) {
             return ResponseEntity.ok(false);
         }
-        UserDto principal = (UserDto) authentication.getPrincipal();
-        User user = userRepository.findByEmail(principal.getEmail()).orElseThrow();
-        return ResponseEntity.ok(savedPostRepository.existsByUserIdAndPostId(user.getId(), postId));
     }
 }

@@ -3,6 +3,8 @@ package org.example.backend_pcbuild.UserProfile.DTO;
 import lombok.*;
 import org.example.backend_pcbuild.Community.DTO.CategoryDTO;
 
+import java.time.LocalDateTime;
+
 
 @Getter
 @Setter
@@ -17,4 +19,6 @@ public class UserPostsDTO {
     private String content;
     private CategoryDTO category;
     private Long imageId;
+
+    private LocalDateTime createdAt;
 }

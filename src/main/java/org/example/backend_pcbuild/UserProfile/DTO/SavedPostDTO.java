@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.example.backend_pcbuild.Community.DTO.CategoryDTO;
 import org.example.backend_pcbuild.models.User;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -20,4 +22,6 @@ public class SavedPostDTO {
     private CategoryDTO category;
     private String authorName;
     private Long imageId;
+
+    private LocalDateTime createdAt;
 }
