@@ -1,10 +1,11 @@
 package org.example.backend_pcbuild.UserProfile;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import org.example.backend_pcbuild.Community.DTO.CategoryDTO;
 
+
+@Getter
+@Setter
 @Data
 @Builder
 @AllArgsConstructor
@@ -15,4 +16,5 @@ public class UserPostsDTO {
     private String title;
     private String content;
     private CategoryDTO category;
+    private Long imageId;
 }

@@ -48,34 +48,26 @@ public class CommunityController {
     private final SavedPostRepository savedPostRepository;
     private final ReactionCommentRepository reactionCommentRepository;
 
-//    @GetMapping("/")
-//    public List<Post> getAllPosts() {
-//        return postRepository.findAll();
-//    }
-@GetMapping("/")
-public List<PostPreviewDTO> getAllPosts() {
-    return postRepository.findAll().stream()
-            .map(post -> {
-                // Sprawdzamy, czy post ma jakieś zdjęcia
-                Long firstImageId = null;
-                if (post.getImages() != null && !post.getImages().isEmpty()) {
-                    // Bierzemy ID pierwszego zdjęcia z listy
-                    firstImageId = post.getImages().iterator().next().getId();
-                    // lub post.getImages().get(0).getId() jeśli to Lista
-                }
+    @GetMapping("/")
+    public List<PostPreviewDTO> getAllPosts() {
+        return postRepository.findAll().stream()
+                .map(post -> {
+                    Long firstImageId = null;
+                    if (post.getImages() != null && !post.getImages().isEmpty()) {
+                        firstImageId = post.getImages().iterator().next().getId();
+                    }
 
-                // Tworzymy proste DTO
-                return new PostPreviewDTO(
-                        post.getId(),
-                        post.getTitle(),
-                        post.getContent().length() > 100 ? post.getContent().substring(0, 100) + "..." : post.getContent(), // Skrót treści
-                        post.getUser().getUsername(), // Zakładam, że user ma username
-                        post.getCreatedAt(),
-                        firstImageId // Przekazujemy ID lub null
-                );
-            })
-            .collect(Collectors.toList());
-}
+                    return new PostPreviewDTO(
+                            post.getId(),
+                            post.getTitle(),
+                            post.getContent().length() > 100 ? post.getContent().substring(0, 100) + "..." : post.getContent(),
+                            post.getUser().getUsername(),
+                            post.getCreatedAt(),
+                            firstImageId
+                    );
+                })
+                .collect(Collectors.toList());
+    }
 
     @PostMapping("/posts")
     public Post createPost(@RequestBody CreatePostDTO dto) {
@@ -127,14 +119,34 @@ public List<PostPreviewDTO> getAllPosts() {
         return categoryRepository.findAll();
     }
 
+
     @GetMapping("/categories/id/{categoryId}")
-    public ResponseEntity<List<Post>> getPostsByCategoryId(@PathVariable Long categoryId) {
+    public ResponseEntity<List<PostPreviewDTO>> getPostsByCategoryId(@PathVariable Long categoryId) {
         List<Post> posts = postRepository.findByCategoryId(categoryId);
 
         if (posts.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(posts);
+
+        List<PostPreviewDTO> postDTOs = posts.stream()
+                .map(post -> {
+                    Long firstImageId = null;
+                    if (post.getImages() != null && !post.getImages().isEmpty()) {
+                        firstImageId = post.getImages().iterator().next().getId();
+                    }
+
+                    return new PostPreviewDTO(
+                            post.getId(),
+                            post.getTitle(),
+                            post.getContent().length() > 100 ? post.getContent().substring(0, 100) + "..." : post.getContent(),
+                            post.getUser().getUsername(),
+                            post.getCreatedAt(),
+                            firstImageId
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(postDTOs);
     }
 
     @PostMapping(value = "/posts/upload-image-to-db", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

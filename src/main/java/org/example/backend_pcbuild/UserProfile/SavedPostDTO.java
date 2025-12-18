@@ -18,6 +18,6 @@ public class SavedPostDTO {
     private String title;
     private String content;
     private CategoryDTO category;
-
     private String authorName;
+    private Long imageId;
 }
