@@ -12,5 +12,7 @@ public class PostPreviewDTO {
     private String content;
     private String authorName;
     private LocalDateTime createdAt;
+
+    private String categoryName;
     private Long thumbnailImageId;
 }

@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.UserProfile;
+package org.example.backend_pcbuild.UserProfile.Repository;
 
 import jakarta.transaction.Transactional;
 import org.example.backend_pcbuild.Community.Models.SavedPost;

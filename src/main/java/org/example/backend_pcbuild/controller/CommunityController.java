@@ -11,7 +11,7 @@ import org.example.backend_pcbuild.Community.Service.PostImageService;
 import org.example.backend_pcbuild.Community.Service.SavedPostService;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
-import org.example.backend_pcbuild.UserProfile.SavedPostRepository;
+import org.example.backend_pcbuild.UserProfile.Repository.SavedPostRepository;
 import org.example.backend_pcbuild.models.User;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -63,12 +63,12 @@ public class CommunityController {
                             post.getContent().length() > 100 ? post.getContent().substring(0, 100) + "..." : post.getContent(),
                             post.getUser().getUsername(),
                             post.getCreatedAt(),
+                            post.getCategory() != null ? post.getCategory().getName() : "Ogólne",
                             firstImageId
                     );
                 })
                 .collect(Collectors.toList());
     }
-
     @PostMapping("/posts")
     public Post createPost(@RequestBody CreatePostDTO dto) {
 
@@ -192,6 +192,7 @@ public class CommunityController {
                             post.getContent().length() > 100 ? post.getContent().substring(0, 100) + "..." : post.getContent(),
                             post.getUser().getUsername(),
                             post.getCreatedAt(),
+                            post.getCategory() != null ? post.getCategory().getName() : "Ogólne",
                             firstImageId
                     );
                 })

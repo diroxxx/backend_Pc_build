@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.UserProfile;
+package org.example.backend_pcbuild.UserProfile.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

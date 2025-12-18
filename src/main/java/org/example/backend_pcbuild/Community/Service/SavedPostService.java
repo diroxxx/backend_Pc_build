@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.backend_pcbuild.Community.Models.Post;
 import org.example.backend_pcbuild.Community.Models.SavedPost;
 import org.example.backend_pcbuild.Community.Repository.PostRepository;
-import org.example.backend_pcbuild.UserProfile.SavedPostRepository;
+import org.example.backend_pcbuild.UserProfile.Repository.SavedPostRepository;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.models.User;
 import org.springframework.stereotype.Service;

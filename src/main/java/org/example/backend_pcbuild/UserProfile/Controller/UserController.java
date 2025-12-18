@@ -1,4 +1,4 @@
-package org.example.backend_pcbuild.UserProfile;
+package org.example.backend_pcbuild.UserProfile.Controller;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -9,6 +9,9 @@ import org.example.backend_pcbuild.Community.Models.SavedPost;
 import org.example.backend_pcbuild.Community.Repository.PostRepository;
 import org.example.backend_pcbuild.LoginAndRegister.Repository.UserRepository;
 import org.example.backend_pcbuild.LoginAndRegister.dto.UserDto;
+import org.example.backend_pcbuild.UserProfile.DTO.SavedPostDTO;
+import org.example.backend_pcbuild.UserProfile.DTO.UserPostsDTO;
+import org.example.backend_pcbuild.UserProfile.Repository.SavedPostRepository;
 import org.example.backend_pcbuild.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
