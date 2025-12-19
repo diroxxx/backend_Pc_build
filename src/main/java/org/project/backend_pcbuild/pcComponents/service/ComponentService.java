@@ -697,6 +697,24 @@ public class ComponentService {
     }
 
 
+    public Set<String> getCpus() {
+
+            return componentRepository.findAllByComponentType(ComponentType.PROCESSOR)
+                .stream()
+                .map(Component::getModel)
+                .collect(Collectors.toSet());
+    }
+
+    public Set<String> getGpusModels() {
+
+        return gpuModelRepository.findAll()
+                .stream()
+                .map(GpuModel::getChipset)
+                .collect(Collectors.toSet());
+
+    }
+
+
     public int amountOfComponents() {
         return (int) componentRepository.count();
     }

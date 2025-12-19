@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.desktop.UserSessionEvent;
 import java.io.IOException;
 import java.util.List;
 
@@ -75,6 +76,23 @@ public class ComponentController {
     public ResponseEntity<GameFpsComponentsFormDto> getGameFpsComponents() {
         return ResponseEntity.ok(componentService.getFpsComponents());
     }
+
+    @GetMapping("/cpus")
+    public ResponseEntity<?>  getAllCpus() {
+
+        return ResponseEntity.ok(componentService.getCpus());
+    }
+
+    @GetMapping("/gpuModels")
+    public ResponseEntity<?>  getAllGpuModels() {
+
+        return ResponseEntity.ok(componentService.getGpusModels());
+    }
+
+
+
+
+
 
     @GetMapping("/amount")
     public ResponseEntity<?> getAmountOfComponents() {
