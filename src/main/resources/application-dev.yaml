@@ -1,21 +1,15 @@
 spring:
   datasource:
-  #    url: jdbc:h2:mem:devdb
     url: jdbc:h2:file:./dbTest/test4db
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
-#  devtools:
-#    restart:
-#      enabled: false
 
   h2:
     console:
       enabled: true
       path: /h2-console
-#  sql:
-#    init:
-#      mode: always
+
   jpa:
     defer-datasource-initialization: true
     hibernate:
@@ -25,20 +19,7 @@ spring:
 
     properties:
       hibernate:
-#        type:
-#          descriptor:
-#            sql:
-#              basic: true
         dialect: org.hibernate.dialect.H2Dialect
-#logging.level.org.hibernate.SQL: DEBUG
-#logging:
-#  level:
-#    org:
-#      hibernate:
-#        engine:
-#          internal:
-#            StatefulPersistenceContext=DEBUG:
-
 app:
   search:
     useFullTextSearch: false

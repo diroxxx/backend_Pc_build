@@ -31,6 +31,8 @@ public class Shop {
     private Set<Offer> offers = new HashSet<>();
 
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
     private Set<ShopOfferUpdate> shopOfferUpdates = new HashSet<>();
-
 }

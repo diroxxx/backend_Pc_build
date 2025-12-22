@@ -33,22 +33,20 @@ public class AuthController {
     private final AuthService authService;
     private final UserAuthProvider userAuthProvider;
 
-    private final UserRepository userRepository;
 
+    @PostMapping("/login/user")
+    public ResponseEntity<UserDto> loginUser(@RequestBody @Valid CredentialsDto credentialsDto, HttpServletResponse response) {
+        UserDto login = authService.login(credentialsDto, UserRole.USER);
+        login.setAccessToken(userAuthProvider.createToken(login));
+        String refreshToken = userAuthProvider.createRefreshToken(login);
 
-@PostMapping("/login/user")
-public ResponseEntity<UserDto> loginUser(@RequestBody @Valid CredentialsDto credentialsDto, HttpServletResponse response) {
-    UserDto login = authService.login(credentialsDto, UserRole.USER);
-    login.setAccessToken(userAuthProvider.createToken(login));
-    String refreshToken = userAuthProvider.createRefreshToken(login);
+        Cookie cookie = new Cookie("refresh_token", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        response.addCookie(cookie);
 
-    Cookie cookie = new Cookie("refresh_token", refreshToken);
-    cookie.setHttpOnly(true);
-    cookie.setPath("/");
-    response.addCookie(cookie);
-
-    return ResponseEntity.ok(login);
-}
+        return ResponseEntity.ok(login);
+    }
 
     @PostMapping("/login/admin")
     public ResponseEntity<UserDto> loginAdmin(@RequestBody CredentialsDto credentialsDto, HttpServletResponse response) {
