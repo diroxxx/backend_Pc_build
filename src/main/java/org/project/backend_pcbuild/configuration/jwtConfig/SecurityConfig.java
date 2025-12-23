@@ -18,7 +18,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final UserAuthenticationEntryPoint userAuthenticationEntryPoint;
     private final UserAuthProvider userAuthProvider;
 
     @Bean
@@ -30,17 +29,6 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**", "/collectData","/components/**").permitAll()
-                                .requestMatchers("/offers/**", "/offers").permitAll()
-                                .requestMatchers("/auth/**",  "/error").permitAll()
-                                // for tests
-                                .requestMatchers("/community/**").permitAll()
-                                .requestMatchers("/admin/**").permitAll()
-                                .requestMatchers("/api/components/**").permitAll()
-                                .requestMatchers("/offers/**").permitAll()
-                                .requestMatchers("/api/computers/users/**").permitAll()
-                                .requestMatchers("/community/image/**").permitAll()
-
                         .anyRequest().permitAll()
                 );
         return http.build();

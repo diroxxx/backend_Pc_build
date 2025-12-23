@@ -225,7 +225,6 @@ public class OfferUpdateController {
     @RabbitListener(queues = {
             "offersAdded.olx",
             "offersAdded.allegro",
-            "offersAdded.x-kom",
             "offersAdded.allegroLokalnie"
     })
     @Transactional

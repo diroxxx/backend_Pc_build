@@ -13,6 +13,7 @@ import java.util.List;
 @Entity
 @Data
 public class Computer {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,7 +22,6 @@ public class Computer {
     private Double price;
 
     @Length(min = 2, max = 50)
-//    @Column(unique = true, nullable = false)
     private String name;
 
     private Boolean is_visible;

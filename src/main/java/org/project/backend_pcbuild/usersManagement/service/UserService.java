@@ -51,16 +51,17 @@ public class UserService {
     }
 
     @Transactional
-    public void addUser(UserToUpdate userToUpdate) {
+    public User addUser(UserToUpdate userToUpdate) {
         User user = userRepository.findByEmail(userToUpdate.getEmail()).orElse(null);
         if (user == null) {
             User newUser = new User();
             newUser.setRole(userToUpdate.getRole());
             newUser.setEmail(userToUpdate.getEmail());
-            newUser.setUsername(userToUpdate.getEmail());
+            newUser.setUsername(userToUpdate.getNickname());
             newUser.setPassword(passwordEncoder.encode(CharBuffer.wrap(userToUpdate.getPassword())));
-            userRepository.save(newUser);
+            return userRepository.save(newUser);
         }
+        return null;
     }
 
     @Transactional

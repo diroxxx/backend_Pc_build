@@ -2,6 +2,7 @@ package org.project.backend_pcbuild.computer.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.project.backend_pcbuild.computer.dto.ComputerComponentsStatsDto;
 import org.project.backend_pcbuild.computer.dto.ComputerDto;
 import org.project.backend_pcbuild.computer.model.Computer;
 import org.project.backend_pcbuild.computer.model.ComputerOffer;
@@ -181,6 +182,13 @@ public class ComputerService {
                                         });
                     });
         }
+    }
+
+
+    public ComputerComponentsStatsDto getComputerComponentsStats() {
+
+
+        return null;
     }
 
 }
