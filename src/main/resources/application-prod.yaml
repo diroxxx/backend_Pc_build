@@ -31,3 +31,67 @@ app:
 #  INSERT INTO CATEGORY(name) VALUES('pomoc');
 #  INSERT INTO CATEGORY(name) VALUES('zestawy');
 #  INSERT INTO CATEGORY(name) VALUES('ogólne');
+
+
+#  EXEC sp_add_job
+#  @job_name = N'Backup_Production_FULL',
+#
+#  EXEC sp_add_jobstep
+#  @job_name = N'Backup_Production_FULL',
+#  @step_name = N'Backup Full',
+#  @subsystem = N'TSQL',
+#  @command = N'DECLARE @path NVARCHAR(256) = ''C:\Backups\Full\Production_FULL_'' + FORMAT(GETDATE(), ''yyyyMMdd_HHmmss'') + ''.bak'';
+#  BACKUP DATABASE [Production] TO DISK = @path WITH COMPRESSION, INIT;',
+#  @database_name = N'master';
+#
+#  EXEC sp_add_jobschedule
+#  @job_name = N'Backup_Production_FULL',
+#  @name = N'Co 3 dni',
+#  @freq_type = 4,
+#  @freq_interval = 3,
+#  @active_start_time = 020000;
+#  EXEC sp_add_jobserver @job_name = N'Backup_Production_FULL';
+#
+#
+#
+#  EXEC sp_add_job
+#  @job_name = N'Backup_Production_DIFF',
+#
+#  EXEC sp_add_jobstep
+#  @job_name = N'Backup_Production_DIFF',
+#  @step_name = N'Backup Diff',
+#  @subsystem = N'TSQL',
+#  @command = N'DECLARE @path NVARCHAR(256) = ''C:\Backups\Differential\Production_DIFF_'' + FORMAT(GETDATE(), ''yyyyMMdd_HHmmss'') + ''.bak'';
+#  BACKUP DATABASE [Production] TO DISK = @path WITH DIFFERENTIAL, COMPRESSION, INIT;',
+#  @database_name = N'master';
+#
+#  EXEC sp_add_jobschedule
+#  @job_name = N'Backup_Production_DIFF',
+#  @name = N'Codziennie',
+#  @freq_type = 4,
+#  @freq_interval = 1,
+#  @active_start_time = 010000;
+#  EXEC sp_add_jobserver @job_name = N'Backup_Production_DIFF';
+#
+#
+#  EXEC sp_add_job
+#  @job_name = N'Backup_Production_LOG',
+#  @description = N'Backup logu do katalogu Log co 4h.';
+#
+#  EXEC sp_add_jobstep
+#  @job_name = N'Backup_Production_LOG',
+#  @step_name = N'Backup Log',
+#  @subsystem = N'TSQL',
+#  @command = N'DECLARE @path NVARCHAR(256) = ''C:\Backups\Log\Production_LOG_'' + FORMAT(GETDATE(), ''yyyyMMdd_HHmmss'') + ''.trn'';
+#  BACKUP LOG [Production] TO DISK = @path WITH COMPRESSION, INIT;',
+#  @database_name = N'master';
+#
+#  EXEC sp_add_jobschedule
+#  @job_name = N'Backup_Production_LOG',
+#  @name = N'Co 4h',
+#  @freq_type = 4,
+#  @freq_interval = 1,
+#  @freq_subday_type = 8,
+#  @freq_subday_interval = 4;
+#  EXEC sp_add_jobserver @job_name = N'Backup_Production_LOG';
+#  GO
