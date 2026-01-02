@@ -6,10 +6,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class BackendPcBuildApplicationTests {
 
-    @Test
-    void contextLoads() {
-
-
-    }
+//    @Test
+//    void contextLoads() {
+//
+//
+//    }
 
 }

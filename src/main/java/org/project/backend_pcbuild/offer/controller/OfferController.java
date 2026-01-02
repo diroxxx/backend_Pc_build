@@ -25,10 +25,6 @@ public class OfferController {
 
     private final OfferService offerService;
 
-//    @GetMapping()
-//    public ResponseEntity<Map<String,List<?>>> getAllOffers() {
-//        return ResponseEntity.ok(offerService.getAllOffers());
-//    }
 
     @GetMapping("/shops")
     public ResponseEntity<List<String>> getAllShops() {

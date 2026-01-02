@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: prod
+    active: dev
   rabbitmq:
     host: localhost
     port: 5672
@@ -9,24 +9,12 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
-logging:
-  level:
-    org:
-      example: DEBUG
-      springframework:
-        security: DEBUG
-        web: DEBUG
-server:
-  error:
-    include-message: always
-    include-stacktrace: always
-  tomcat:
-    accesslog:
-      enabled: true
+
 security:
   jwt:
     token:
-      secret-key: "7ebeb86698ffa45530878b427dca9b16"
+      secret-key: ${JWT_SECRET_KEY}
+
     refresh-token:
       expiration: 604800000
 
