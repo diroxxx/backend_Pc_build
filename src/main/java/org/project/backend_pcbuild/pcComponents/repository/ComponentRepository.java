@@ -85,7 +85,34 @@ public interface ComponentRepository extends JpaRepository<Component, Integer>, 
         WHERE rn = 1
         ORDER BY amount DESC
         """, nativeQuery = true)
-    List<ComponentsAmountPc> componentStatsPcBetween(
+    List<ComponentsAmountPc> componentStatsPcBetweenH2(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+
+    @Query(value = """
+        SELECT componentType, model, amount
+        FROM (
+            SELECT
+                c.component_type AS componentType,
+                c.model AS model,
+                COUNT(*) AS amount,
+                ROW_NUMBER() OVER (
+                    PARTITION BY c.component_type 
+                    ORDER BY COUNT(*) DESC
+                ) AS rn
+            FROM component c
+            INNER JOIN offer o ON c.id = o.component_id
+            INNER JOIN computer_offer co ON o.id = co.offer
+            WHERE co.created_at >= :startDate 
+              AND co.created_at < :endDate
+            GROUP BY c. component_type, c.model
+        ) AS ranked
+        WHERE rn = 1
+        ORDER BY amount DESC
+        """, nativeQuery = true)
+    List<ComponentsAmountPc> componentStatsPcBetweenMSSQL(
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );

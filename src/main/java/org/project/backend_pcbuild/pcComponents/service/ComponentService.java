@@ -749,6 +749,8 @@ public class ComponentService {
         return null;
     }
 
+    @Value("${app.search.useFullTextSearch:false}")
+    private boolean useFullTextSearch;
     public List<ComponentsAmountPc> getComponentsPcStats() {
 
         LocalDateTime thirtyDaysAgo = LocalDate.now()
@@ -757,7 +759,14 @@ public class ComponentService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        return componentRepository.componentStatsPcBetween(
+        if (useFullTextSearch) {
+            return componentRepository.componentStatsPcBetweenMSSQL(
+                    thirtyDaysAgo,
+                    now
+            );
+        }
+
+        return componentRepository.componentStatsPcBetweenH2(
                 thirtyDaysAgo,
                 now
         );
