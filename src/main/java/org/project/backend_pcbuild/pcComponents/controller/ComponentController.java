@@ -89,11 +89,6 @@ public class ComponentController {
         return ResponseEntity.ok(componentService.getGpusModels());
     }
 
-
-
-
-
-
     @GetMapping("/amount")
     public ResponseEntity<?> getAmountOfComponents() {
         return ResponseEntity.ok(componentService.amountOfComponents());

@@ -12,12 +12,15 @@ import org.project.backend_pcbuild.pcComponents.dto.*;
 import org.project.backend_pcbuild.pcComponents.model.*;
 import org.project.backend_pcbuild.pcComponents.repository.ComponentRepository;
 import org.project.backend_pcbuild.pcComponents.repository.GpuModelRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -747,6 +750,16 @@ public class ComponentService {
     }
 
     public List<ComponentsAmountPc> getComponentsPcStats() {
-        return componentRepository.componentStatsPc();
-    }
+
+        LocalDateTime thirtyDaysAgo = LocalDate.now()
+                .minusDays(30)
+                .atStartOfDay();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        return componentRepository.componentStatsPcBetween(
+                thirtyDaysAgo,
+                now
+        );
+        }
 }

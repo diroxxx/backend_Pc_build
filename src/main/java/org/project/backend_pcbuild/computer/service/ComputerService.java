@@ -16,6 +16,7 @@ import org.project.backend_pcbuild.offer.repository.OfferRepository;
 import org.project.backend_pcbuild.usersManagement.model.User;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -95,6 +96,7 @@ public class ComputerService {
         ComputerOffer newComputerOffer = new ComputerOffer();
         newComputerOffer.setComputer(computer);
         newComputerOffer.setOffer(offer);
+        newComputerOffer.setCreated_at(LocalDateTime.now());
         computer.getComputer_offer().add(newComputerOffer);
 
         double totalPrice = computer.getComputer_offer().stream()
@@ -130,6 +132,7 @@ public class ComputerService {
                     System.out.println("znaleziony komp: " + componentDto.getModel());
                     ComputerOffer computer_offer = new ComputerOffer();
                     computer_offer.setOffer(offer);
+                    computer_offer.setCreated_at(LocalDateTime.now());
                     offer.getComputerOffers().add(computer_offer);
                     computer_offer.setComputer(computer);
                     computer.getComputer_offer().add(computer_offer);

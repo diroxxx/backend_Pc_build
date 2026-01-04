@@ -28,6 +28,5 @@ app:
 #  insert into shop(id,name) values('1','olx');
 #  insert into shop(id,name) values('2','allegro');
 #  insert into shop(id,name) values('3','allegroLokalnie');
-#  insert into shop(id,name) values('4','x-kom');
 #  insert into offer_update_config(id, type, interval_time) values('1','MANUAL',null);
 #  insert into offer_update_config(id, type, interval_time) values('2','AUTOMATIC',null);
