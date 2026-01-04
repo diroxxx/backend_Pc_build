@@ -21,9 +21,6 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     @Query("SELECT o FROM Offer o WHERE TRIM(LOWER(o.websiteUrl)) = TRIM(LOWER(:url))")
     Optional<Offer> findByWebsiteUrl(@Param("url") String url);
 
-    @Query("SELECT COUNT(o) FROM Offer o JOIN o.offerShopOfferUpdates osou WHERE osou.shopOfferUpdate.id = :shopOfferUpdateId")
-    int countByShopOfferUpdates_ShopOfferUpdate_Id(@Param("shopOfferUpdateId") Long shopOfferUpdateId);
-
 
     @Query("""
         SELECT o FROM Offer o
@@ -38,16 +35,6 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Offer> findAllByWebsiteUrlIn(List<String> urls);
 
     void deleteByWebsiteUrlIn(List<String> urls);
-
-    @Query("""
-    SELECT o.component.componentType as type, COUNT(o) as count
-    FROM Offer o
-    WHERE o.shop.name = :shopName
-      AND o.isVisible = true
-      AND o.component IS NOT NULL
-    GROUP BY o.component.componentType
-""")
-    List<OfferTypeCountProjection> countVisibleOffersByShop(@Param("shopName") String shopName);
 
     interface OfferTypeCountProjection {
         String getType();
@@ -130,20 +117,18 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
 
     // OfferRepository.java (fragment)
     @Query("""
-        SELECT o FROM Offer o
-        JOIN o.component c
-        LEFT JOIN c.brand b
-        LEFT JOIN o.shop s
-        WHERE o.isVisible = true
-          AND (:componentType IS NULL OR c.componentType = :componentType)
-          AND (:brand IS NULL OR LOWER(b.name) = LOWER(:brand))
-          AND (:minPrice IS NULL OR o.price >= :minPrice)
-          AND (:maxPrice IS NULL OR o.price <= :maxPrice)
-          AND (:shopName IS NULL OR LOWER(s.name) = LOWER(:shopName))
-          AND (:componentCondition IS NULL OR o.condition = :componentCondition)
-          AND (:querySearch IS NULL OR (
-                LOWER(o.title) LIKE CONCAT('%', LOWER(:querySearch), '%')
-          ))
+    SELECT o FROM Offer o
+    JOIN o.component c
+    LEFT JOIN c.brand b
+    LEFT JOIN o.shop s
+    WHERE o. isVisible = true
+      AND (:componentType IS NULL OR c.componentType = :componentType)
+      AND (:brand IS NULL OR LOWER(b.name) = LOWER(:brand))
+      AND (:minPrice IS NULL OR o. price >= :minPrice)
+      AND (:maxPrice IS NULL OR o.price <= :maxPrice)
+      AND (:shopName IS NULL OR LOWER(s.name) = LOWER(:shopName))
+      AND (:componentCondition IS NULL OR o.condition = :componentCondition)
+      AND (:querySearch IS NULL OR LOWER(o.title) LIKE LOWER(CONCAT('%', :querySearch, '%')))
     """)
     Page<Offer> findOfferByFiltersProd(
             @Param("componentType") ComponentType componentType,
@@ -153,8 +138,8 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
             @Param("componentCondition") ComponentCondition componentCondition,
             @Param("shopName") String shopName,
             @Param("querySearch") String querySearch,
-            Pageable pageable
-    );
+            Pageable pageable);
+
 //    AND (
 //           :querySearch IS NULL
 //                    OR FREETEXT(o.title, :querySearch)

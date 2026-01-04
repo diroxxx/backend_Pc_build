@@ -61,7 +61,7 @@ public class Offer {
     @ToString.Exclude
     private Component component;
 
-    @OneToMany(mappedBy = "offer",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "offer",cascade = CascadeType.ALL, orphanRemoval = true)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JsonIgnore
