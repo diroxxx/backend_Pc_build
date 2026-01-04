@@ -99,8 +99,6 @@ public class ComponentController {
         return ResponseEntity.ok(componentService.amountOfComponents());
     }
 
-
-
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Integer> importCsv(@RequestPart("file") MultipartFile file, @RequestParam("componentType") ComponentType componentType) {
         try{
@@ -109,6 +107,11 @@ public class ComponentController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @GetMapping("/components-pc-stats")
+    public ResponseEntity<?> getComponentsPcStats() {
+        return ResponseEntity.ok(componentService.getComponentsPcStats());
     }
 
 }

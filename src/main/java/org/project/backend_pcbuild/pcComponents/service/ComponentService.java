@@ -745,4 +745,8 @@ public class ComponentService {
         }
         return null;
     }
+
+    public List<ComponentsAmountPc> getComponentsPcStats() {
+        return componentRepository.componentStatsPc();
+    }
 }
