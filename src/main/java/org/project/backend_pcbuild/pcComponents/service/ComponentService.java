@@ -721,6 +721,7 @@ public class ComponentService {
 
 
 
+
     private Integer getIntegerValue(Map<String, Object> data, String key) {
         Object value = data.get(key);
         if (value instanceof Integer) {

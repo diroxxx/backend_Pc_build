@@ -94,6 +94,12 @@ public class ComponentController {
         return ResponseEntity.ok(componentService.amountOfComponents());
     }
 
+//    @GetMapping("/brands")
+//    public ResponseEntity<List<String>> getAllComponentsBrandsNames() {
+//        return ResponseEntity.ok(componentService.getAllBrands());
+//
+//    }
+
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Integer> importCsv(@RequestPart("file") MultipartFile file, @RequestParam("componentType") ComponentType componentType) {
         try{

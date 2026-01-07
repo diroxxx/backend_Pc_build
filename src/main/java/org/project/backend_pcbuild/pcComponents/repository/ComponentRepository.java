@@ -45,7 +45,6 @@ public interface ComponentRepository extends JpaRepository<Component, Integer>, 
     List<Component> findAllByComponentTypeAndModel(@Param("model") String model,
                                                    @Param("componentType") ComponentType componentType);
 
-
     @Query("""
     select c from Component c 
     left join c.brand b
