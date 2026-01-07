@@ -701,11 +701,8 @@ public class ComponentService {
 
 
     public Set<String> getCpus() {
-
-            return componentRepository.findAllByComponentType(ComponentType.PROCESSOR)
-                .stream()
-                .map(Component::getModel)
-                .collect(Collectors.toSet());
+        List<String> models = componentRepository.findProcessorModelsOrderedByBenchmarkDesc(ComponentType.PROCESSOR);
+        return new LinkedHashSet<>(models);
     }
 
     public Set<String> getGpusModels() {
