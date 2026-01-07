@@ -342,7 +342,7 @@ public class OfferService {
         System.out.println("Category: " + offerDto.getCategory());
 
 
-        Component bestComponent = offerMatchingService.matchOfferToComponent(
+        Optional<Component> bestComponent = offerMatchingService.matchOfferToComponent(
                 category,
                 offerDto,
                 itemsForCategory
@@ -350,7 +350,7 @@ public class OfferService {
 
         boolean isNewComponent = false;
 
-        if (bestComponent == null) {
+        if (bestComponent.isEmpty()) {
 //            Component newComponent = new Component();
 //
 //            newComponent.setModel("to change");
@@ -375,8 +375,8 @@ public class OfferService {
 //                bestComponent.getBrand().getName() + " " + bestComponent.getModel());
 
 
-        offer.setComponent(bestComponent);
-        bestComponent.getOffers().add(offer);
+        offer.setComponent(bestComponent.get());
+        bestComponent.get().getOffers().add(offer);
 
         OfferShopOfferUpdate offerUpdate = new OfferShopOfferUpdate();
         offerUpdate.setOffer(offer);
