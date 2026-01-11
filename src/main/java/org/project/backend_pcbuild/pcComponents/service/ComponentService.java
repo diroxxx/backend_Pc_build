@@ -711,7 +711,6 @@ public class ComponentService {
                 .stream()
                 .map(GpuModel::getChipset)
                 .collect(Collectors.toSet());
-
     }
 
 
