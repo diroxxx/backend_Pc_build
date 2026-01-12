@@ -71,7 +71,7 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Offer> findByComponentOrderByPriceAsc(@Param("component") Component component);
 
     @Query("SELECT o FROM Offer o JOIN o.component comp WHERE comp.id = :componentId and o.price <= :price ORDER BY o.price ASC")
-    List<Offer> findByComponentOrderByBudgetPriceAsc(@Param("componentId") Long componentId, @Param("price") double price);
+    List<Offer> findByComponentOrderByBudgetPriceAsc(@Param("componentId") Long componentId, @Param("price") Double price);
 
 
 
@@ -79,10 +79,10 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Offer> findByGpuModelOrderByPriceAsc(@Param("gpuModel") GpuModel gpuModel);
 
     @Query("SELECT o FROM Offer o JOIN o.component comp JOIN comp.graphicsCard g WHERE g.gpuModel = :gpuModel and o.price <= :price ORDER BY o.price ASC")
-    List<Offer> findByGpuModelOrderByBudgetPriceAsc(@Param("gpuModel") GpuModel gpuModel, @Param("price") double price);
+    List<Offer> findByGpuModelOrderByBudgetPriceAsc(@Param("gpuModel") GpuModel gpuModel, @Param("price") Double price);
 
     @Query("SELECT o FROM Offer o JOIN o.component comp JOIN comp.graphicsCard g WHERE g.gpuModel = :gpuModel AND o.price <= :price ORDER BY o.price ASC")
-    List<Offer> findByGpuModelAndPriceLessThanEqualOrderByPriceAsc(@Param("gpuModel") GpuModel gpuModel, @Param("price") double price, Pageable pageable);
+    List<Offer> findByGpuModelAndPriceLessThanEqualOrderByPriceAsc(@Param("gpuModel") GpuModel gpuModel, @Param("price") Double price, Pageable pageable);
 
 
 //    @Query("""
@@ -171,5 +171,64 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
             @Param("querySearch") String querySearch,
             Pageable pageable
     );
+
+    @Query("""
+    SELECT o FROM Offer o 
+    JOIN o.component comp 
+    JOIN comp.processor p 
+    WHERE p.benchmark BETWEEN :minBenchmark AND :maxBenchmark 
+    AND o.isVisible = true
+    ORDER BY o.price ASC
+""")
+List<Offer> findByCpuBenchmarkRangeOrderByPriceAsc(
+    @Param("minBenchmark") double minBenchmark, 
+    @Param("maxBenchmark") double maxBenchmark
+);
+
+@Query("""
+    SELECT o FROM Offer o 
+    JOIN o.component comp 
+    JOIN comp.processor p 
+    WHERE p.benchmark BETWEEN :minBenchmark AND :maxBenchmark 
+    AND o.price <= :budget 
+    AND o.isVisible = true
+    ORDER BY o.price ASC
+""")
+List<Offer> findByCpuBenchmarkRangeAndBudgetOrderByPriceAsc(
+    @Param("minBenchmark") double minBenchmark, 
+    @Param("maxBenchmark") double maxBenchmark,
+    @Param("budget") Double budget
+);
+
+// GPU benchmark queries
+@Query("""
+    SELECT o FROM Offer o 
+    JOIN o.component comp 
+    JOIN comp.graphicsCard g 
+    WHERE g.benchmark BETWEEN :minBenchmark AND :maxBenchmark 
+    AND o.isVisible = true
+    ORDER BY o.price ASC
+""")
+List<Offer> findByGpuBenchmarkRangeOrderByPriceAsc(
+    @Param("minBenchmark") double minBenchmark, 
+    @Param("maxBenchmark") double maxBenchmark
+);
+
+@Query("""
+    SELECT o FROM Offer o 
+    JOIN o.component comp 
+    JOIN comp.graphicsCard g 
+    WHERE g.benchmark BETWEEN :minBenchmark AND :maxBenchmark 
+    AND o.price <= :budget 
+    AND o.isVisible = true
+    ORDER BY o.price ASC
+""")
+List<Offer> findByGpuBenchmarkRangeAndBudgetOrderByPriceAsc(
+    @Param("minBenchmark") double minBenchmark, 
+    @Param("maxBenchmark") double maxBenchmark,
+    @Param("budget") Double budget
+);
+
+
 
 }

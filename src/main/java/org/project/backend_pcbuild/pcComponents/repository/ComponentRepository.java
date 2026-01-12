@@ -30,6 +30,11 @@ public interface ComponentRepository extends JpaRepository<Component, Integer>, 
 
     List<Component> findAllByComponentType(ComponentType componentType);
 
+    @Query("select c.model from Component c join c.processor p " +
+            "where c.componentType = :type and p.benchmark is not null " +
+            "order by p.benchmark desc")
+    List<String> findProcessorModelsOrderedByBenchmarkDesc(@Param("type") ComponentType type);
+
 
 //    @Query("SELECT c FROM Component c WHERE c.componentType = :componentType AND c.model LIKE %:model%")
 //    List<Component> findAllByComponentTypeAndModel(@Param("model") String model, @Param("componentType") ComponentType componentType);
@@ -39,7 +44,6 @@ public interface ComponentRepository extends JpaRepository<Component, Integer>, 
             "AND LOWER(c.model) LIKE LOWER(CONCAT('%', :model, '%'))")
     List<Component> findAllByComponentTypeAndModel(@Param("model") String model,
                                                    @Param("componentType") ComponentType componentType);
-
 
     @Query("""
     select c from Component c 

@@ -248,11 +248,9 @@ public class OfferUpdateController {
 
             offerService.saveOffersTemplate(components, shopOfferUpdate);
 
-            // zaktualizuj status sklepu patrząc na oba typy
             updateShopStatusBasedOnTypes(shopOfferUpdate, offerUpdateId, shopName);
             shopOfferUpdateRepository.save(shopOfferUpdate);
 
-            // zaktualizuj globalny status
             offerUpdate = shopOfferUpdate.getOfferUpdate();
             recomputeAndSaveGlobalOfferUpdate(offerUpdate);
 
@@ -304,11 +302,9 @@ public class OfferUpdateController {
 
             offerService.softDeleteByUrls(urls, shopOfferUpdate);
 
-            // zaktualizuj status sklepu patrząc na oba typy
             updateShopStatusBasedOnTypes(shopOfferUpdate, offerUpdateId, shopName);
             shopOfferUpdateRepository.save(shopOfferUpdate);
 
-            // zaktualizuj globalny status
             offerUpdate = shopOfferUpdate.getOfferUpdate();
             recomputeAndSaveGlobalOfferUpdate(offerUpdate);
 

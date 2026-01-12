@@ -53,27 +53,90 @@ public class OfferService {
         if (urls == null || urls.isEmpty()) return;
         offerRepository.deleteByWebsiteUrlIn(urls);
     }
-    public  Optional<Offer> findBestForCpu(OfferRepository repo, Component comp, double budget) {
-        if (comp == null) return Optional.empty();
-        if (budget == 0 ) {
-            List<Offer> list = repo.findByComponentOrderByPriceAsc(comp);
-            return  list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
-        } else {
-            List<Offer> list = repo.findByComponentOrderByBudgetPriceAsc(comp.getId(), budget);
-            return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
-        }
+   public Optional<Offer> findBestForCpu(OfferRepository repo, Component comp, Double budget) {
+    if (comp == null) return Optional.empty();
+    
+    Optional<Offer> exactMatch = findExactCpuOffer(repo, comp, budget);
+    if (exactMatch.isPresent()) {
+        return exactMatch;
     }
+    
+    if (comp.getProcessor() != null && comp.getProcessor().getBenchmark() != null) {
+        return findSimilarCpuOffer(repo, comp.getProcessor().getBenchmark(), budget);
+    }
+    
+    return Optional.empty();
+}
 
-    public  Optional<Offer> findBestForGpuModel(OfferRepository repo, GpuModel gm, double budget) {
-        if (gm == null) return Optional.empty();
-        if (budget == 0) {
-            List<Offer> byGpuModelOrderByPriceAsc = repo.findByGpuModelOrderByPriceAsc(gm);
-            return  byGpuModelOrderByPriceAsc.stream().findFirst();
-        } else {
-            List<Offer> list = repo.findByGpuModelAndPriceLessThanEqualOrderByPriceAsc(gm, budget, PageRequest.of(0,1));
-            return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
-        }
+private Optional<Offer> findExactCpuOffer(OfferRepository repo, Component comp, Double budget) {
+    if (budget == null) {
+        List<Offer> list = repo.findByComponentOrderByPriceAsc(comp);
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
+    } else {
+        List<Offer> list = repo.findByComponentOrderByBudgetPriceAsc(comp.getId(), budget);
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
+}
+
+private Optional<Offer> findSimilarCpuOffer(OfferRepository repo, double benchmark, Double budget) {
+    double minBenchmark = benchmark * 0.95; 
+    double maxBenchmark = benchmark * 1.05; 
+    
+    if (budget == null) {
+        List<Offer> list = repo.findByCpuBenchmarkRangeOrderByPriceAsc(minBenchmark, maxBenchmark);
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
+    } else {
+        List<Offer> list = repo.findByCpuBenchmarkRangeAndBudgetOrderByPriceAsc(minBenchmark, maxBenchmark, budget);
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
+    }
+}
+
+public Optional<Offer> findBestForGpuModel(OfferRepository repo, GpuModel gm, Double budget) {
+    if (gm == null) return Optional.empty();
+    
+    Optional<Offer> exactMatch = findExactGpuOffer(repo, gm, budget);
+    if (exactMatch.isPresent()) {
+        return exactMatch;
+    }
+    
+    Double avgBenchmark = getAverageBenchmarkForGpuModel(gm);
+    if (avgBenchmark != null) {
+        return findSimilarGpuOffer(repo, avgBenchmark, budget);
+    }
+    
+    return Optional.empty();
+}
+
+private Optional<Offer> findExactGpuOffer(OfferRepository repo, GpuModel gm, Double budget) {
+    if (budget == null) {
+        List<Offer> list = repo.findByGpuModelOrderByPriceAsc(gm);
+        return list.stream().findFirst();
+    } else {
+        List<Offer> list = repo.findByGpuModelAndPriceLessThanEqualOrderByPriceAsc(gm, budget, PageRequest.of(0, 1));
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
+    }
+}
+
+private Double getAverageBenchmarkForGpuModel(GpuModel gm) {
+    return gm.getGraphicsCards().stream()
+            .map(GraphicsCard::getBenchmark)
+            .filter(b -> b != null)
+            .findFirst()
+            .orElse(null);
+}
+
+private Optional<Offer> findSimilarGpuOffer(OfferRepository repo, double benchmark, Double budget) {
+    double minBenchmark = benchmark * 0.95; 
+    double maxBenchmark = benchmark * 1.05;
+    
+    if (budget == null) {
+        List<Offer> list = repo.findByGpuBenchmarkRangeOrderByPriceAsc(minBenchmark, maxBenchmark);
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
+    } else {
+        List<Offer> list = repo.findByGpuBenchmarkRangeAndBudgetOrderByPriceAsc(minBenchmark, maxBenchmark, budget);
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
+    }
+}
 
     public List<String> getAllOfferNames() {
         return offerRepository.findDistinctShopNames();
@@ -82,7 +145,6 @@ public class OfferService {
     public Long countAllVisibleOffers() {
        return offerRepository.countOffersByIsVisibleTrue();
     }
-
 
     public void softDeleteByUrls(List<String> urls, ShopOfferUpdate shopOfferUpdate) {
         if (urls == null || urls.isEmpty() || shopOfferUpdate == null) return;
@@ -342,7 +404,7 @@ public class OfferService {
         System.out.println("Category: " + offerDto.getCategory());
 
 
-        Component bestComponent = offerMatchingService.matchOfferToComponent(
+        Optional<Component> bestComponent = offerMatchingService.matchOfferToComponent(
                 category,
                 offerDto,
                 itemsForCategory
@@ -350,7 +412,7 @@ public class OfferService {
 
         boolean isNewComponent = false;
 
-        if (bestComponent == null) {
+        if (bestComponent.isEmpty()) {
 //            Component newComponent = new Component();
 //
 //            newComponent.setModel("to change");
@@ -375,8 +437,8 @@ public class OfferService {
 //                bestComponent.getBrand().getName() + " " + bestComponent.getModel());
 
 
-        offer.setComponent(bestComponent);
-        bestComponent.getOffers().add(offer);
+        offer.setComponent(bestComponent.get());
+        bestComponent.get().getOffers().add(offer);
 
         OfferShopOfferUpdate offerUpdate = new OfferShopOfferUpdate();
         offerUpdate.setOffer(offer);

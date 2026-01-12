@@ -59,7 +59,7 @@ public class GameController {
 
     @GetMapping("/cpu-gpu")
     public ResponseEntity<?> getCpuGpuInfo(@RequestParam("gameTitle") String gameTitle,
-                                           @RequestParam(value = "budget", required = false) double budget) {
+                                           @RequestParam(value = "budget", required = false) Double budget) {
         if (gameTitle == null || gameTitle.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
