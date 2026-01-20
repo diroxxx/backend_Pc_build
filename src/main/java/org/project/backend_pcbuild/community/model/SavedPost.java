@@ -35,10 +35,4 @@ public class SavedPost {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-
-    public SavedPost(User user, Post post) {
-        this.user = user;
-        this.post = post;
-    }
-
 }
