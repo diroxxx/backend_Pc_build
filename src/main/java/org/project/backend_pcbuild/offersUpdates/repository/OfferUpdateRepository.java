@@ -30,7 +30,7 @@ public interface OfferUpdateRepository extends JpaRepository<OfferUpdate, Long> 
     List<OfferUpdateStatsDTO> findOfferStatsSince(@Param("thirtyDaysAgo") LocalDateTime thirtyDaysAgo);
 
 
-    public interface OfferUpdateShopsOffersAmountStatsProjection {
+    interface OfferUpdateShopsOffersAmountStatsProjection {
         String getShopName();
         Long getOfferCount();
     }

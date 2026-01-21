@@ -186,12 +186,4 @@ public class ComputerService {
                     });
         }
     }
-
-
-    public ComputerComponentsStatsDto getComputerComponentsStats() {
-
-
-        return null;
-    }
-
 }

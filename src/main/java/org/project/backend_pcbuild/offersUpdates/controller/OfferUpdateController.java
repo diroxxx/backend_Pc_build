@@ -90,6 +90,7 @@ public class OfferUpdateController {
 
 
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/update/automatic")
     public void saveRequestToAutomaticUpdate(@RequestParam("interval") String interval) {
         configService.updateUpdateInterval(interval);

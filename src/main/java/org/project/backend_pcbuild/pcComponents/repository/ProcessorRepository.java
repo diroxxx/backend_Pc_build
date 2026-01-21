@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProcessorRepository extends JpaRepository<Processor, Long> {
-//    public Processor findByComponentModel
 }

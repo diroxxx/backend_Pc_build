@@ -34,8 +34,6 @@ import java.util.concurrent.TimeUnit;
 public class GameController {
 
     private final GameService gameService;
-    private final ComponentService componentService;
-    private final OfferRepository offerRepository;
     private final OfferService offerService;
 
 
@@ -132,7 +130,7 @@ public class GameController {
         return ResponseEntity.ok(Map.of("message", "Gra została usunięta"));
     }
 
-//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> insertNewGameReqInfo(@RequestPart("file") MultipartFile file, @RequestPart("dto") GameReqCompDto dto) {
 

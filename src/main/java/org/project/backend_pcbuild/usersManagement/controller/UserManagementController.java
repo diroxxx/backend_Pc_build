@@ -20,12 +20,13 @@ public class UserManagementController {
     private final UserService userService;
 
 
-//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping
     public ResponseEntity<List<UserToShowDto>> getUsers() {
         return ResponseEntity.ok(userService.findAll());
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping
     public ResponseEntity<?> addNewUser(@RequestBody UserToUpdate userToUpdate) {
         System.out.println(userToUpdate);
@@ -41,6 +42,7 @@ public class UserManagementController {
         return ResponseEntity.ok(Map.of("message", "Użytkownik został dodany"));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping
     public ResponseEntity<?> updateUser(@RequestBody UserToUpdate userToUpdate) {
         System.out.println(userToUpdate);

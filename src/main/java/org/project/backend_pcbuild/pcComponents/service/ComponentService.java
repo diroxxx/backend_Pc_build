@@ -328,8 +328,8 @@ public class ComponentService {
                 "Radeon\\s*(RX\\s*\\d{3,4})(\\s*XT|\\s*XTX|\\s*XT)?", // AMD Radeon
                 "RX\\s*\\d{3,4}\\s*(XT|XTX)?",                  // RX 6700 XT
                 "Arc\\s*B5\\d{2}",                              // Intel Arc examples
-                "UHD\\s*Graphics\\s*\\d{3}",                    // Intel UHD Graphics 630
-                "(Apple)\\s*(M1|M2)\\s*(GPU)?"                  // Apple M1/M2
+                "UHD\\s*Graphics\\s*\\d{3}"                   // Intel UHD Graphics 630
+
         };
         for (String pat : patterns) {
             Pattern p = Pattern.compile(pat, Pattern.CASE_INSENSITIVE);

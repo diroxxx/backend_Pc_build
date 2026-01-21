@@ -10,7 +10,6 @@ import java.util.Optional;
 @Repository
 public interface ComputerRepository extends JpaRepository<Computer, Long> {
     List<Computer> findAllByUserEmail(String userEmail);
-    List<Computer> findAllByUserEmailAndName(String userEmail, String name);
-    Optional<Computer> findByName(String name);
+
 
 }

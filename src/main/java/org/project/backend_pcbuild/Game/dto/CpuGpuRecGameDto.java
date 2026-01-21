@@ -9,9 +9,6 @@ import java.util.List;
 @Data
 public class CpuGpuRecGameDto {
 
-//    List<OfferRecDto> minRec = new ArrayList<>();
-//    List<OfferRecDto> maxRec = new ArrayList<>();
-
     List<BaseOfferDto> minRec = new ArrayList<>();
     List<BaseOfferDto> maxRec = new ArrayList<>();
 

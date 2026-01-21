@@ -3,7 +3,6 @@ package org.project.backend_pcbuild.offer.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 import org.project.backend_pcbuild.offer.dto.*;
 import org.project.backend_pcbuild.offer.model.Brand;
 import org.project.backend_pcbuild.offer.model.Offer;
@@ -35,7 +34,6 @@ public class OfferService {
     private final CaseRepository caseRepository;
     private final CoolerRepository coolerRepository;
     private final GraphicsCardRepository graphicsCardRepository;
-    private final ComponentRepository componentRepository;
     private final MemoryRepository memoryRepository;
     private final MotherboardRepository motherboardRepository;
     private final ProcessorRepository processorRepository;
@@ -45,15 +43,8 @@ public class OfferService {
     private final ShopRepository shopRepository;
     private final BrandRepository brandRepository;
 
-    private static final JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
 
-
-    @Transactional
-    public void deleteOffersByUrl(List<String> urls) {
-        if (urls == null || urls.isEmpty()) return;
-        offerRepository.deleteByWebsiteUrlIn(urls);
-    }
-   public Optional<Offer> findBestForCpu(Component comp, Double budget) {
+    public Optional<Offer> findBestForCpu(Component comp, Double budget) {
     if (comp == null) return Optional.empty();
     
     Optional<Offer> exactMatch = findExactCpuOffer(comp, budget);
@@ -174,69 +165,6 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
         offerRepository.saveAll(offersToDelete);
     }
 
-    public Map<String, List<?>> getAllOffers() {
-        Map<String, List<?>> result = new LinkedHashMap<>();
-
-        List<GraphicsCardDto> gpus = graphicsCardRepository.findAll().stream()
-                .flatMap(gc -> gc.getComponent().getOffers().stream()
-                        .filter(Offer::getIsVisible)
-                        .map(offer -> OfferComponentMapper.toDto(gc, offer)))
-                . toList();
-//        System.out.println(gpus);
-        List<ProcessorDto> processors = processorRepository.findAll().stream()
-                .flatMap(cpu -> cpu.getComponent().getOffers().stream()
-                .filter(Offer::getIsVisible)
-                        .map(offer -> OfferComponentMapper.toDto(cpu, offer)))
-                .toList();
-//        System.out.println(processors);
-        List<CoolerDto> coolers = coolerRepository.findAll().stream()
-                .flatMap(c -> c.getComponent().getOffers().stream()
-                        .filter(Offer::getIsVisible)
-                        .map(offer -> OfferComponentMapper.toDto(c, offer)))
-                .toList();
-//        System.out.println(coolers);
-        List<MemoryDto> memories = memoryRepository.findAll().stream()
-                .flatMap(m -> m.getComponent().getOffers().stream()
-                        .filter(Offer::getIsVisible)
-                        .map(offer -> OfferComponentMapper.toDto(m, offer)))
-                .toList();
-//        System.out.println(memories);
-        List<MotherboardDto> motherboards = motherboardRepository.findAll().stream()
-                .flatMap(mb -> mb.getComponent().getOffers().stream()
-                        .filter(Offer::getIsVisible)
-                        .map(offer -> OfferComponentMapper.toDto(mb, offer)))
-                .toList();
-//        System.out.println(motherboards);
-        List<PowerSupplyDto> powerSupplies = powerSupplyRepository.findAll().stream()
-                .flatMap(ps -> ps.getComponent().getOffers().stream()
-                        .filter(Offer::getIsVisible)
-                        .map(offer -> OfferComponentMapper.toDto(ps, offer)))
-                .toList();
-//        System.out.println(powerSupplies);
-        List<StorageDto> storages = storageRepository.findAll().stream()
-                .flatMap(s -> s.getComponent().getOffers().stream()
-                        .filter(Offer::getIsVisible)
-                        .map(offer -> OfferComponentMapper.toDto(s, offer)))
-                .toList();
-//        System.out.println(storages);
-        List<CaseDto> casesPc = caseRepository.findAll().stream()
-                .flatMap(c -> c.getComponent().getOffers().stream()
-                        .filter(Offer::getIsVisible)
-                        .map(offer -> OfferComponentMapper.toDto(c, offer)))
-                .toList();
-//        System.out.println(casesPc);
-        result.put("graphicsCards", gpus);
-        result.put("processors", processors);
-        result.put("coolers", coolers);
-        result.put("memories", memories);
-        result.put("motherboards", motherboards);
-        result.put("powerSupplies", powerSupplies);
-        result.put("storages", storages);
-        result.put("cases", casesPc);
-
-        return result;
-    }
-
 
     @Value("${app.search.useFullTextSearch:false}")
     private boolean useFullTextSearch;
@@ -251,9 +179,6 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
 
         Page<Offer> page;
 
-//        String componentTypeStr = (componentType != null) ? componentType.name() : null;
-//        String componentConditionStr = (componentCondition != null) ? componentCondition.name() : null;
-//        String qs = (querySearch != null && !querySearch.trim().isEmpty()) ? querySearch.trim() : null;
 
         if (useFullTextSearch ) {
             page =  offerRepository.findOfferByFiltersProd(
@@ -383,12 +308,6 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
             ComponentType category = offerDto.getCategory();
             List<?> itemsForCategory = categoryMap.getOrDefault(category, Collections.emptyList());
 
-            //if a brand from a database doesn't exist in title, create new component and offer with status
-//            for (String brand : brands) {
-//                if ( !offerDto.getTitle().toLowerCase().contains(brand.toLowerCase())) {
-//
-//                }
-//            }
 
             saveOffer(offerDto, update, itemsForCategory, category);
 
@@ -413,28 +332,13 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
         boolean isNewComponent = false;
 
         if (bestComponent.isEmpty()) {
-//            Component newComponent = new Component();
 //
-//            newComponent.setModel("to change");
-//            newComponent.setComponentType(category);
-
-//            Optional<Brand> brandIgnoreCase = brandRepository.findByNameIgnoreCase(offerDto.getBrand());
-//            if (brandIgnoreCase.isPresent()) {
-//                newComponent.setBrand(brandIgnoreCase.get());
-//            }
-//            bestComponent = newComponent;
-//            componentRepository.save(newComponent);
-//            isNewComponent = true;
-
             System.out.println("No matching component found for: " +
                     offerDto.getBrand() + " " + offerDto.getModel() + " - SKIPPING");
             return false;
         }
 
         Offer offer = buildOfferConnectToShop(offerDto);
-
-//        System.out.println("Matched component: " +
-//                bestComponent.getBrand().getName() + " " + bestComponent.getModel());
 
 
         offer.setComponent(bestComponent.get());
@@ -444,11 +348,6 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
         offerUpdate.setOffer(offer);
         offerUpdate.setShopOfferUpdate(update);
 
-//        if (isNewComponent) {
-//            offerUpdate.setUpdateChangeType(UpdateChangeType.RECHECK);
-//        } else {
-//
-//        }
         offerUpdate.setUpdateChangeType(UpdateChangeType.ADDED);
         offer.getOfferShopOfferUpdates().add(offerUpdate);
         update.getOfferShopOfferUpdates().add(offerUpdate);

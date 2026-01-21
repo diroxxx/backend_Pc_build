@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GameService {
     private final GameRepository gameRepository;
-    private final ComponentService componentService;
     private final GpuModelRepository gpuModelRepository;
     private final ProcessorRepository processorRepository;
     private final GameGpuRequirementsRepository gameGpuRequirementsRepository;

@@ -44,7 +44,6 @@ public class CommunityController {
     private final PostService postService;
 
 
-    //posty
     @GetMapping("/")
     public ResponseEntity<List<PostPreviewDTO>> getAllPosts() {
         List<PostPreviewDTO> posts = postService.getAllPosts();

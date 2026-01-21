@@ -36,11 +36,6 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
 
     void deleteByWebsiteUrlIn(List<String> urls);
 
-    interface OfferTypeCountProjection {
-        String getType();
-        Long getCount();
-    }
-
     Long countOffersByIsVisibleTrue();
 
     @Query("SELECT DISTINCT o.shop.name FROM Offer o")
@@ -85,37 +80,6 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Offer> findByGpuModelAndPriceLessThanEqualOrderByPriceAsc(@Param("gpuModel") GpuModel gpuModel, @Param("price") Double price, Pageable pageable);
 
 
-//    @Query("""
-//        select o from Offer o
-//        inner join Component c on o.component.id = c.id
-//        inner join Brand b on b.id = c.brand.id
-//        inner join Shop s on o.shop.id = s.id
-//        where o.isVisible = true
-//            and (:componentType is null or c.componentType = :componentType)
-//            and (:brand is null or LOWER(b) = LOWER(:brand))
-//            and (:minPrice is null or o.price >= :minPrice)
-//            and (:maxPrice is null or o.price <= :maxPrice)
-//            and (:shopName is null or LOWER(s.name) = LOWER(:shopName))
-//            and (:componentCondition is null or o.condition = :componentCondition)
-//
-//
-//
-//
-//""")
-//    Page<Offer> findOfferByFiltersProd(
-//            @Param("componentType")ComponentType componentType,
-//            @Param("brand") String brand,
-//            @Param("minPrice") Double minPrice,
-//            @Param("maxPrice") Double MaxPrice,
-//            @Param("componentCondition")ComponentCondition componentCondition,
-//            @Param("shopName")String shopName,
-//            @Param("querySearch")String querySearch,
-//            Pageable pageable
-//            );
-
-
-
-    // OfferRepository.java (fragment)
     @Query("""
     SELECT o FROM Offer o
     JOIN o.component c

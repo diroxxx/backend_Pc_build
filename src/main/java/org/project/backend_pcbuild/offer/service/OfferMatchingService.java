@@ -152,13 +152,7 @@ public class OfferMatchingService {
         return Optional.ofNullable(bestComponent);
     }
 
-    /**
-     * Match processor offers to components.
-     * @param ctx
-     * @param offerWords
-     * @param items
-     * @return
-     */
+
     private Optional<Component> matchProcessor(OfferContext ctx, String[] offerWords, List<?> items) {
         String offerCpuClass = extractCpuModel(ctx.modelLower);
         Integer offerCores = extractIntPattern(CORES_PATTERN, ctx.modelLower, 1);
@@ -509,7 +503,6 @@ public class OfferMatchingService {
         return null;
     }
 
-    // ===== HELPER METHODS =====
 
     private String normalizeBrandName(String brand) {
         if (brand == null) return null;
