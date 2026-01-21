@@ -91,7 +91,7 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(newAccessToken, refreshToken));
     }
 
-    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @PostMapping("/verify-password")
     public ResponseEntity<?> verifyCurrentPassword(@RequestBody PasswordChangeRequest request, Authentication authentication) {
         UserDto user = (UserDto) authentication.getPrincipal();
@@ -103,7 +103,7 @@ public class AuthController {
         return ResponseEntity.badRequest().body("Invalid password");
     }
 
-    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("hasAuthority('ROLE_USER')")
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody PasswordChangeRequest request,  Authentication authentication) {
 //        String userEmail = authentication.getName();
