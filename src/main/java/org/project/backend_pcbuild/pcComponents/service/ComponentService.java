@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ComponentService {
-    private final RestClient restClient = RestClient.create();
+
     private final ComponentRepository componentRepository;
     private final ItemComponentMapper itemComponentMapper;
     private final BrandRepository brandRepository;
@@ -92,17 +92,6 @@ public class ComponentService {
         Page<Component> itemsPage = componentRepository.findAll(spec, pageable);
         return itemsPage.map(this::mapToDto);
     }
-
-
-    public Page<BaseItemDto> getComponentsV2(Pageable pageable, ComponentType type, String brand, String searchTerm) {
-
-       Page<Component> components = componentRepository.findAllByFilters(brand,type,searchTerm, pageable);
-
-        return components.map(this::mapToDto);
-    }
-
-
-
 
 
     private BaseItemDto mapToDto(Component component) {
@@ -168,165 +157,6 @@ public class ComponentService {
                 });
     }
 
-    @Transactional
-    public void saveBasedComponents(Map<String, List<Object>> components) {
-        if (components == null || components.isEmpty()) return;
-
-        for (Map.Entry<String, List<Object>> entry : components.entrySet()) {
-            final String type = entry.getKey() == null ? "" : entry.getKey().toLowerCase(Locale.ROOT);
-            final List<Object> payload = entry.getValue();
-            if (payload == null) continue;
-
-            for (Object object : payload) {
-                try {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> data = (Map<String, Object>) object;
-                    if (data == null) continue;
-
-                    String brand = getStringValue(data, "brand");
-                    String model = getStringValue(data, "model");
-                    if (brand == null || model == null) {
-                        continue;
-                    }
-
-                    Brand checkBrand =getOrCreateBrand(brand);
-
-                    Component component = componentRepository.findByBrandAndModelIgnoreCase(checkBrand, model).orElseGet(() -> {
-                        Component component1 = new Component();
-                        component1.setModel(model);
-                        component1.setBrand(checkBrand);
-                        return component1;
-                    });
-
-                    switch (type) {
-                        case "processor": {
-                            if (component.getProcessor() != null) break;
-                            Processor p = new Processor();
-                            p.setCores(getIntegerValue(data, "cores"));
-                            p.setThreads(getIntegerValue(data, "threads"));
-                            p.setSocketType(getStringValue(data, "socket"));
-                            p.setBaseClock(getDoubleValue(data, "base_clock"));
-                            p.setComponent(component);
-                            component.setComponentType(ComponentType.PROCESSOR);
-                            component.setProcessor(p);
-                            componentRepository.save(component);
-                            break;
-                        }
-                        case "storage": {
-                            if (component.getStorage() != null) break;
-                            Storage s = new Storage();
-                            s.setCapacity(getDoubleValue(data, "capacity"));
-                            s.setComponent(component);
-                            component.setStorage(s);
-                            component.setComponentType(ComponentType.STORAGE);
-                            componentRepository.save(component);
-
-                            break;
-                        }
-                        case "motherboard": {
-                            if (component.getMotherboard() != null) break;
-                            Motherboard mb = new Motherboard();
-                            mb.setChipset(getStringValue(data, "chipset"));
-                            mb.setFormat(getStringValue(data, "format"));
-                            mb.setMemoryType(getStringValue(data, "memory_type"));
-                            mb.setSocketType(getStringValue(data, "socket_motherboard"));
-                            mb.setRamSlots(getIntegerValue(data, "ramslots"));
-                            mb.setRamCapacity(getIntegerValue(data, "memory_capacity"));
-                            mb.setComponent(component);
-                            component.setMotherboard(mb);
-                            component.setComponentType(ComponentType.MOTHERBOARD);
-//                            motherboardRepository.save(mb);
-                            componentRepository.save(component);
-
-                            break;
-                        }
-                        case "power_supply": {
-                            if (component.getPowerSupply() != null) break;
-                            PowerSupply ps = new PowerSupply();
-                            Integer maxW = getIntegerValue(data, "maxPowerWatt");
-                            if (maxW == null) maxW = getIntegerValue(data, "max_power_watt");
-                            ps.setMaxPowerWatt(maxW);
-                            ps.setComponent(component);
-                            component.setPowerSupply(ps);
-                            component.setComponentType(ComponentType.POWER_SUPPLY);
-//                            powerSupplyRepository.save(ps);
-                            componentRepository.save(component);
-
-                            break;
-                        }
-                        case "cpu_cooler": {
-                            if (component.getCooler() != null) break;
-                            Cooler cooler = new Cooler();
-                            Object socketsObj = data.get("sockets");
-                            if (socketsObj instanceof List) {
-                                List<String> sockets = (List<String>) socketsObj;
-                                cooler.setSocketTypes(sockets);
-                            } else if (socketsObj instanceof String s) {
-                                List<String> sockets = Arrays.stream(s.split(","))
-                                        .map(String::trim)
-                                        .filter(v -> !v.isEmpty())
-                                        .toList();
-                                cooler.setSocketTypes(sockets);
-                            }
-                            cooler.setComponent(component);
-                            component.setCooler(cooler);
-                            component.setComponentType(ComponentType.CPU_COOLER);
-//                            coolerRepository.save(cooler);
-                            componentRepository.save(component);
-
-                            break;
-                        }
-                        case "graphics_card": {
-                            if (component.getGraphicsCard() != null) break;
-                            GraphicsCard g = new GraphicsCard();
-                            g.setGddr(getStringValue(data, "gddr"));
-                            g.setPowerDraw(getDoubleValue(data, "power_draw"));
-                            g.setVram(getIntegerValue(data, "vram"));
-                            g.setComponent(component);
-                            component.setGraphicsCard(g);
-                            component.setComponentType(ComponentType.GRAPHICS_CARD);
-//                            graphicsCardRepository.save(g);
-                            componentRepository.save(component);
-
-                            break;
-                        }
-                        case "case": {
-                            if (component.getCase_() != null) break;
-                            Case c = new Case();
-                            c.setFormat(getStringValue(data, "format"));
-                            c.setComponent(component);
-                            component.setCase_(c);
-                            component.setComponentType(ComponentType.CASE_PC);
-                            componentRepository.save(component);
-//                            caseRepository.save(c);
-                            break;
-                        }
-                        case "ram": {
-                            if (component.getMemory() != null) break;
-                            Memory m = new Memory();
-                            m.setCapacity(getIntegerValue(data, "capacity"));
-                            m.setType(getStringValue(data, "type"));
-                            m.setSpeed(getIntegerValue(data, "speed"));
-                            m.setLatency(getIntegerValue(data, "latency"));
-                            m.setComponent(component);
-                            component.setMemory(m);
-                            component.setComponentType(ComponentType.MEMORY);
-//                            memoryRepository.save(m);
-                            componentRepository.save(component);
-                            break;
-                        }
-                        default:
-                            break;
-                    }
-                } catch (ClassCastException cce) {
-                    log.warn("Invalid payload entry for type {}: {}", entry.getKey(), cce.getMessage());
-                } catch (Exception e) {
-                    log.error("Failed to save component of type {}: {}", entry.getKey(), e.getMessage(), e);
-                    throw e;
-                }
-            }
-        }
-    }
 
     @Transactional
     public void saveComponents(List<? extends BaseItemDto> components) {
@@ -399,25 +229,6 @@ public class ComponentService {
         component.setComponentType(ComponentType.PROCESSOR);
         componentRepository.save(component);
     }
-
-    private Optional<String> extractProcessorChipset(String model) {
-        if (model == null) return Optional.empty();
-        String[] patterns = new String[] {
-                "(Intel\\s+Core\\s+i[3579]-?\\d{3,4}[A-Za-z0-9-]*)",
-                "(AMD\\s+FX-\\d{3,4}[A-Za-z0-9-]*)",
-                "(AMD\\s+Ryzen\\s+\\d\\s*\\d{3,4}[A-Za-z0-9-]*)",
-                "(Intel\\s+Pentium\\s+\\w+)",
-        };
-        for (String pat : patterns) {
-            Pattern p = Pattern.compile(pat, Pattern.CASE_INSENSITIVE);
-            java.util.regex.Matcher m = p.matcher(model);
-            if (m.find()) {
-                return Optional.of(normalize(m.group().replaceAll("\\s+", " ")));
-            }
-        }
-        return Optional.empty();
-    }
-
 
     @Transactional
     public void saveGpu(GraphicsCardItemDto dto) {
@@ -502,7 +313,6 @@ public class ComponentService {
         for (GpuModel gm : all) {
             String chipset = gm.getChipset();
             if (chipset == null || chipset.isBlank()) continue;
-            // tokenowy match: \bCHIPSET\b (Pattern.quote dla bezpieczeństwa)
             Pattern p = Pattern.compile("\\b" + Pattern.quote(chipset) + "\\b", Pattern.CASE_INSENSITIVE);
             if (p.matcher(combined).find()) {
                 return Optional.of(gm);
@@ -708,33 +518,6 @@ public class ComponentService {
         return (int) componentRepository.count();
     }
 
-
-
-
-    private Integer getIntegerValue(Map<String, Object> data, String key) {
-        Object value = data.get(key);
-        if (value instanceof Integer) {
-            return (Integer) value;
-        } else if (value instanceof Number) {
-            return ((Number) value).intValue();
-        }
-        return null;
-    }
-
-    private String getStringValue(Map<String, Object> data, String key) {
-        Object value = data.get(key);
-        return value != null ? value.toString() : null;
-    }
-
-    private Double getDoubleValue(Map<String, Object> data, String key) {
-        Object value = data.get(key);
-        if (value instanceof Double) {
-            return (Double) value;
-        } else if (value instanceof Number) {
-            return ((Number) value).doubleValue();
-        }
-        return null;
-    }
 
     @Value("${app.search.useFullTextSearch:false}")
     private boolean useFullTextSearch;
