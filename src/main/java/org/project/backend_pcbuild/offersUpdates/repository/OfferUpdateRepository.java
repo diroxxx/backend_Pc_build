@@ -39,6 +39,7 @@ public interface OfferUpdateRepository extends JpaRepository<OfferUpdate, Long> 
     SELECT s.name AS shopName, COUNT(o.id) AS offerCount
     FROM Offer o
     JOIN Shop s ON s.id = o.shop.id
+    where o.isVisible = true
     GROUP BY s.name
     ORDER BY offerCount DESC
 """)

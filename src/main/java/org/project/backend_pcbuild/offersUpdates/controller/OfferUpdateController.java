@@ -74,8 +74,8 @@ public class OfferUpdateController {
         return ResponseEntity.ok(offerUpdateService.getOfferStatsLast30Days());
     }
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @GetMapping("stats/shops")
+//    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/stats/shops")
     public ResponseEntity<List<OfferUpdateRepository.OfferUpdateShopsOffersAmountStatsProjection>> getOffersShopsAmountStats() {
         return ResponseEntity.ok(offerUpdateService.getOffersShopsAmountStats());
     }
@@ -91,7 +91,7 @@ public class OfferUpdateController {
 
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @PutMapping("/update/automatic")
+    @PutMapping("/automatic")
     public void saveRequestToAutomaticUpdate(@RequestParam("interval") String interval) {
         configService.updateUpdateInterval(interval);
     }

@@ -41,12 +41,23 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     @Query("SELECT DISTINCT o.shop.name FROM Offer o")
     List<String> findDistinctShopNames();
 
-    @Query("SELECT i.componentType AS componentType, s.name AS shopName, COUNT(o) AS count " +
-            "FROM Offer o join Component i on o.component= i join Shop s on o.shop = s GROUP BY i.componentType, s.name")
+    @Query("""
+        SELECT i.componentType AS componentType, s.name AS shopName, COUNT(o) AS count 
+            FROM Offer o join Component i on o.component= i join Shop s on o.shop = s 
+                    where o.isVisible = true 
+                            GROUP BY i.componentType, s.name
+                    
+                            """)
     List<ComponentShopCountProjection> getOfferStatsByComponentAndShop();
 
-    @Query("SELECT i.componentType AS componentType, COUNT(o) AS total " +
-            "FROM Offer o join Component i on o.component = i GROUP BY i.componentType")
+    @Query("""
+            SELECT i.componentType AS componentType, COUNT(o) AS total 
+            FROM Offer o join Component i on o.component = i 
+                        where o.isVisible = true 
+                                    GROUP BY i.componentType 
+                        
+                        
+                                    """)
     List<ComponentTotalProjection> getOfferStatsTotal();
 
 
