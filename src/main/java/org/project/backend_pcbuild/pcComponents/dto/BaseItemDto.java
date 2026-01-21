@@ -15,9 +15,10 @@ import org.project.backend_pcbuild.pcComponents.model.ComponentType;
         @JsonSubTypes.Type(value = GraphicsCardItemDto.class, name = "GRAPHICS_CARD"),
         @JsonSubTypes.Type(value = MemoryItemDto.class, name = "MOTHERBOARD"),
         @JsonSubTypes.Type(value = MemoryItemDto.class, name = "MEMORY"),
-        @JsonSubTypes.Type(value = CaseItemDto.class, name = "CASE_PC")
-        ,@JsonSubTypes.Type(value = PowerSupplyItemDto.class, name = "POWER_SUPPLY")
-        ,@JsonSubTypes.Type(value = CaseItemDto.class, name = "CPU_COOLER")
+        @JsonSubTypes.Type(value = CaseItemDto.class, name = "CASE_PC"),
+        @JsonSubTypes.Type(value = StorageItemDto.class, name = "STORAGE"),
+        @JsonSubTypes.Type(value = PowerSupplyItemDto.class, name = "POWER_SUPPLY"),
+        @JsonSubTypes.Type(value = CoolerItemDto.class, name = "CPU_COOLER")
 })
 @Data
 @AllArgsConstructor

@@ -9,12 +9,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class CoolerItemDto extends BaseItemDto{
 
-//    @CsvBindAndSplitByName(
-//            column = "coolerSocketsType",
-//            elementType = String.class,
-//            splitOn = ";",
-//            writeDelimiter = ";"
-//    )
     private List<String> coolerSocketsType;
     private String fanRpm;
     private String noiseLevel;

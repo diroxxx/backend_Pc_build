@@ -1,15 +1,16 @@
 package org.project.backend_pcbuild.pcComponents.controller;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.project.backend_pcbuild.configuration.ImportCsvFilesService;
+import org.project.backend_pcbuild.pcComponents.dto.*;
 import org.project.backend_pcbuild.pcComponents.service.ComponentService;
-import org.project.backend_pcbuild.pcComponents.dto.BaseItemDto;
-import org.project.backend_pcbuild.pcComponents.dto.GameFpsComponentsFormDto;
 import org.project.backend_pcbuild.pcComponents.model.ComponentType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,10 +18,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.awt.desktop.UserSessionEvent;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/components")
 @RequiredArgsConstructor
+@Slf4j
 public class ComponentController {
 
     private final ComponentService componentService;
@@ -56,6 +59,7 @@ public class ComponentController {
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> saveComponent(@RequestBody BaseItemDto item) {
+        log.info("Saving component: {}", item);
         componentService.saveComponent(item);
         return ResponseEntity.ok("Component has been successfully saved");
     }
@@ -115,4 +119,50 @@ public class ComponentController {
         return ResponseEntity.ok(componentService.getComponentsPcStats());
     }
 
-}
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PutMapping("/{componentId}")
+    public ResponseEntity<?> updateComponent(@PathVariable Integer componentId, @RequestBody BaseItemDto item) {
+
+        if (componentId == null || item == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (item.getComponentType() == null) {
+            if (item instanceof ProcessorItemDto) {
+                item.setComponentType(ComponentType.PROCESSOR);
+            } else if (item instanceof GraphicsCardItemDto) {
+                item.setComponentType(ComponentType.GRAPHICS_CARD);
+            } else if (item instanceof MotherboardItemDto) {
+                item.setComponentType(ComponentType.MOTHERBOARD);
+            } else if (item instanceof MemoryItemDto) {
+                item.setComponentType(ComponentType.MEMORY);
+            } else if (item instanceof PowerSupplyItemDto) {
+                item.setComponentType(ComponentType.POWER_SUPPLY);
+            } else if (item instanceof CoolerItemDto) {
+                item.setComponentType(ComponentType.CPU_COOLER);
+            } else if (item instanceof CaseItemDto) {
+                item.setComponentType(ComponentType.CASE_PC);
+            } else if (item instanceof StorageItemDto) {
+                item.setComponentType(ComponentType.STORAGE);
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("message", "componentType missing and cannot be inferred"));
+            }
+
+        }
+        componentService.updateComponent(componentId, item);
+        return ResponseEntity.ok(Map.of("message", "Komponent został zaktualizowany"));
+
+    }
+
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @DeleteMapping("/{componentId}")
+    public ResponseEntity<?> deleteComponent(@PathVariable Integer componentId) {
+        if (componentId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        componentService.deleteComponent(componentId);
+        return ResponseEntity.ok(Map.of("message", "Komponent został usunięty"));
+
+    }
+    }

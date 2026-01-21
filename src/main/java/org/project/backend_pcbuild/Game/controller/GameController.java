@@ -86,22 +86,21 @@ public class GameController {
                 .findFirst();
 
         minCpuReq
-                .map(GameCpuRequirements::getProcessor).flatMap(proc -> offerService.findBestForCpu(offerRepository, proc.getComponent(), budget)
+                .map(GameCpuRequirements::getProcessor).flatMap(proc -> offerService.findBestForCpu(proc.getComponent(), budget)
                         .map(offer -> OfferComponentMapper.toDto(proc, offer))).ifPresent(dto -> recGameDto.getMinRec().add(dto));
 
 
         minGpuReq
                 .map(GameGpuRequirements::getGpuModel)
-                .flatMap(gpu -> offerService.findBestForGpuModel(offerRepository, gpu, budget)
+                .flatMap(gpu -> offerService.findBestForGpuModel(gpu, budget)
                         .map(offer -> OfferComponentMapper.toDto(offer.getComponent().getGraphicsCard(), offer))).ifPresent(dto -> recGameDto.getMinRec().add(dto));
 
-        recCpuReq.map(GameCpuRequirements::getProcessor).flatMap(proc -> offerService.findBestForCpu(offerRepository, proc.getComponent(), budget)
+        recCpuReq.map(GameCpuRequirements::getProcessor).flatMap(proc -> offerService.findBestForCpu(proc.getComponent(), budget)
                         .map(offer -> OfferComponentMapper.toDto(proc, offer))).ifPresent(dto -> recGameDto.getMaxRec().add(dto));
-
 
         recGpuReq
                 .map(GameGpuRequirements::getGpuModel)
-                .flatMap(gpu -> offerService.findBestForGpuModel(offerRepository, gpu, budget)
+                .flatMap(gpu -> offerService.findBestForGpuModel(gpu, budget)
                         .map(offer -> OfferComponentMapper.toDto(offer.getComponent().getGraphicsCard(), offer))).ifPresent(dto -> recGameDto.getMaxRec().add(dto));
 
 

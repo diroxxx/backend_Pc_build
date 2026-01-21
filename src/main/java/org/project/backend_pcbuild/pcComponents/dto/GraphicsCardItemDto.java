@@ -12,7 +12,7 @@ public class GraphicsCardItemDto extends BaseItemDto {
     private Double coreClock;
     private Double powerDraw;
     private Double lengthInMM;
-
+    private String baseModel;
     private Double benchmark;
 
 }

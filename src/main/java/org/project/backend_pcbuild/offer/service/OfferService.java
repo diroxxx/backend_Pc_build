@@ -53,66 +53,66 @@ public class OfferService {
         if (urls == null || urls.isEmpty()) return;
         offerRepository.deleteByWebsiteUrlIn(urls);
     }
-   public Optional<Offer> findBestForCpu(OfferRepository repo, Component comp, Double budget) {
+   public Optional<Offer> findBestForCpu(Component comp, Double budget) {
     if (comp == null) return Optional.empty();
     
-    Optional<Offer> exactMatch = findExactCpuOffer(repo, comp, budget);
+    Optional<Offer> exactMatch = findExactCpuOffer(comp, budget);
     if (exactMatch.isPresent()) {
         return exactMatch;
     }
     
     if (comp.getProcessor() != null && comp.getProcessor().getBenchmark() != null) {
-        return findSimilarCpuOffer(repo, comp.getProcessor().getBenchmark(), budget);
+        return findSimilarCpuOffer(comp.getProcessor().getBenchmark(), budget);
     }
     
     return Optional.empty();
 }
 
-private Optional<Offer> findExactCpuOffer(OfferRepository repo, Component comp, Double budget) {
+private Optional<Offer> findExactCpuOffer(Component comp, Double budget) {
     if (budget == null) {
-        List<Offer> list = repo.findByComponentOrderByPriceAsc(comp);
+        List<Offer> list = offerRepository.findByComponentOrderByPriceAsc(comp);
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     } else {
-        List<Offer> list = repo.findByComponentOrderByBudgetPriceAsc(comp.getId(), budget);
+        List<Offer> list = offerRepository.findByComponentOrderByBudgetPriceAsc(comp.getId(), budget);
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 }
 
-private Optional<Offer> findSimilarCpuOffer(OfferRepository repo, double benchmark, Double budget) {
+private Optional<Offer> findSimilarCpuOffer(double benchmark, Double budget) {
     double minBenchmark = benchmark * 0.95; 
     double maxBenchmark = benchmark * 1.05; 
     
     if (budget == null) {
-        List<Offer> list = repo.findByCpuBenchmarkRangeOrderByPriceAsc(minBenchmark, maxBenchmark);
+        List<Offer> list = offerRepository.findByCpuBenchmarkRangeOrderByPriceAsc(minBenchmark, maxBenchmark);
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     } else {
-        List<Offer> list = repo.findByCpuBenchmarkRangeAndBudgetOrderByPriceAsc(minBenchmark, maxBenchmark, budget);
+        List<Offer> list = offerRepository.findByCpuBenchmarkRangeAndBudgetOrderByPriceAsc(minBenchmark, maxBenchmark, budget);
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 }
 
-public Optional<Offer> findBestForGpuModel(OfferRepository repo, GpuModel gm, Double budget) {
+public Optional<Offer> findBestForGpuModel(GpuModel gm, Double budget) {
     if (gm == null) return Optional.empty();
     
-    Optional<Offer> exactMatch = findExactGpuOffer(repo, gm, budget);
+    Optional<Offer> exactMatch = findExactGpuOffer(gm, budget);
     if (exactMatch.isPresent()) {
         return exactMatch;
     }
     
     Double avgBenchmark = getAverageBenchmarkForGpuModel(gm);
     if (avgBenchmark != null) {
-        return findSimilarGpuOffer(repo, avgBenchmark, budget);
+        return findSimilarGpuOffer(avgBenchmark, budget);
     }
     
     return Optional.empty();
 }
 
-private Optional<Offer> findExactGpuOffer(OfferRepository repo, GpuModel gm, Double budget) {
+private Optional<Offer> findExactGpuOffer(GpuModel gm, Double budget) {
     if (budget == null) {
-        List<Offer> list = repo.findByGpuModelOrderByPriceAsc(gm);
+        List<Offer> list = offerRepository.findByGpuModelOrderByPriceAsc(gm);
         return list.stream().findFirst();
     } else {
-        List<Offer> list = repo.findByGpuModelAndPriceLessThanEqualOrderByPriceAsc(gm, budget, PageRequest.of(0, 1));
+        List<Offer> list = offerRepository.findByGpuModelAndPriceLessThanEqualOrderByPriceAsc(gm, budget, PageRequest.of(0, 1));
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 }
@@ -125,15 +125,15 @@ private Double getAverageBenchmarkForGpuModel(GpuModel gm) {
             .orElse(null);
 }
 
-private Optional<Offer> findSimilarGpuOffer(OfferRepository repo, double benchmark, Double budget) {
+private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
     double minBenchmark = benchmark * 0.95; 
     double maxBenchmark = benchmark * 1.05;
     
     if (budget == null) {
-        List<Offer> list = repo.findByGpuBenchmarkRangeOrderByPriceAsc(minBenchmark, maxBenchmark);
+        List<Offer> list = offerRepository.findByGpuBenchmarkRangeOrderByPriceAsc(minBenchmark, maxBenchmark);
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     } else {
-        List<Offer> list = repo.findByGpuBenchmarkRangeAndBudgetOrderByPriceAsc(minBenchmark, maxBenchmark, budget);
+        List<Offer> list = offerRepository.findByGpuBenchmarkRangeAndBudgetOrderByPriceAsc(minBenchmark, maxBenchmark, budget);
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 }

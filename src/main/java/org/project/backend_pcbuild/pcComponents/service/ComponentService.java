@@ -36,14 +36,7 @@ public class ComponentService {
     private final BrandRepository brandRepository;
     private final GpuModelRepository gpuModelRepository;
 
-//    public Map<String, List<Object>> fetchComponentsAsMap() {
-//        return restClient.get()
-//                .uri("http://127.0.0.1:5000/installComponents")
-//                .retrieve()
-//                .body(new ParameterizedTypeReference<>() {});
-//    }
-
-
+    
     public Page<BaseItemDto> getComponents(Pageable pageable, ComponentType type, String brand, String searchTerm) {
         Specification<Component> spec = Specification.not(null);
 
@@ -266,7 +259,6 @@ public class ComponentService {
                             Cooler cooler = new Cooler();
                             Object socketsObj = data.get("sockets");
                             if (socketsObj instanceof List) {
-                                @SuppressWarnings("unchecked")
                                 List<String> sockets = (List<String>) socketsObj;
                                 cooler.setSocketTypes(sockets);
                             } else if (socketsObj instanceof String s) {
@@ -411,10 +403,10 @@ public class ComponentService {
     private Optional<String> extractProcessorChipset(String model) {
         if (model == null) return Optional.empty();
         String[] patterns = new String[] {
-                "(Intel\\s+Core\\s+i[3579]-?\\d{3,4}[A-Za-z0-9-]*)",    // Intel Core i7-4770K etc.
-                "(AMD\\s+FX-\\d{3,4}[A-Za-z0-9-]*)",                    // AMD FX-6300
-                "(AMD\\s+Ryzen\\s+\\d\\s*\\d{3,4}[A-Za-z0-9-]*)",       // AMD Ryzen 5 1500X
-                "(Intel\\s+Pentium\\s+\\w+)",                           // inne przypadki
+                "(Intel\\s+Core\\s+i[3579]-?\\d{3,4}[A-Za-z0-9-]*)",
+                "(AMD\\s+FX-\\d{3,4}[A-Za-z0-9-]*)",
+                "(AMD\\s+Ryzen\\s+\\d\\s*\\d{3,4}[A-Za-z0-9-]*)",
+                "(Intel\\s+Pentium\\s+\\w+)",
         };
         for (String pat : patterns) {
             Pattern p = Pattern.compile(pat, Pattern.CASE_INSENSITIVE);
@@ -443,11 +435,10 @@ public class ComponentService {
             found = findByContainingToken(brand, model);
         }
         if (!found.isPresent()) {
-            // 4) try to extract chipset by regex heuristics (e.g. "RTX 3060 Ti")
             Optional<String> extracted = extractChipsetWithRegex(model);
             if (extracted.isPresent()) {
                 String chipsetCandidate = extracted.get();
-                // spróbuj dopasować extracted jako exact lub containing
+
                 found = findByExactChipset(chipsetCandidate);
                 if (!found.isPresent()) {
                     List<GpuModel> candidates = gpuModelRepository.findByChipsetContainingIgnoreCase(chipsetCandidate);
@@ -503,7 +494,6 @@ public class ComponentService {
         String combined = (brand == null ? "" : brand + " ") + (model == null ? "" : model);
         combined = normalize(combined);
 
-        // Pobierz wszystkie modele i posortuj po długości desc (dłuższe najpierw)
         List<GpuModel> all = gpuModelRepository.findAll()
                 .stream()
                 .sorted(Comparator.comparingInt((GpuModel gm) -> gm.getChipset().length()).reversed())
@@ -768,4 +758,161 @@ public class ComponentService {
                 now
         );
         }
+
+
+    @Transactional
+    public void updateComponent(Integer id, BaseItemDto dto) {
+        log.info("Updating component {}: {}", id, dto);
+        if (id == null) throw new IllegalArgumentException("Id cannot be null");
+        Component component = componentRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Component not found: " + id));
+
+        if (dto.getBrand() != null && !dto.getBrand().isBlank()) {
+            component.setBrand(getOrCreateBrand(dto.getBrand()));
+        }
+        if (dto.getModel() != null && !dto.getModel().isBlank()) {
+            component.setModel(dto.getModel());
+        }
+
+        if (dto.getComponentType() == null) {
+            throw new IllegalArgumentException("Component type required for update");
+        }
+        component.setComponentType(dto.getComponentType());
+
+        switch (dto.getComponentType()) {
+            case PROCESSOR -> {
+                ProcessorItemDto p = (ProcessorItemDto) dto;
+                Processor cpu = component.getProcessor();
+                if (cpu == null) {
+                    cpu = new Processor();
+                    cpu.setComponent(component);
+                    component.setProcessor(cpu);
+                }
+                setIfNotNull(p.getCores(), cpu::setCores);
+                setIfNotNull(p.getThreads(), cpu::setThreads);
+                setIfNotNull(p.getSocketType(), cpu::setSocketType);
+                setIfNotNull(p.getBaseClock(), cpu::setBaseClock);
+                setIfNotNull(p.getBoostClock(), cpu::setBoostClock);
+                setIfNotNull(p.getIntegratedGraphics(), cpu::setIntegratedGraphics);
+                setIfNotNull(p.getTdp(), cpu::setTdp);
+                setIfNotNull(p.getBenchmark(), cpu::setBenchmark);
+                component.setComponentType(ComponentType.PROCESSOR);
+            }
+            case GRAPHICS_CARD -> {
+                GraphicsCardItemDto g = (GraphicsCardItemDto) dto;
+                GraphicsCard gpu = component.getGraphicsCard();
+                if (gpu == null) {
+                    gpu = new GraphicsCard();
+                    gpu.setComponent(component);
+                    component.setGraphicsCard(gpu);
+                }
+
+                Optional<GpuModel> byChipsetIgnoreCase = gpuModelRepository.findByChipsetIgnoreCase(g.getBaseModel());
+                if (byChipsetIgnoreCase.isPresent()) {
+                    gpu.setGpuModel(byChipsetIgnoreCase.get());
+                    setIfNotNull(g.getVram(), gpu::setVram);
+                    setIfNotNull(g.getGddr(), gpu::setGddr);
+                    setIfNotNull(g.getPowerDraw(), gpu::setPowerDraw);
+                    setIfNotNull(g.getBoostClock(), gpu::setBoostClock);
+                    setIfNotNull(g.getCoreClock(), gpu::setCoreClock);
+                    setIfNotNull(g.getLengthInMM(), gpu::setLengthInMM);
+                    setIfNotNull(g.getBenchmark(), gpu::setBenchmark);
+                }
+                component.setComponentType(ComponentType.GRAPHICS_CARD);
+
+            }
+            case MOTHERBOARD -> {
+                MotherboardItemDto m = (MotherboardItemDto) dto;
+                Motherboard mb = component.getMotherboard();
+                if (mb == null) {
+                    mb = new Motherboard();
+                    mb.setComponent(component);
+                    component.setMotherboard(mb);
+                }
+                setIfNotNull(m.getChipset(), mb::setChipset);
+                setIfNotNull(m.getSocketType(), mb::setSocketType);
+                setIfNotNull(m.getFormat(), mb::setFormat);
+                setIfNotNull(m.getRamSlots(), mb::setRamSlots);
+                setIfNotNull(m.getRamCapacity(), mb::setRamCapacity);
+                setIfNotNull(m.getMemoryType(), mb::setMemoryType);
+                component.setComponentType(ComponentType.MOTHERBOARD);
+            }
+            case MEMORY -> {
+                MemoryItemDto mm = (MemoryItemDto) dto;
+                Memory mem = component.getMemory();
+                if (mem == null) {
+                    mem = new Memory();
+                    mem.setComponent(component);
+                    component.setMemory(mem);
+                }
+                setIfNotNull(mm.getType(), mem::setType);
+                setIfNotNull(mm.getCapacity(), mem::setCapacity);
+                setIfNotNull(mm.getSpeed(), mem::setSpeed);
+                setIfNotNull(mm.getLatency(), mem::setLatency);
+                setIfNotNull(mm.getAmount(), mem::setAmount);
+                component.setComponentType(ComponentType.MEMORY);
+            }
+            case POWER_SUPPLY -> {
+                PowerSupplyItemDto psDto = (PowerSupplyItemDto) dto;
+                PowerSupply ps = component.getPowerSupply();
+                if (ps == null) {
+                    ps = new PowerSupply();
+                    ps.setComponent(component);
+                    component.setPowerSupply(ps);
+                }
+                setIfNotNull(psDto.getMaxPowerWatt(), ps::setMaxPowerWatt);
+                setIfNotNull(psDto.getType(), ps::setType);
+                setIfNotNull(psDto.getModular(), ps::setModular);
+                setIfNotNull(psDto.getEfficiencyRating(), ps::setEfficiencyRating);
+                component.setComponentType(ComponentType.POWER_SUPPLY);
+            }
+            case CPU_COOLER -> {
+                CoolerItemDto cDto = (CoolerItemDto) dto;
+                Cooler cooler = component.getCooler();
+                if (cooler == null) {
+                    cooler = new Cooler();
+                    cooler.setComponent(component);
+                    component.setCooler(cooler);
+                }
+                setIfNotNull(cDto.getCoolerSocketsType(), cooler::setSocketTypes);
+                setIfNotNull(cDto.getFanRpm(), cooler::setFanRpm);
+                setIfNotNull(cDto.getNoiseLevel(), cooler::setNoiseLevel);
+                setIfNotNull(cDto.getRadiatorSize(), cooler::setRadiatorSize);
+                component.setComponentType(ComponentType.CPU_COOLER);
+            }
+            case CASE_PC -> {
+                Case caseDto = component.getCase_();
+                CaseItemDto cDto = (CaseItemDto) dto;
+                if (caseDto == null) {
+                    caseDto = new Case();
+                    caseDto.setComponent(component);
+                    component.setCase_(caseDto);
+                }
+                setIfNotNull(cDto.getFormat(), caseDto::setFormat);
+                component.setComponentType(ComponentType.CASE_PC);
+            }
+            case STORAGE -> {
+                StorageItemDto sDto = (StorageItemDto) dto;
+                Storage st = component.getStorage();
+                if (st == null) {
+                    st = new Storage();
+                    st.setComponent(component);
+                    component.setStorage(st);
+                }
+                setIfNotNull(sDto.getCapacity(), st::setCapacity);
+                component.setComponentType(ComponentType.STORAGE);
+            }
+            default -> throw new IllegalArgumentException("Unsupported component type: " + dto.getComponentType());
+        }
+
+        componentRepository.save(component);
+    }
+
+    @Transactional
+    public void deleteComponent(Integer id) {
+        if (id == null) throw new IllegalArgumentException("Id cannot be null");
+        componentRepository.deleteById(id);
+    }
+
+
 }
