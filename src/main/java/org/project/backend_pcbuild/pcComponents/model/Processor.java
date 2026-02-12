@@ -30,7 +30,7 @@ public class Processor {
     @JoinColumn(name = "component_id")
     private Component component;
 
-    @OneToMany(mappedBy = "processor", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "processor")
     private List<GameCpuRequirements> gameCpuRequirements = new ArrayList<>();
 
 }

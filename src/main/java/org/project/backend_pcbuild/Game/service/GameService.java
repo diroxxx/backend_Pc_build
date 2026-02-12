@@ -60,22 +60,22 @@ public class GameService {
 
         for (Game game : all) {
             List<Processor> listMinCpu = game.getGameCpuRequirements().stream()
+                    .filter(req -> req.getRecGameLevel() == RecGameLevel.MIN)
                     .map(GameCpuRequirements::getProcessor)
                     .toList();
 
             List<Processor> listRecCpu = game.getGameCpuRequirements().stream()
-                    .filter(gameCpuRequirements -> gameCpuRequirements.getRecGameLevel() == RecGameLevel.REC)
+                    .filter(req -> req.getRecGameLevel() == RecGameLevel.REC)
                     .map(GameCpuRequirements::getProcessor)
                     .toList();
 
             List<GpuModel> listMinGpu = game.getGameGpuRequirements().stream()
-                    .filter(gameGpuRequirements -> gameGpuRequirements.getRecGameLevel() == RecGameLevel.MIN)
+                    .filter(req -> req.getRecGameLevel() == RecGameLevel.MIN)
                     .map(GameGpuRequirements::getGpuModel)
                     .toList();
 
-
             List<GpuModel> listRecGpu = game.getGameGpuRequirements().stream()
-                    .filter(gameGpuRequirements -> gameGpuRequirements.getRecGameLevel() == RecGameLevel.REC)
+                    .filter(req -> req.getRecGameLevel() == RecGameLevel.REC)
                     .map(GameGpuRequirements::getGpuModel)
                     .toList();
 
@@ -214,18 +214,35 @@ public class GameService {
         if (file != null && !file.isEmpty()) game.setImage(file.getBytes());
         if (dto.getTitle() != null && !dto.getTitle().isBlank()) game.setTitle(dto.getTitle());
 
-        gameCpuRequirementsRepository.deleteByGameId(game.getId());
+        gameCpuRequirementsRepository.deleteByGame_Id(game.getId());
         gameGpuRequirementsRepository.deleteByGameId(game.getId());
+
+        game.getGameCpuRequirements().clear();
+        game.getGameGpuRequirements().clear();
+
+        Set<Long> seenProcessorIds = new HashSet<>();
 
         List<GameCpuRequirements> toSaveCpu = new ArrayList<>();
         for (CpuRecDto c : dto.getCpuSpecs()) {
             Processor proc = processorRepository.findById(c.getProcessorId()).orElseThrow();
             GameCpuRequirements gcr = new GameCpuRequirements();
+
+            if (!seenProcessorIds.add(c.getProcessorId())) {
+                continue;
+                  }
+
             gcr.setGame(game);
             gcr.setProcessor(proc);
             gcr.setRecGameLevel(c.getRecGameLevel());
             toSaveCpu.add(gcr);
+            System.out.println(game.getTitle() + " " + proc.getComponent().getModel() + " " + c.getRecGameLevel());
         }
+
+        toSaveCpu.forEach(x ->
+                System.out.println("SAVE CPU: game=" + x.getGame().getId()
+                        + ", proc=" + x.getProcessor().getId()
+                        + ", level=" + x.getRecGameLevel())
+        );
         gameCpuRequirementsRepository.saveAll(toSaveCpu);
 
         List<GameGpuRequirements> toSaveGpu = new ArrayList<>();

@@ -2,6 +2,7 @@ package org.project.backend_pcbuild.offersUpdates.repository;
 
 import org.project.backend_pcbuild.offersUpdates.dto.OfferUpdateStatsDTO;
 import org.project.backend_pcbuild.offersUpdates.model.OfferUpdate;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,6 +29,18 @@ public interface OfferUpdateRepository extends JpaRepository<OfferUpdate, Long> 
     ORDER BY u.startedAt
 """)
     List<OfferUpdateStatsDTO> findOfferStatsSince(@Param("thirtyDaysAgo") LocalDateTime thirtyDaysAgo);
+
+
+
+//    @EntityGraph(attributePaths = {
+//            "shopOfferUpdates",
+//            "shopOfferUpdates.shop",
+//            "shopOfferUpdates.offerShopOfferUpdates",
+//            "shopOfferUpdates.offerShopOfferUpdates.offer",
+//            "shopOfferUpdates.offerShopOfferUpdates.offer.component",
+//            "shopOfferUpdates.offerShopOfferUpdates.offer.component.componentType"
+//    })
+//    List<OfferUpdate> findAll();
 
 
     interface OfferUpdateShopsOffersAmountStatsProjection {

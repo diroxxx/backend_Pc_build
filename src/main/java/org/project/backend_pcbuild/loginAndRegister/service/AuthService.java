@@ -57,11 +57,21 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+
     public UserDto register(SignUpDto userDto) {
         Optional<User> byEmail = userRepository.findByEmail(userDto.getEmail());
         if (byEmail.isPresent()) {
             throw new AppException("Email already in use", HttpStatus.BAD_REQUEST);
         }
+
+        if (userDto.getUsername() != null && userRepository.findByUsername(userDto.getUsername()).isPresent()) {
+            throw new AppException("Username already in use", HttpStatus.BAD_REQUEST);
+        }
+
+        if (userDto.getPassword() != null && userDto.getPassword().length < 8) {
+            throw new AppException("Password must be at least 8 characters long", HttpStatus.BAD_REQUEST);
+        }
+
         User user = userMapper.signUpToUser(userDto);
         user.setRole(UserRole.USER);
         user.setPassword(passwordEncoder.encode(CharBuffer.wrap(userDto.getPassword())));

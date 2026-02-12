@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface GameCpuRequirementsRepository extends JpaRepository<GameCpuRequirements, Long> {
 
 
-    void deleteByGameId(Long gameId);
+    void deleteByGame_Id(Long gameId);
 }
