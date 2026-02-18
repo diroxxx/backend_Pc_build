@@ -24,7 +24,7 @@ public interface OfferUpdateRepository extends JpaRepository<OfferUpdate, Long> 
     JOIN u.shopOfferUpdates sou
     JOIN sou.offerShopOfferUpdates osou
     JOIN osou.offer o
-    WHERE u.startedAt >= :thirtyDaysAgo
+    WHERE u.startedAt >= :thirtyDaysAgo and o.isVisible = true
     GROUP BY u.startedAt
     ORDER BY u.startedAt
 """)

@@ -107,7 +107,6 @@ public class OfferMatchingService {
         };
     }
 
-    //** GENERIC MATCHING METHOD **//
     private <T> Optional<Component> findBestMatch(
             OfferContext ctx,
             String[] offerWords,
