@@ -2,16 +2,16 @@ package org.project.backend_pcbuild.pcComponents.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
 @Entity
 @Data
-public class Cooler {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@EqualsAndHashCode(callSuper = true)
+@DiscriminatorValue("CPU_COOLER")
+@Table(name = "cooler")
+public class Cooler extends Component {
 
     @ElementCollection
     @CollectionTable(name = "cooler_socket_types", joinColumns = @JoinColumn(name = "cooler_id"))
@@ -22,7 +22,4 @@ public class Cooler {
     private String noiseLevel;
     private String radiatorSize;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "component_id")
-    private Component component;
 }

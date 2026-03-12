@@ -2,18 +2,15 @@ package org.project.backend_pcbuild.pcComponents.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Data
-public class Storage {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@EqualsAndHashCode(callSuper = true)
+@DiscriminatorValue("STORAGE")
+@Table(name = "storage")
+public class Storage extends Component {
 
     private Double capacity;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "component_id")
-    private Component component;
 
 }

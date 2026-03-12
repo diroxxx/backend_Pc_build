@@ -13,7 +13,7 @@ public class CpuRecDto {
     public static CpuRecDto toDto(Processor processor){
         CpuRecDto cpuRecDto = new CpuRecDto();
         cpuRecDto.setProcessorId(processor.getId());
-        cpuRecDto.setProcessorModel(processor.getComponent().getModel());
+        cpuRecDto.setProcessorModel(processor.getModel());
         return cpuRecDto;
     }
 }

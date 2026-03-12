@@ -17,6 +17,7 @@ import org.project.backend_pcbuild.offer.model.Offer;
 import org.project.backend_pcbuild.offer.repository.OfferRepository;
 import org.project.backend_pcbuild.pcComponents.model.Component;
 import org.project.backend_pcbuild.pcComponents.model.ComponentType;
+import org.project.backend_pcbuild.pcComponents.model.Processor;
 import org.project.backend_pcbuild.usersManagement.model.User;
 
 import java.util.List;
@@ -115,8 +116,7 @@ public class ComputerServiceTest {
         Offer offer = new Offer();
         offer.setWebsiteUrl(url);
         offer.setPrice(99.99);
-        Component comp = new Component();
-        comp.setComponentType(ComponentType.PROCESSOR);
+        Processor comp = new Processor();
         comp.setModel("i7");
         offer.setComponent(comp);
 

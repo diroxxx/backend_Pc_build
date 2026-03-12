@@ -25,10 +25,8 @@ public interface ComponentRepository extends JpaRepository<Component, Integer>, 
 
     List<Component> findAllByComponentType(ComponentType componentType);
 
-    @Query("select c.model from Component c join c.processor p " +
-            "where c.componentType = :type and p.benchmark is not null " +
-            "order by p.benchmark desc")
-    List<String> findProcessorModelsOrderedByBenchmarkDesc(@Param("type") ComponentType type);
+    @Query("select p.model from Processor p where p.benchmark is not null order by p.benchmark desc")
+    List<String> findProcessorModelsOrderedByBenchmarkDesc();
 
 
     @Query(value = """

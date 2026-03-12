@@ -55,7 +55,7 @@ public class OfferMatchingService {
     private static final Pattern CAPACITY_GB_PATTERN = Pattern.compile("(\\d+)\\s*gb", Pattern.CASE_INSENSITIVE);
     private static final Pattern DDR_TYPE_PATTERN = Pattern.compile("(ddr\\d)", Pattern.CASE_INSENSITIVE);
     private static final Pattern SPEED_MHZ_PATTERN = Pattern.compile("(\\d{3,5})\\s*mhz", Pattern.CASE_INSENSITIVE);
-    private static final Pattern POWER_WATT_PATTERN = Pattern.compile("(\\d+)\\s*w", Pattern.CASE_INSENSITIVE);
+    private static final Pattern POWER_WATT_PATTERN = Pattern.compile("(\\d{3,4})\\s*w\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern FORMAT_PATTERN = Pattern.compile("\\S*atx|\\S*itx", Pattern.CASE_INSENSITIVE);
     private static final Pattern SOCKET_PATTERN = Pattern.compile("(am4|am5|lga\\d{4}|s\\d{3,4}|fm2|fm1)", Pattern.CASE_INSENSITIVE);
     private static final Pattern CORES_PATTERN = Pattern.compile("(\\d+)\\s*(rdzeni|rdzenie|cores)", Pattern.CASE_INSENSITIVE);
@@ -65,11 +65,23 @@ public class OfferMatchingService {
     private static final Pattern GPU_RTX_PATTERN = Pattern.compile("(rtx\\s*\\d{3,4}(?:\\s*ti|\\s*super)?)");
     private static final Pattern GPU_GTX_PATTERN = Pattern.compile("(gtx\\s*\\d{3,4}(?:\\s*ti)?)");
     private static final Pattern GPU_GT_PATTERN = Pattern.compile("(gt\\s*\\d{3,4})");
-    private static final Pattern GPU_RX_PATTERN = Pattern.compile("(rx\\s*\\d{3,4}(?:\\s*xt)?)");
-    
+    private static final Pattern GPU_RX_PATTERN = Pattern.compile("(rx\\s*\\d{3,4}(?:\\s*xtx|\\s*xt)?)");
+    private static final Pattern GPU_ARC_PATTERN = Pattern.compile("(arc\\s*[ab]\\d{3})");
+
     // CPU patterns
     private static final Pattern CPU_INTEL_PATTERN = Pattern.compile("(i[3579])[-\\s]?(\\d{3,5}[a-z0-9]*)");
+    private static final Pattern CPU_CORE_ULTRA_PATTERN = Pattern.compile("(core\\s*ultra\\s*[579])\\s*(\\d{3}[a-z0-9]*)");
     private static final Pattern CPU_RYZEN_PATTERN = Pattern.compile("(ryzen\\s*[3579])\\s*(\\d{3,4}[a-z0-9]*)");
+    private static final Pattern CPU_RYZEN_THREADRIPPER_PATTERN = Pattern.compile("(threadripper\\s*(?:pro\\s*)?\\d{4}[a-z0-9]*)");
+
+    // DDR speed without MHz suffix (e.g. "DDR5-6000" or "DDR5 6000")
+    private static final Pattern DDR_SPEED_PATTERN = Pattern.compile("ddr\\d[-\\s](\\d{3,5})", Pattern.CASE_INSENSITIVE);
+
+    // PSU efficiency
+    private static final Pattern PSU_EFFICIENCY_PATTERN = Pattern.compile("80\\s*plus\\s*(white|bronze|silver|gold|platinum|titanium)?", Pattern.CASE_INSENSITIVE);
+
+    // Storage type
+    private static final Pattern STORAGE_TYPE_PATTERN = Pattern.compile("\\b(nvme|ssd|hdd|sata)\\b", Pattern.CASE_INSENSITIVE);
     
     // Storage patterns
     private static final Pattern STORAGE_CAPACITY_PATTERN = Pattern.compile("(\\d+)\\s*(gb|tb)", Pattern.CASE_INSENSITIVE);
@@ -121,7 +133,13 @@ public class OfferMatchingService {
         String bestDetails = "";
 
         for (Object obj : items) {
-            T item = itemExtractor.apply(obj);
+            T item;
+            try {
+                item = itemExtractor.apply(obj);
+            } catch (ClassCastException e) {
+                log.warn("[{}] Skipping item with unexpected type: {}", categoryName, obj.getClass().getSimpleName());
+                continue;
+            }
             Component comp = componentGetter.apply(item);
             
             if (comp == null || comp.getModel() == null) continue;
@@ -160,10 +178,9 @@ public class OfferMatchingService {
 
         return findBestMatch(ctx, offerWords, items,
             obj -> (Processor) obj,
-            cpu -> cpu.getComponent(),
+            cpu -> cpu,
             (context, cpu) -> {
-                Component comp = cpu.getComponent();
-                String compModelLower = comp.getModel().toLowerCase();
+                String compModelLower = cpu.getModel().toLowerCase();
                 String[] compWords = compModelLower.split("\\s+");
                 String compCpuClass = extractCpuModel(compModelLower);
 
@@ -201,10 +218,9 @@ public class OfferMatchingService {
 
         return findBestMatch(ctx, offerWords, items,
             obj -> (GraphicsCard) obj,
-            gpu -> gpu.getComponent(),
+            gpu -> gpu,
             (context, gpu) -> {
-                Component comp = gpu.getComponent();
-                String compModelLower = comp.getModel().toLowerCase();
+                String compModelLower = gpu.getModel().toLowerCase();
                 String[] compWords = compModelLower.split("\\s+");
                 String compChip = extractGpuChip(compModelLower);
 
@@ -225,16 +241,16 @@ public class OfferMatchingService {
     }
 
     private Optional<Component> matchMemory(OfferContext ctx, String[] offerWords, List<?> items) {
-        Integer offerCapacity = extractIntPattern(CAPACITY_GB_PATTERN, ctx.modelLower, 1);
-        String offerType = extractPattern(DDR_TYPE_PATTERN, ctx.modelLower, 1);
-        Integer offerSpeed = extractIntPattern(SPEED_MHZ_PATTERN, ctx.modelLower, 1);
+        Integer offerCapacity = extractIntPattern(CAPACITY_GB_PATTERN, ctx.titleLower, 1);
+        String offerType = extractPattern(DDR_TYPE_PATTERN, ctx.titleLower, 1);
+        Integer speedMhz = extractIntPattern(SPEED_MHZ_PATTERN, ctx.titleLower, 1);
+        final Integer offerSpeed = speedMhz != null ? speedMhz : extractIntPattern(DDR_SPEED_PATTERN, ctx.titleLower, 1);
 
         return findBestMatch(ctx, offerWords, items,
             obj -> (Memory) obj,
-            mem -> mem.getComponent(),
+            mem -> mem,
             (context, mem) -> {
-                Component comp = mem.getComponent();
-                String compModelLower = comp.getModel().toLowerCase();
+                String compModelLower = mem.getModel().toLowerCase();
                 String[] compWords = compModelLower.split("\\s+");
 
                 if (offerCapacity != null && mem.getCapacity() != null) {
@@ -263,18 +279,19 @@ public class OfferMatchingService {
     }
 
     private Optional<Component> matchMotherboard(OfferContext ctx, String[] offerWords, List<?> items) {
-        String offerChipset = extractMotherboardChipset(ctx.modelLower);
-        String offerFormat = extractPattern(FORMAT_PATTERN, ctx.modelLower, 0);
-        String offerRamType = extractPattern(DDR_TYPE_PATTERN, ctx.modelLower, 1);
-        Integer offerRamCapacity = extractIntPattern(CAPACITY_GB_PATTERN, ctx.modelLower, 1);
-        String offerSocket = extractPattern(SOCKET_PATTERN, ctx.modelLower, 1);
+        // Try model first, fall back to title for richer data
+        String searchText = !ctx.modelLower.isBlank() ? ctx.modelLower : ctx.titleLower;
+        String offerChipset = extractMotherboardChipset(searchText);
+        String offerFormat = extractPattern(FORMAT_PATTERN, searchText, 0);
+        String offerRamType = extractPattern(DDR_TYPE_PATTERN, searchText, 1);
+        Integer offerRamCapacity = extractIntPattern(CAPACITY_GB_PATTERN, searchText, 1);
+        String offerSocket = extractPattern(SOCKET_PATTERN, searchText, 1);
 
         return findBestMatch(ctx, offerWords, items,
             obj -> (Motherboard) obj,
-            mb -> mb.getComponent(),
+            mb -> mb,
             (context, mb) -> {
-                Component comp = mb.getComponent();
-                String compModelLower = comp.getModel().toLowerCase();
+                String compModelLower = mb.getModel().toLowerCase();
                 String[] compWords = compModelLower.split("\\s+");
 
                 if (offerChipset != null && mb.getChipset() != null) {
@@ -300,14 +317,16 @@ public class OfferMatchingService {
     }
 
     private Optional<Component> matchPowerSupply(OfferContext ctx, String[] offerWords, List<?> items) {
-        Integer offerMaxPower = extractIntPattern(POWER_WATT_PATTERN, ctx.modelLower, 1);
+        // Use a more specific pattern: only match 3-4 digit wattage to avoid false positives
+        Integer offerMaxPower = extractIntPattern(
+                Pattern.compile("(\\d{3,4})\\s*w\\b", Pattern.CASE_INSENSITIVE), ctx.titleLower, 1);
+        String offerEfficiency = extractPattern(PSU_EFFICIENCY_PATTERN, ctx.titleLower, 0);
 
         return findBestMatch(ctx, offerWords, items,
             obj -> (PowerSupply) obj,
-            ps -> ps.getComponent(),
+            ps -> ps,
             (context, ps) -> {
-                Component comp = ps.getComponent();
-                String compModelLower = comp.getModel().toLowerCase();
+                String compModelLower = ps.getModel().toLowerCase();
                 String[] compWords = compModelLower.split("\\s+");
 
                 if (offerMaxPower != null && ps.getMaxPowerWatt() != null) {
@@ -319,9 +338,10 @@ public class OfferMatchingService {
                 double wordsScore = calculateCommonWordsScore(offerWords, compWords, WEIGHT_COMMON_WORDS);
                 double modelSim = similarity.apply(context.modelLower, compModelLower);
                 double powerScore = compareInteger(offerMaxPower, ps.getMaxPowerWatt(), WEIGHT_POWER);
-                double total = wordsScore + modelSim + powerScore;
-                
-                return new MatchScore(total, ", power=" + offerMaxPower + "W");
+                double efficiencyScore = compareString(offerEfficiency, ps.getEfficiencyRating(), 0.3);
+                double total = wordsScore + modelSim + powerScore + efficiencyScore;
+
+                return new MatchScore(total, ", power=" + offerMaxPower + "W, eff=" + offerEfficiency);
             },
             "PSU"
         );
@@ -332,10 +352,9 @@ public class OfferMatchingService {
     
         return findBestMatch(ctx, offerWords, items,
             obj -> (Storage) obj,
-            st -> st.getComponent(),
+            st -> st,
             (context, st) -> {
-                Component comp = st.getComponent();
-                String compModelLower = comp.getModel().toLowerCase();
+                String compModelLower = st.getModel().toLowerCase();
                 String[] compWords = compModelLower.split("\\s+");
     
                 if (offerCapacityGB != null && st.getCapacity() != null) {
@@ -362,10 +381,9 @@ public class OfferMatchingService {
 
         return findBestMatch(ctx, offerWords, items,
             obj -> (Case) obj,
-            c -> c.getComponent(),
+            c -> c,
             (context, c) -> {
-                Component comp = c.getComponent();
-                String compModelLower = comp.getModel().toLowerCase();
+                String compModelLower = c.getModel().toLowerCase();
                 String[] compWords = compModelLower.split("\\s+");
 
                 double wordsScore = calculateCommonWordsScore(offerWords, compWords, WEIGHT_COMMON_WORDS);
@@ -380,19 +398,27 @@ public class OfferMatchingService {
     }
 
     private Optional<Component> matchCooler(OfferContext ctx, String[] offerWords, List<?> items) {
+        String offerSocket = extractPattern(SOCKET_PATTERN, ctx.titleLower, 1);
+
         return findBestMatch(ctx, offerWords, items,
             obj -> (Cooler) obj,
-            cooler -> cooler.getComponent(),
+            cooler -> cooler,
             (context, cooler) -> {
-                Component comp = cooler.getComponent();
-                String compModelLower = comp.getModel().toLowerCase();
+                String compModelLower = cooler.getModel().toLowerCase();
                 String[] compWords = compModelLower.split("\\s+");
 
                 double wordsScore = calculateCommonWordsScore(offerWords, compWords, WEIGHT_COMMON_WORDS);
                 double modelSim = similarity.apply(context.modelLower, compModelLower);
-                double total = wordsScore + modelSim;
-                
-                return new MatchScore(total, "");
+
+                double socketScore = 0.0;
+                if (offerSocket != null && cooler.getSocketTypes() != null) {
+                    boolean socketMatch = cooler.getSocketTypes().stream()
+                            .anyMatch(s -> s.equalsIgnoreCase(offerSocket));
+                    socketScore = socketMatch ? WEIGHT_SOCKET : 0.0;
+                }
+
+                double total = wordsScore + modelSim + socketScore;
+                return new MatchScore(total, ", socket=" + offerSocket);
             },
             "COOLER"
         );
@@ -409,7 +435,7 @@ public class OfferMatchingService {
             return null;
         }
 
-        Pattern[] patterns = {GPU_RTX_PATTERN, GPU_GTX_PATTERN, GPU_GT_PATTERN, GPU_RX_PATTERN};
+        Pattern[] patterns = {GPU_RTX_PATTERN, GPU_GTX_PATTERN, GPU_GT_PATTERN, GPU_RX_PATTERN, GPU_ARC_PATTERN};
 
         for (Pattern p : patterns) {
             Matcher m = p.matcher(lower);
@@ -424,18 +450,24 @@ public class OfferMatchingService {
         if (text == null) return null;
         String lower = text.toLowerCase();
 
+        Matcher ultraMatcher = CPU_CORE_ULTRA_PATTERN.matcher(lower);
+        if (ultraMatcher.find()) {
+            return (ultraMatcher.group(1).replaceAll("\\s+", " ") + " " + ultraMatcher.group(2)).toLowerCase();
+        }
+
         Matcher intelMatcher = CPU_INTEL_PATTERN.matcher(lower);
         if (intelMatcher.find()) {
-            String series = intelMatcher.group(1);
-            String model = intelMatcher.group(2);
-            return (series + "-" + model).toLowerCase();
+            return (intelMatcher.group(1) + "-" + intelMatcher.group(2)).toLowerCase();
+        }
+
+        Matcher threadripperMatcher = CPU_RYZEN_THREADRIPPER_PATTERN.matcher(lower);
+        if (threadripperMatcher.find()) {
+            return threadripperMatcher.group(1).replaceAll("\\s+", " ").toLowerCase();
         }
 
         Matcher ryzenMatcher = CPU_RYZEN_PATTERN.matcher(lower);
         if (ryzenMatcher.find()) {
-            String series = ryzenMatcher.group(1).replaceAll("\\s+", " ");
-            String model = ryzenMatcher.group(2);
-            return (series + " " + model).toLowerCase();
+            return (ryzenMatcher.group(1).replaceAll("\\s+", " ") + " " + ryzenMatcher.group(2)).toLowerCase();
         }
 
         return null;

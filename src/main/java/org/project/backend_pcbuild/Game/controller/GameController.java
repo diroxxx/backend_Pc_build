@@ -8,6 +8,7 @@ import org.project.backend_pcbuild.Game.model.Game;
 import org.project.backend_pcbuild.Game.model.GameCpuRequirements;
 import org.project.backend_pcbuild.Game.model.GameGpuRequirements;
 import org.project.backend_pcbuild.Game.service.GameService;
+import org.project.backend_pcbuild.pcComponents.model.GraphicsCard;
 import org.project.backend_pcbuild.pcComponents.service.ComponentService;
 import org.project.backend_pcbuild.offer.dto.OfferComponentMapper;
 import org.project.backend_pcbuild.offer.service.OfferService;
@@ -84,22 +85,25 @@ public class GameController {
                 .findFirst();
 
         minCpuReq
-                .map(GameCpuRequirements::getProcessor).flatMap(proc -> offerService.findBestForCpu(proc.getComponent(), budget)
+                .map(GameCpuRequirements::getProcessor).flatMap(proc -> offerService.findBestForCpu(proc, budget)
                         .map(offer -> OfferComponentMapper.toDto(proc, offer))).ifPresent(dto -> recGameDto.getMinRec().add(dto));
-
 
         minGpuReq
                 .map(GameGpuRequirements::getGpuModel)
                 .flatMap(gpu -> offerService.findBestForGpuModel(gpu, budget)
-                        .map(offer -> OfferComponentMapper.toDto(offer.getComponent().getGraphicsCard(), offer))).ifPresent(dto -> recGameDto.getMinRec().add(dto));
+                        .map(offer -> offer.getComponent() instanceof GraphicsCard gc
+                                ? OfferComponentMapper.toDto(gc, offer) : null))
+                .ifPresent(dto -> recGameDto.getMinRec().add(dto));
 
-        recCpuReq.map(GameCpuRequirements::getProcessor).flatMap(proc -> offerService.findBestForCpu(proc.getComponent(), budget)
+        recCpuReq.map(GameCpuRequirements::getProcessor).flatMap(proc -> offerService.findBestForCpu(proc, budget)
                         .map(offer -> OfferComponentMapper.toDto(proc, offer))).ifPresent(dto -> recGameDto.getMaxRec().add(dto));
 
         recGpuReq
                 .map(GameGpuRequirements::getGpuModel)
                 .flatMap(gpu -> offerService.findBestForGpuModel(gpu, budget)
-                        .map(offer -> OfferComponentMapper.toDto(offer.getComponent().getGraphicsCard(), offer))).ifPresent(dto -> recGameDto.getMaxRec().add(dto));
+                        .map(offer -> offer.getComponent() instanceof GraphicsCard gc
+                                ? OfferComponentMapper.toDto(gc, offer) : null))
+                .ifPresent(dto -> recGameDto.getMaxRec().add(dto));
 
 
         return ResponseEntity.ok(recGameDto);

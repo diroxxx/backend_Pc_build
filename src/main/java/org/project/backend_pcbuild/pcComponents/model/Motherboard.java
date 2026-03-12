@@ -2,14 +2,14 @@ package org.project.backend_pcbuild.pcComponents.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Data
-public class Motherboard {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@EqualsAndHashCode(callSuper = true)
+@DiscriminatorValue("MOTHERBOARD")
+@Table(name = "motherboard")
+public class Motherboard extends Component {
 
     private String chipset;
     private String socketType;
@@ -17,10 +17,5 @@ public class Motherboard {
     private Integer ramSlots;
     private Integer ramCapacity;
     private String memoryType;
-
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "component_id")
-    private Component component;
 
 }

@@ -45,19 +45,19 @@ public class OfferService {
 
 
     public Optional<Offer> findBestForCpu(Component comp, Double budget) {
-    if (comp == null) return Optional.empty();
-    
-    Optional<Offer> exactMatch = findExactCpuOffer(comp, budget);
-    if (exactMatch.isPresent()) {
-        return exactMatch;
+        if (comp == null) return Optional.empty();
+
+        Optional<Offer> exactMatch = findExactCpuOffer(comp, budget);
+        if (exactMatch.isPresent()) {
+            return exactMatch;
+        }
+
+        if (comp instanceof Processor processor && processor.getBenchmark() != null) {
+            return findSimilarCpuOffer(processor.getBenchmark(), budget);
+        }
+
+        return Optional.empty();
     }
-    
-    if (comp.getProcessor() != null && comp.getProcessor().getBenchmark() != null) {
-        return findSimilarCpuOffer(comp.getProcessor().getBenchmark(), budget);
-    }
-    
-    return Optional.empty();
-}
 
 private Optional<Offer> findExactCpuOffer(Component comp, Double budget) {
     if (budget == null) {
@@ -206,30 +206,17 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
                 .map(offer -> {
                     Component c = offer.getComponent();
                     if (c == null) return null;
-                    switch (c.getComponentType()) {
-                        case PROCESSOR:
-                            return OfferComponentMapper.toDto(c.getProcessor(), offer);
-                        case GRAPHICS_CARD:
-                            return OfferComponentMapper.toDto(c.getGraphicsCard(), offer);
-                        case MEMORY:
-                            return OfferComponentMapper.toDto(c.getMemory(), offer);
-
-                        case STORAGE:
-                            return OfferComponentMapper.toDto(c.getStorage(), offer);
-                        case CASE_PC:
-                            return OfferComponentMapper.toDto(c.getCase_(), offer);
-                        case CPU_COOLER:
-                            return OfferComponentMapper.toDto(c.getCooler(), offer);
-
-                            case MOTHERBOARD:
-                            return OfferComponentMapper.toDto(c.getMotherboard(), offer);
-
-                            case POWER_SUPPLY:
-                            return OfferComponentMapper.toDto(c.getPowerSupply(), offer);
-
-                            default:
-                                return null;
-                    }
+                    return switch (c) {
+                        case Processor p    -> (BaseOfferDto) OfferComponentMapper.toDto(p, offer);
+                        case GraphicsCard g -> OfferComponentMapper.toDto(g, offer);
+                        case Memory m       -> OfferComponentMapper.toDto(m, offer);
+                        case Storage s      -> OfferComponentMapper.toDto(s, offer);
+                        case Case cs        -> OfferComponentMapper.toDto(cs, offer);
+                        case Cooler co      -> OfferComponentMapper.toDto(co, offer);
+                        case Motherboard mb -> OfferComponentMapper.toDto(mb, offer);
+                        case PowerSupply ps -> OfferComponentMapper.toDto(ps, offer);
+                        default             -> null;
+                    };
                 })
                 .filter(Objects::nonNull)
                 .toList();

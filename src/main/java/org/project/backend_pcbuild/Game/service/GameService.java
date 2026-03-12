@@ -91,7 +91,7 @@ public class GameService {
                 CpuRecDto cpuRecDto = new CpuRecDto();
                 cpuRecDto.setProcessorId(processor.getId());
                 cpuRecDto.setRecGameLevel(RecGameLevel.MIN);
-                cpuRecDto.setProcessorModel(processor.getComponent().getModel());
+                cpuRecDto.setProcessorModel(processor.getModel());
                 cpuSpecs.add(cpuRecDto);
             });
 
@@ -99,7 +99,7 @@ public class GameService {
                 CpuRecDto cpuRecDto = new CpuRecDto();
                 cpuRecDto.setProcessorId(processor.getId());
                 cpuRecDto.setRecGameLevel(RecGameLevel.REC);
-                cpuRecDto.setProcessorModel(processor.getComponent().getModel());
+                cpuRecDto.setProcessorModel(processor.getModel());
                 cpuSpecs.add(cpuRecDto);
             });
 
@@ -235,7 +235,7 @@ public class GameService {
             gcr.setProcessor(proc);
             gcr.setRecGameLevel(c.getRecGameLevel());
             toSaveCpu.add(gcr);
-            System.out.println(game.getTitle() + " " + proc.getComponent().getModel() + " " + c.getRecGameLevel());
+            System.out.println(game.getTitle() + " " + proc.getModel() + " " + c.getRecGameLevel());
         }
 
         toSaveCpu.forEach(x ->

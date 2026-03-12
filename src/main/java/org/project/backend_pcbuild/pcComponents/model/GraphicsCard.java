@@ -2,13 +2,14 @@ package org.project.backend_pcbuild.pcComponents.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Data
-public class GraphicsCard {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@EqualsAndHashCode(callSuper = true)
+@DiscriminatorValue("GRAPHICS_CARD")
+@Table(name = "graphics_card")
+public class GraphicsCard extends Component {
 
     private Integer vram;
     private String gddr;
@@ -16,12 +17,7 @@ public class GraphicsCard {
     private Double coreClock;
     private Double powerDraw;
     private Double lengthInMM;
-
     private Double benchmark;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "component_id")
-    private Component component;
 
     @ManyToOne
     @JoinColumn(name = "gpu_model_id")

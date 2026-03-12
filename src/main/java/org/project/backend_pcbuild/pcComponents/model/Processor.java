@@ -2,6 +2,7 @@ package org.project.backend_pcbuild.pcComponents.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.project.backend_pcbuild.Game.model.GameCpuRequirements;
 
 import java.util.ArrayList;
@@ -9,11 +10,10 @@ import java.util.List;
 
 @Entity
 @Data
-public class Processor {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@EqualsAndHashCode(callSuper = true)
+@DiscriminatorValue("PROCESSOR")
+@Table(name = "processor")
+public class Processor extends Component {
 
     private Integer cores;
     private Integer threads;
@@ -22,13 +22,7 @@ public class Processor {
     private Double boostClock;
     private String integratedGraphics;
     private Integer tdp;
-
     private Double benchmark;
-
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "component_id")
-    private Component component;
 
     @OneToMany(mappedBy = "processor")
     private List<GameCpuRequirements> gameCpuRequirements = new ArrayList<>();

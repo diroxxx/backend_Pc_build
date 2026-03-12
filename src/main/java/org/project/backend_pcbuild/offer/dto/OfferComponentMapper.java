@@ -12,8 +12,8 @@ public class OfferComponentMapper {
         ProcessorDto dto = new ProcessorDto();
         dto.setId(entity.getId());
         dto.setTitle(offer.getTitle());
-        dto.setBrand(entity.getComponent().getBrand().getName());
-        dto.setModel(entity.getComponent().getModel());
+        dto.setBrand(entity.getBrand().getName());
+        dto.setModel(entity.getModel());
         dto.setCondition(offer.getCondition());
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
@@ -35,8 +35,8 @@ public class OfferComponentMapper {
         GraphicsCardDto dto = new GraphicsCardDto();
         dto.setId(entity.getId());
         dto.setTitle(offer.getTitle());
-        dto.setBrand(entity.getComponent().getBrand().getName());
-        dto.setModel(entity.getComponent().getModel());
+        dto.setBrand(entity.getBrand().getName());
+        dto.setModel(entity.getModel());
         dto.setCondition(offer.getCondition());
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
@@ -57,8 +57,8 @@ public class OfferComponentMapper {
         MemoryDto dto = new MemoryDto();
         dto.setId(entity.getId());
         dto.setTitle(offer.getTitle());
-        dto.setBrand(entity.getComponent().getBrand().getName());
-        dto.setModel(entity.getComponent().getModel());
+        dto.setBrand(entity.getBrand().getName());
+        dto.setModel(entity.getModel());
         dto.setCondition(offer.getCondition());
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
@@ -78,8 +78,8 @@ public class OfferComponentMapper {
         MotherboardDto dto = new MotherboardDto();
         dto.setId(entity.getId());
         dto.setTitle(offer.getTitle());
-        dto.setBrand(entity.getComponent().getBrand().getName());
-        dto.setModel(entity.getComponent().getModel());
+        dto.setBrand(entity.getBrand().getName());
+        dto.setModel(entity.getModel());
         dto.setCondition(offer.getCondition());
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
@@ -99,8 +99,8 @@ public class OfferComponentMapper {
         PowerSupplyDto dto = new PowerSupplyDto();
         dto.setId(entity.getId());
         dto.setTitle(offer.getTitle());
-        dto.setBrand(entity.getComponent().getBrand().getName());
-        dto.setModel(entity.getComponent().getModel());
+        dto.setBrand(entity.getBrand().getName());
+        dto.setModel(entity.getModel());
         dto.setCondition(offer.getCondition());
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
@@ -118,8 +118,8 @@ public class OfferComponentMapper {
         StorageDto dto = new StorageDto();
         dto.setId(entity.getId());
         dto.setTitle(offer.getTitle());
-        dto.setBrand(entity.getComponent().getBrand().getName());
-        dto.setModel(entity.getComponent().getModel());
+        dto.setBrand(entity.getBrand().getName());
+        dto.setModel(entity.getModel());
         dto.setCondition(offer.getCondition());
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
@@ -134,8 +134,8 @@ public class OfferComponentMapper {
         CaseDto dto = new CaseDto();
         dto.setId(entity.getId());
         dto.setTitle(offer.getTitle());
-        dto.setBrand(entity.getComponent().getBrand().getName());
-        dto.setModel(entity.getComponent().getModel());
+        dto.setBrand(entity.getBrand().getName());
+        dto.setModel(entity.getModel());
         dto.setCondition(offer.getCondition());
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());
@@ -150,8 +150,8 @@ public class OfferComponentMapper {
         CoolerDto dto = new CoolerDto();
         dto.setId(entity.getId());
         dto.setTitle(offer.getTitle());
-        dto.setBrand(entity.getComponent().getBrand().getName());
-        dto.setModel(entity.getComponent().getModel());
+        dto.setBrand(entity.getBrand().getName());
+        dto.setModel(entity.getModel());
         dto.setCondition(offer.getCondition());
         dto.setPhotoUrl(offer.getPhotoUrl());
         dto.setWebsiteUrl(offer.getWebsiteUrl());

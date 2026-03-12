@@ -1,6 +1,5 @@
 package org.project.backend_pcbuild.unitTests;
 
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -17,8 +16,6 @@ import org.project.backend_pcbuild.pcComponents.model.Processor;
 import org.project.backend_pcbuild.pcComponents.repository.ComponentRepository;
 import org.project.backend_pcbuild.pcComponents.repository.GpuModelRepository;
 import org.project.backend_pcbuild.pcComponents.service.ComponentService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -29,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class ComponentsServiceTest {
@@ -42,6 +38,12 @@ public class ComponentsServiceTest {
 
     @Mock
     private BrandRepository brandRepository;
+
+    @Mock
+    private ItemComponentMapper itemComponentMapper;
+
+    @Mock
+    private GpuModelRepository gpuModelRepository;
 
     @Test
     void getAllBrands_shouldReturnEmptyList_whenNoBrandsExist() {
@@ -164,12 +166,11 @@ public class ComponentsServiceTest {
         verify(componentRepository).save(captor.capture());
         Component saved = captor.getValue();
 
-        assertThat(saved.getComponentType()).isEqualTo(ComponentType.PROCESSOR);
+        assertThat(saved).isInstanceOf(Processor.class);
         assertThat(saved.getBrand()).isSameAs(brand);
         assertThat(saved.getModel()).isEqualTo("i7-12700K");
 
-        Processor cpu = saved.getProcessor();
-        assertThat(cpu).isNotNull();
+        Processor cpu = (Processor) saved;
         assertThat(cpu.getCores()).isEqualTo(12);
         assertThat(cpu.getThreads()).isEqualTo(20);
         assertThat(cpu.getSocketType()).isEqualTo("LGA1700");
@@ -182,16 +183,12 @@ public class ComponentsServiceTest {
 
     @Test
     void updatesExistingProcessor_fieldsAreMergedAndSaved() {
-        // Arrange existing component with processor
         Brand brand = new Brand();
         brand.setName("AMD");
 
-        Component existing = new Component();
-        existing.setBrand(brand);
-        existing.setModel("Ryzen 9 5900X");
-        existing.setComponentType(ComponentType.PROCESSOR);
-
         Processor existingCpu = new Processor();
+        existingCpu.setBrand(brand);
+        existingCpu.setModel("Ryzen 9 5900X");
         existingCpu.setCores(12);
         existingCpu.setThreads(24);
         existingCpu.setSocketType("AM4");
@@ -200,11 +197,9 @@ public class ComponentsServiceTest {
         existingCpu.setIntegratedGraphics(null);
         existingCpu.setTdp(105);
         existingCpu.setBenchmark(2000.0);
-        existingCpu.setComponent(existing);
-        existing.setProcessor(existingCpu);
 
         when(brandRepository.findByNameIgnoreCase("AMD")).thenReturn(Optional.of(brand));
-        when(componentRepository.findByBrandAndModelIgnoreCase(brand, "Ryzen 9 5900X")).thenReturn(Optional.of(existing));
+        when(componentRepository.findByBrandAndModelIgnoreCase(brand, "Ryzen 9 5900X")).thenReturn(Optional.of(existingCpu));
         when(componentRepository.save(any(Component.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ProcessorItemDto dto = new ProcessorItemDto();
@@ -223,9 +218,8 @@ public class ComponentsServiceTest {
 
         ArgumentCaptor<Component> captor = ArgumentCaptor.forClass(Component.class);
         verify(componentRepository).save(captor.capture());
-        Component saved = captor.getValue();
+        Processor cpu = (Processor) captor.getValue();
 
-        Processor cpu = saved.getProcessor();
         assertThat(cpu.getCores()).isEqualTo(16);
         assertThat(cpu.getThreads()).isEqualTo(24);
         assertThat(cpu.getSocketType()).isEqualTo("AM4");
@@ -235,7 +229,5 @@ public class ComponentsServiceTest {
         assertThat(cpu.getTdp()).isEqualTo(105);
         assertThat(cpu.getBenchmark()).isEqualTo(2100.0);
     }
-
-
 
 }

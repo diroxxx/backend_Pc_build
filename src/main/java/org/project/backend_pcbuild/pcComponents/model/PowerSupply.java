@@ -2,21 +2,18 @@ package org.project.backend_pcbuild.pcComponents.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Data
-public class PowerSupply {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@EqualsAndHashCode(callSuper = true)
+@DiscriminatorValue("POWER_SUPPLY")
+@Table(name = "power_supply")
+public class PowerSupply extends Component {
 
     private String modular;
     private String type;
     private String efficiencyRating;
     private Integer maxPowerWatt;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "component_id")
-    private Component component;
 }

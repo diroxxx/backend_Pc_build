@@ -10,7 +10,11 @@ import java.util.Set;
 
 @Entity
 @Data
-public class Component {
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "component_type", discriminatorType = DiscriminatorType.STRING)
+@Table(name = "component")
+public abstract class Component {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,6 +22,7 @@ public class Component {
     private String model;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "component_type", insertable = false, updatable = false)
     private ComponentType componentType;
 
     @ManyToOne
@@ -25,30 +30,6 @@ public class Component {
     private Brand brand;
 
     @OneToMany(mappedBy = "component", cascade = CascadeType.ALL)
-    private Set<Offer> offers = new HashSet<Offer>();
-
-    @OneToOne(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
-    private GraphicsCard graphicsCard;
-
-    @OneToOne(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Processor processor;
-
-    @OneToOne(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Case case_;
-
-    @OneToOne(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Cooler cooler;
-
-    @OneToOne(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Memory memory;
-
-    @OneToOne(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Motherboard motherboard;
-
-    @OneToOne(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
-    private PowerSupply powerSupply;
-
-    @OneToOne(mappedBy = "component", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Storage storage;
+    private Set<Offer> offers = new HashSet<>();
 
 }
