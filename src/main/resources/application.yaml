@@ -9,6 +9,15 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+  ai:
+    ollama:
+      host: http://localhost:11434
+      model: llama2
+#      temperature: 0.5
+#      max-tokens: 1024
+      embedding:
+        model: nomic-embed-text-v2-moe
+
 logging:
   level:
     org:
@@ -30,6 +39,7 @@ security:
 
     refresh-token:
       expiration: 604800000
+
 
 youtube:
   api:

@@ -44,6 +44,7 @@ public class OfferService {
     private final BrandRepository brandRepository;
 
 
+
     public Optional<Offer> findBestForCpu(Component comp, Double budget) {
         if (comp == null) return Optional.empty();
 

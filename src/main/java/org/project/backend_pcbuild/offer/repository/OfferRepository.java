@@ -117,6 +117,7 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
             @Param("querySearch") String querySearch,
             Pageable pageable);
 
+
     @Query("""
         SELECT o FROM Offer o
         JOIN o.component c
@@ -131,7 +132,7 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
           AND (:componentCondition IS NULL OR o.condition = :componentCondition)
           AND (:querySearch IS NULL OR (
                 LOWER(o.title) LIKE CONCAT('%', LOWER(:querySearch), '%')
-          ))
+          )) 
     """)
     Page<Offer> findOfferByFiltersDev(
             @Param("componentType") ComponentType componentType,
