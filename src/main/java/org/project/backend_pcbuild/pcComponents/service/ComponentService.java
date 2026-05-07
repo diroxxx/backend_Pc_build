@@ -198,7 +198,7 @@ public class ComponentService {
         String model = normalize(dto.getModel());
 
         Optional<GpuModel> found = findByExactChipset(model);
-        if (!found.isPresent()) {
+        if (found.isEmpty()) {
             found = findByContainingToken(brand, model);
         }
         if (!found.isPresent()) {
@@ -206,11 +206,11 @@ public class ComponentService {
             if (extracted.isPresent()) {
                 String chipsetCandidate = extracted.get();
                 found = findByExactChipset(chipsetCandidate);
-                if (!found.isPresent()) {
+                if (found.isEmpty()) {
                     List<GpuModel> candidates = gpuModelRepository.findByChipsetContainingIgnoreCase(chipsetCandidate);
                     if (!candidates.isEmpty()) found = Optional.of(candidates.get(0));
                 }
-                if (!found.isPresent()) {
+                if (found.isEmpty()) {
                     GpuModel newModel = new GpuModel();
                     newModel.setChipset(chipsetCandidate);
                     newModel = gpuModelRepository.save(newModel);
@@ -399,7 +399,7 @@ public class ComponentService {
     }
 
     @Transactional
-    public void updateComponent(Integer id, BaseItemDto dto) {
+    public void updateComponent(Long id, BaseItemDto dto) {
         log.info("Updating component {}: {}", id, dto);
         if (id == null) throw new IllegalArgumentException("Id cannot be null");
         Component component = componentRepository.findById(id)
@@ -483,7 +483,7 @@ public class ComponentService {
     }
 
     @Transactional
-    public void deleteComponent(Integer id) {
+    public void deleteComponent(Long id) {
         if (id == null) throw new IllegalArgumentException("Id cannot be null");
         componentRepository.deleteById(id);
     }

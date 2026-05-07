@@ -221,28 +221,6 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
                 .filter(Objects::nonNull)
                 .toList();
 
-
-//        Stream<BaseOfferDto> stream = result.stream();
-
-
-//        if (querySearch != null && !querySearch.isBlank()) {
-//            String query = querySearch.toLowerCase().replaceAll("[^a-z0-9 ]", " ");
-//            stream = stream.filter(o -> {
-//                String title = o.getTitle().toLowerCase().replaceAll("[^a-z0-9 ]", " ");
-//                return Arrays.stream(title.split("\\s+"))
-//                        .anyMatch(word -> similarity.apply(word, query) > 0.85)
-//                        || similarity.apply(title, query) > 0.85;
-//            });
-//        }
-
-
-//        if (sortBy == SortByOffers.CHEAPEST)
-//            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getPrice));
-//        else if (sortBy == SortByOffers.EXPENSIVE)
-//            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getPrice).reversed());
-//        else if (sortBy == SortByOffers.NEWEST)
-//            stream = stream.sorted(Comparator.comparing(BaseOfferDto::getId).reversed());
-
         return new PageImpl<>(dtos, pageable, page.getTotalElements());
     }
 

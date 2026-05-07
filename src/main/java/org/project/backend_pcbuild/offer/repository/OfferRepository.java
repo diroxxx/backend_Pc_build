@@ -117,11 +117,6 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
             @Param("querySearch") String querySearch,
             Pageable pageable);
 
-//    AND (
-//           :querySearch IS NULL
-//                    OR FREETEXT(o.title, :querySearch)
-//      )
-
     @Query("""
         SELECT o FROM Offer o
         JOIN o.component c
@@ -200,6 +195,9 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
             @Param("maxBenchmark") double maxBenchmark,
             @Param("budget") Double budget
     );
+
+
+
 
 
 

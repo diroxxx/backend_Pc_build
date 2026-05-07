@@ -1,10 +1,12 @@
 package org.project.backend_pcbuild.pcComponents.controller;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.project.backend_pcbuild.configuration.ImportCsvFilesService;
 import org.project.backend_pcbuild.pcComponents.dto.*;
 import org.project.backend_pcbuild.pcComponents.service.ComponentService;
 import org.project.backend_pcbuild.pcComponents.model.ComponentType;
+import org.project.backend_pcbuild.pcComponents.service.ComponentStatsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class ComponentController {
 
     private final ComponentService componentService;
+    private final ComponentStatsService componentStatsService;
     private final ImportCsvFilesService importCsvFilesService;
     public record ComponentsPageResponse(
             List<BaseItemDto> items,
@@ -115,7 +118,7 @@ public class ComponentController {
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/{componentId}")
-    public ResponseEntity<?> updateComponent(@PathVariable Integer componentId, @RequestBody BaseItemDto item) {
+    public ResponseEntity<?> updateComponent(@PathVariable Long componentId, @RequestBody BaseItemDto item) {
 
         if (componentId == null || item == null) {
             return ResponseEntity.badRequest().build();
@@ -150,7 +153,7 @@ public class ComponentController {
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{componentId}")
-    public ResponseEntity<?> deleteComponent(@PathVariable Integer componentId) {
+    public ResponseEntity<?> deleteComponent(@PathVariable Long componentId) {
         if (componentId == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -158,4 +161,19 @@ public class ComponentController {
         return ResponseEntity.ok(Map.of("message", "Komponent został usunięty"));
 
     }
+
+
+    @GetMapping("/{componentId}/stats/min-max")
+    public ResponseEntity<ComponentMinMaxValueDto> getComponentMinMaxPriceByComponentId(@PathVariable @NotNull Long componentId) {
+
+        return ResponseEntity.ok(componentStatsService.getMinMaxValueDto(componentId));
+    }
+
+    @GetMapping("/{componentId}/stats/avgPrices")
+    public ResponseEntity<List<ShopPriceHistory>> getComponentPriceHistoryByComponentId(@PathVariable @NotNull Long componentId) {
+
+        return ResponseEntity.ok(componentStatsService.getPriceHistory(componentId));
+    }
+
+
     }

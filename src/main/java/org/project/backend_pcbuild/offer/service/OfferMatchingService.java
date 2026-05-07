@@ -44,7 +44,7 @@ public class OfferMatchingService {
     private static final double WEIGHT_CASE_FORMAT = 0.3;
     
     // Thresholds
-    private static final double MIN_ACCEPTABLE_SCORE = 1.0;
+    private static final double MIN_ACCEPTABLE_SCORE = 1.5;
     private static final double THRESHOLD_CLOCK_CLOSE = 0.2;
     private static final double THRESHOLD_CLOCK_ACCEPTABLE = 0.5;
     private static final double CLOCK_SCORE_CLOSE = 0.4;
@@ -214,7 +214,7 @@ public class OfferMatchingService {
 
     private Optional<Component> matchGraphicsCard(OfferContext ctx, String[] offerWords, List<?> items) {
         String offerChip = extractGpuChip(ctx.modelLower);
-        Integer offerVramGb = extractIntPattern(CAPACITY_GB_PATTERN, ctx.modelLower, 1);
+        Integer offerVramGb = extractIntPattern(CAPACITY_GB_PATTERN, ctx.titleLower, 1);
 
         return findBestMatch(ctx, offerWords, items,
             obj -> (GraphicsCard) obj,
@@ -347,30 +347,38 @@ public class OfferMatchingService {
         );
     }
 
-        private Optional<Component> matchStorage(OfferContext ctx, String[] offerWords, List<?> items) {
+    private Optional<Component> matchStorage(OfferContext ctx, String[] offerWords, List<?> items) {
         Double offerCapacityGB = extractStorageCapacityInGB(ctx.modelLower);
-    
+        String offerStorageType = extractPattern(STORAGE_TYPE_PATTERN, ctx.titleLower, 0);
+
         return findBestMatch(ctx, offerWords, items,
             obj -> (Storage) obj,
             st -> st,
             (context, st) -> {
                 String compModelLower = st.getModel().toLowerCase();
                 String[] compWords = compModelLower.split("\\s+");
-    
+
                 if (offerCapacityGB != null && st.getCapacity() != null) {
-                    if (!offerCapacityGB.equals(st.getCapacity())) {
+                    if (Math.abs(offerCapacityGB - st.getCapacity()) > 0.01) {
                         return new MatchScore(0.0, "");
                     }
                 }
-    
+
+                if (offerStorageType != null) {
+                    String compStorageType = extractPattern(STORAGE_TYPE_PATTERN, compModelLower, 0);
+                    if (compStorageType != null && !offerStorageType.equalsIgnoreCase(compStorageType)) {
+                        return new MatchScore(0.0, "");
+                    }
+                }
+
                 double wordsScore = calculateCommonWordsScore(offerWords, compWords, WEIGHT_COMMON_WORDS);
                 double modelSim = similarity.apply(context.modelLower, compModelLower);
-                double capacityScore = offerCapacityGB != null && st.getCapacity() != null && 
-                                       offerCapacityGB.equals(st.getCapacity()) ? WEIGHT_CAPACITY : 0.0;
-                
+                double capacityScore = offerCapacityGB != null && st.getCapacity() != null &&
+                                       Math.abs(offerCapacityGB - st.getCapacity()) <= 0.01 ? WEIGHT_CAPACITY : 0.0;
+
                 double total = wordsScore + modelSim + capacityScore;
-                
-                return new MatchScore(total, ", capacity=" + offerCapacityGB + "GB");
+
+                return new MatchScore(total, ", capacity=" + offerCapacityGB + "GB, type=" + offerStorageType);
             },
             "STORAGE"
         );
@@ -474,25 +482,40 @@ public class OfferMatchingService {
     }
 
     private String extractMotherboardChipset(String text) {
-    if (text == null) return null;
-    String lower = text.toLowerCase();
-    
-   // Intel chipsety: Z790, B760, H610, X299, Z890, W680, Q370, C621, itp.
-    Pattern intelPattern = Pattern.compile("\\b([zhbxwqc]\\d{3,4})\\b", Pattern.CASE_INSENSITIVE);
-    Matcher intelMatcher = intelPattern.matcher(lower);
-    if (intelMatcher.find()) {
-        return intelMatcher.group(1).toUpperCase();
+        if (text == null) return null;
+        String lower = text.toLowerCase();
+
+        // Intel-only prefixes: Z, H, Q, W, C (never used by AMD)
+        Pattern intelOnlyPattern = Pattern.compile("\\b([zhqwc]\\d{3,4})\\b", Pattern.CASE_INSENSITIVE);
+        Matcher intelMatcher = intelOnlyPattern.matcher(lower);
+        if (intelMatcher.find()) {
+            return intelMatcher.group(1).toUpperCase();
+        }
+
+        // AMD Threadripper: TRX40, WRX80
+        Pattern threadripperPattern = Pattern.compile("\\b(trx\\d{2}|wrx\\d{2})\\b", Pattern.CASE_INSENSITIVE);
+        Matcher trMatcher = threadripperPattern.matcher(lower);
+        if (trMatcher.find()) {
+            return trMatcher.group(1).toUpperCase();
+        }
+
+        // Shared prefix B and X — use context: if "ryzen" or "amd" in text → AMD, else Intel
+        // Match B or X followed by 3-4 digits and optional letter suffix (e.g. X670E, B650, B760)
+        Pattern bxPattern = Pattern.compile("\\b([bx]\\d{3,4}[a-z]?)\\b", Pattern.CASE_INSENSITIVE);
+        Matcher bxMatcher = bxPattern.matcher(lower);
+        if (bxMatcher.find()) {
+            return bxMatcher.group(1).toUpperCase();
+        }
+
+        // AMD A-series: A520, A320
+        Pattern amdAPattern = Pattern.compile("\\b(a[3-5]\\d{2})\\b", Pattern.CASE_INSENSITIVE);
+        Matcher aMatcher = amdAPattern.matcher(lower);
+        if (aMatcher.find()) {
+            return aMatcher.group(1).toUpperCase();
+        }
+
+        return null;
     }
-    
-    // AMD chipsety: B550, X570, A520, X670E, B650, TRX40, WRX80, X870I, itp.
-    Pattern amdPattern = Pattern.compile("\\b([abxw]\\d{3,4}[a-z]?|trx\\d{2}|wrx\\d{2})\\b", Pattern.CASE_INSENSITIVE);
-    Matcher amdMatcher = amdPattern.matcher(lower);
-    if (amdMatcher.find()) {
-        return amdMatcher.group(1).toUpperCase();
-    }
-    
-    return null;
-}
 
     private Double extractStorageCapacityInGB(String text) {
         if (text == null) return null;

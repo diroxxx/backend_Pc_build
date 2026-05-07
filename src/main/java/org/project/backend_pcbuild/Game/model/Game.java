@@ -28,6 +28,7 @@ public class Game {
     @Transient
     @CsvBindByName(column = "image_base64")
     @Lob
+    @Column(unique = true, nullable = false)
     private String imageBase64;
 
     @Transient
