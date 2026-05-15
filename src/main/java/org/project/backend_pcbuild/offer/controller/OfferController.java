@@ -56,7 +56,8 @@ public class OfferController {
             @RequestParam(required = false) ComponentCondition componentCondition,
             @RequestParam(required = false) String shopName,
             @RequestParam(required = false) SortByOffers sortBy,
-            @RequestParam(required = false) String query
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false, defaultValue = "false") Boolean dealOnly
 
     ) {
         Sort sort = Sort.by(Sort.Direction.DESC, "id");
@@ -69,7 +70,7 @@ public class OfferController {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<BaseOfferDto> allOffersV2 = offerService.getAllOffersV3(pageable, componentType, brand, minPrize, maxPrize, componentCondition, shopName, query);
+        Page<BaseOfferDto> allOffersV2 = offerService.getAllOffersV3(pageable, componentType, brand, minPrize, maxPrize, componentCondition, shopName, query, dealOnly);
         OffersPageResponse response = new OffersPageResponse(
                 allOffersV2.getContent(),
                 allOffersV2.hasNext(),

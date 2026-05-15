@@ -93,19 +93,34 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Offer> findByGpuModelAndPriceLessThanEqualOrderByPriceAsc(@Param("gpuModel") GpuModel gpuModel, @Param("price") Double price, Pageable pageable);
 
 
+//    @Query("SELECT MIN(o.price) FROM Offer o JOIN o.component c WHERE c.componentType = :componentType AND o.isVisible = true")
+    @Query("SELECT MIN(o.price) FROM Offer o JOIN o.component c WHERE c.componentType = :componentType")
+    Double findMinPriceByComponentType(@Param("componentType") ComponentType componentType);
+
     @Query("""
+    
     SELECT o FROM Offer o
     JOIN o.component c
     LEFT JOIN c.brand b
     LEFT JOIN o.shop s
-    WHERE o. isVisible = true
+    WHERE o.isVisible = true
       AND (:componentType IS NULL OR c.componentType = :componentType)
       AND (:brand IS NULL OR LOWER(b.name) = LOWER(:brand))
-      AND (:minPrice IS NULL OR o. price >= :minPrice)
+      AND (:minPrice IS NULL OR o.price >= :minPrice)
       AND (:maxPrice IS NULL OR o.price <= :maxPrice)
       AND (:shopName IS NULL OR LOWER(s.name) = LOWER(:shopName))
       AND (:componentCondition IS NULL OR o.condition = :componentCondition)
       AND (:querySearch IS NULL OR LOWER(o.title) LIKE LOWER(CONCAT('%', :querySearch, '%')))
+        AND (
+                   :dealOnly IS NULL
+                   OR :dealOnly = false
+                   OR o.price <= (
+                       SELECT MIN(o2.price) * 1.05
+                       FROM Offer o2
+                       JOIN o2.component c2
+                       WHERE c2.componentType = c.componentType
+                   )
+             )   
     """)
     Page<Offer> findOfferByFiltersProd(
             @Param("componentType") ComponentType componentType,
@@ -115,6 +130,7 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
             @Param("componentCondition") ComponentCondition componentCondition,
             @Param("shopName") String shopName,
             @Param("querySearch") String querySearch,
+            @Param("dealOnly") Boolean dealOnly,
             Pageable pageable);
 
 

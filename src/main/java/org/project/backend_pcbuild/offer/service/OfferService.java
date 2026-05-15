@@ -4,7 +4,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.project.backend_pcbuild.offer.dto.*;
-import org.project.backend_pcbuild.offer.model.Brand;
 import org.project.backend_pcbuild.offer.model.Offer;
 import org.project.backend_pcbuild.offer.model.Shop;
 import org.project.backend_pcbuild.offer.repository.BrandRepository;
@@ -176,7 +175,8 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
                                              Double maxPrize,
                                              ComponentCondition componentCondition,
                                              String shopName,
-                                             String querySearch) {
+                                             String querySearch,
+                                             Boolean dealOnly) {
 
         Page<Offer> page;
 
@@ -189,6 +189,7 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
                     componentCondition,
                     shopName,
                     querySearch,
+                    dealOnly,
                     pageable
             );
         } else {
@@ -203,12 +204,46 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
             );
         }
 
+//        List<BaseOfferDto> dtos = page.getContent().stream()
+//                .map(offer -> {
+//                    Component c = offer.getComponent();
+//                    if (c == null) return null;
+//                    return switch (c) {
+//                        case Processor p    -> OfferComponentMapper.toDto(p, offer);                        case GraphicsCard g -> OfferComponentMapper.toDto(g, offer);
+//                        case Memory m       -> OfferComponentMapper.toDto(m, offer);
+//                        case Storage s      -> OfferComponentMapper.toDto(s, offer);
+//                        case Case cs        -> OfferComponentMapper.toDto(cs, offer);
+//                        case Cooler co      -> OfferComponentMapper.toDto(co, offer);
+//                        case Motherboard mb -> OfferComponentMapper.toDto(mb, offer);
+//                        case PowerSupply ps -> OfferComponentMapper.toDto(ps, offer);
+//                        default             -> null;
+//                    };
+//
+//
+//                })
+//                .filter(Objects::nonNull)
+//                .toList();
+
+        Set<ComponentType> typesOnPage = page.getContent().stream()
+                .map(Offer::getComponent)
+                .filter(Objects::nonNull)
+                .map(Component::getComponentType)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<ComponentType, Double> minPriceByType = new HashMap<>();
+        for (ComponentType type : typesOnPage) {
+            Double min = offerRepository.findMinPriceByComponentType(type);
+            minPriceByType.put(type, min);
+        }
+
         List<BaseOfferDto> dtos = page.getContent().stream()
                 .map(offer -> {
                     Component c = offer.getComponent();
                     if (c == null) return null;
-                    return switch (c) {
-                        case Processor p    -> (BaseOfferDto) OfferComponentMapper.toDto(p, offer);
+
+                    BaseOfferDto dto = switch (c) {
+                        case Processor p    -> OfferComponentMapper.toDto(p, offer);
                         case GraphicsCard g -> OfferComponentMapper.toDto(g, offer);
                         case Memory m       -> OfferComponentMapper.toDto(m, offer);
                         case Storage s      -> OfferComponentMapper.toDto(s, offer);
@@ -218,18 +253,29 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
                         case PowerSupply ps -> OfferComponentMapper.toDto(ps, offer);
                         default             -> null;
                     };
+
+                    if (dto != null) {
+                        Double minPrice = minPriceByType.get(c.getComponentType());
+                        boolean isDeal = false;
+                        if (minPrice != null && offer.getPrice() != null) {
+                            isDeal = offer.getPrice() <= 1.05 * minPrice;
+                        }
+                        dto.setIsDeal(isDeal);
+                    }
+
+                    return dto;
                 })
                 .filter(Objects::nonNull)
                 .toList();
 
+
+
+
         return new PageImpl<>(dtos, pageable, page.getTotalElements());
     }
 
-
     @Transactional
     public void saveOffersTemplate(List<ComponentOfferDto> offers, ShopOfferUpdate update) {
-
-        Set<String> brands = new HashSet<>(brandRepository.findAll()).stream().map(Brand::getName).collect(Collectors.toSet());
 
         List<GraphicsCard> graphicsCardList = graphicsCardRepository.findAll();
         List<Processor> processorList = processorRepository.findAll();
@@ -294,8 +340,6 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
                 offerDto,
                 itemsForCategory
         );
-
-        boolean isNewComponent = false;
 
         if (bestComponent.isEmpty()) {
 //

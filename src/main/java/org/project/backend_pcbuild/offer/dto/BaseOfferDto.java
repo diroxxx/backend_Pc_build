@@ -41,5 +41,6 @@ public abstract class BaseOfferDto {
     private Double price;
     private String shopName;
     private ComponentType componentType;
+    private Boolean isDeal;
 
 }
