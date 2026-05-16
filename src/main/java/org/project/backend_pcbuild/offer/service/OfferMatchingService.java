@@ -116,6 +116,7 @@ public class OfferMatchingService {
             case STORAGE       -> matchStorage(ctx, offerWords, components);
             case CASE_PC       -> matchCase(ctx, offerWords, components);
             case CPU_COOLER    -> matchCooler(ctx, offerWords, components);
+            case UNKNOWN -> null;
         };
     }
 

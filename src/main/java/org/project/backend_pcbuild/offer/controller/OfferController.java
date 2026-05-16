@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import org.project.backend_pcbuild.offer.dto.BaseOfferDto;
 import org.project.backend_pcbuild.offer.dto.ComponentStatsDto;
 import org.project.backend_pcbuild.offer.service.OfferService;
+import org.project.backend_pcbuild.pcComponents.controller.ComponentController;
+import org.project.backend_pcbuild.pcComponents.dto.BaseItemDto;
 import org.project.backend_pcbuild.pcComponents.model.ComponentCondition;
 import org.project.backend_pcbuild.pcComponents.model.ComponentType;
 import org.project.backend_pcbuild.offer.model.SortByOffers;
@@ -85,6 +87,26 @@ public class OfferController {
     public ResponseEntity<Long> getOffersCount() {
         long count = offerService.countAllVisibleOffers();
         return ResponseEntity.ok(count);
+    }
+
+
+    @GetMapping("/unknown")
+    public ResponseEntity<OffersPageResponse> getUnknownComponentsOffers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<BaseOfferDto> unknownComponentOffers = offerService.getUnknownComponentOffers(pageable);
+        OffersPageResponse response = new OffersPageResponse(
+                unknownComponentOffers.getContent(),
+                unknownComponentOffers.hasNext(),
+                unknownComponentOffers.getTotalPages(),
+                unknownComponentOffers.getTotalElements()
+        );
+
+
+        return ResponseEntity.ok(response);
     }
 
 

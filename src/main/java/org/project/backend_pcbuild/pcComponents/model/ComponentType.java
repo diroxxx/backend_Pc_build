@@ -8,5 +8,6 @@ public enum ComponentType {
     POWER_SUPPLY,
     STORAGE,
     CASE_PC,
-    CPU_COOLER
+    CPU_COOLER,
+    UNKNOWN
 }

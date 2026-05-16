@@ -37,6 +37,7 @@ public class OfferService {
     private final MotherboardRepository motherboardRepository;
     private final ProcessorRepository processorRepository;
     private final StorageRepository storageRepository;
+    private final UnknownComponentRepository unknownComponentRepository;
     private final OfferRepository offerRepository;
     private final OfferMatchingService offerMatchingService;
     private final ShopRepository shopRepository;
@@ -180,9 +181,7 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
 
         Page<Offer> page;
 
-
-        if (useFullTextSearch ) {
-            page =  offerRepository.findOfferByFiltersProd(
+        page =  offerRepository.findOfferByFiltersProd(
                     componentType,
                     brand, minPrize,
                     maxPrize,
@@ -191,38 +190,8 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
                     querySearch,
                     dealOnly,
                     pageable
-            );
-        } else {
-            page =  offerRepository.findOfferByFiltersDev(
-                    componentType,
-                    brand, minPrize,
-                    maxPrize,
-                    componentCondition,
-                    shopName,
-                    querySearch,
-                    pageable
-            );
-        }
+        );
 
-//        List<BaseOfferDto> dtos = page.getContent().stream()
-//                .map(offer -> {
-//                    Component c = offer.getComponent();
-//                    if (c == null) return null;
-//                    return switch (c) {
-//                        case Processor p    -> OfferComponentMapper.toDto(p, offer);                        case GraphicsCard g -> OfferComponentMapper.toDto(g, offer);
-//                        case Memory m       -> OfferComponentMapper.toDto(m, offer);
-//                        case Storage s      -> OfferComponentMapper.toDto(s, offer);
-//                        case Case cs        -> OfferComponentMapper.toDto(cs, offer);
-//                        case Cooler co      -> OfferComponentMapper.toDto(co, offer);
-//                        case Motherboard mb -> OfferComponentMapper.toDto(mb, offer);
-//                        case PowerSupply ps -> OfferComponentMapper.toDto(ps, offer);
-//                        default             -> null;
-//                    };
-//
-//
-//                })
-//                .filter(Objects::nonNull)
-//                .toList();
 
         Set<ComponentType> typesOnPage = page.getContent().stream()
                 .map(Offer::getComponent)
@@ -341,15 +310,34 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
                 itemsForCategory
         );
 
-        if (bestComponent.isEmpty()) {
-//
-            System.out.println("No matching component found for: " +
-                    offerDto.getBrand() + " " + offerDto.getModel() + " - SKIPPING");
-            return false;
-        }
-
         Offer offer = buildOfferConnectToShop(offerDto);
 
+        if (bestComponent.isEmpty()) {
+            UnknownComponent placeholder = unknownComponentRepository.findFirstByModel("UNKNOWN")
+                    .orElseGet(() -> {
+                        UnknownComponent uc = new UnknownComponent();
+                        uc.setModel("UNKNOWN");
+                        uc.setBrand(null);
+                        uc.setComponentType(category);
+                        return unknownComponentRepository.save(uc);
+                    });
+
+            offer.setComponent(placeholder);
+            placeholder.getOffers().add(offer);
+
+            OfferShopOfferUpdate offerUpdate = new OfferShopOfferUpdate();
+            offerUpdate.setOffer(offer);
+            offerUpdate.setShopOfferUpdate(update);
+
+            offerUpdate.setUpdateChangeType(UpdateChangeType.ADDED);
+            offer.getOfferShopOfferUpdates().add(offerUpdate);
+            update.getOfferShopOfferUpdates().add(offerUpdate);
+
+            offerRepository.save(offer);
+            System.out.println("Unknown component: " + offerDto.getUrl());
+            return true;
+
+        }
 
         offer.setComponent(bestComponent.get());
         bestComponent.get().getOffers().add(offer);
@@ -408,11 +396,32 @@ private Optional<Offer> findSimilarGpuOffer(double benchmark, Double budget) {
             Shop shop = shopRepository.findByNameIgnoreCase(shopName)
                     .orElseThrow(() -> new IllegalStateException("Unknown shop: " + shopName));
             offer.setShop(shop);
-            shop.getOffers().add(offer);
         } else {
             throw new IllegalArgumentException("Missing shop name in component data");
         }
 
         return offer;
     }
+
+    public Page<BaseOfferDto> getUnknownComponentOffers(Pageable pageable) {
+        Page<Offer> page = offerRepository.findOfferWithUnknownComponent(pageable);
+
+        List<BaseOfferDto> dtos = page.getContent().stream()
+                .map(offer -> {
+                    Component c = offer.getComponent();
+                    if (c == null) return null;
+
+                    BaseOfferDto dto = switch (c) {
+                        case UnknownComponent uc -> OfferComponentMapper.toDto(uc, offer);
+                        default -> null;
+                    };
+
+                    return dto;
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
+        return new PageImpl<>(dtos, pageable, page.getTotalElements());
+    }
+
 }

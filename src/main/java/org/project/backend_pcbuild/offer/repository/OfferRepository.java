@@ -134,32 +134,21 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
             Pageable pageable);
 
 
+
     @Query("""
-        SELECT o FROM Offer o
-        JOIN o.component c
-        LEFT JOIN c.brand b
-        LEFT JOIN o.shop s
-        WHERE o.isVisible = true
-          AND (:componentType IS NULL OR c.componentType = :componentType)
-          AND (:brand IS NULL OR LOWER(b.name) = LOWER(:brand))
-          AND (:minPrice IS NULL OR o.price >= :minPrice)
-          AND (:maxPrice IS NULL OR o.price <= :maxPrice)
-          AND (:shopName IS NULL OR LOWER(s.name) = LOWER(:shopName))
-          AND (:componentCondition IS NULL OR o.condition = :componentCondition)
-          AND (:querySearch IS NULL OR (
-                LOWER(o.title) LIKE CONCAT('%', LOWER(:querySearch), '%')
-          )) 
+    
+    SELECT o FROM Offer o
+    JOIN o.component c
+    LEFT JOIN c.brand b
+    LEFT JOIN o.shop s
+    WHERE o.isVisible = true 
+        and c.componentType = org.project.backend_pcbuild.pcComponents.model.ComponentType.UNKNOWN
+     
     """)
-    Page<Offer> findOfferByFiltersDev(
-            @Param("componentType") ComponentType componentType,
-            @Param("brand") String brand,
-            @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice,
-            @Param("componentCondition") ComponentCondition componentCondition,
-            @Param("shopName") String shopName,
-            @Param("querySearch") String querySearch,
-            Pageable pageable
-    );
+    Page<Offer> findOfferWithUnknownComponent(
+            Pageable pageable);
+
+
 
     @Query("""
     SELECT o FROM Offer o

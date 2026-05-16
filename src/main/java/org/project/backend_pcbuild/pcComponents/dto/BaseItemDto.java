@@ -18,7 +18,9 @@ import org.project.backend_pcbuild.pcComponents.model.ComponentType;
         @JsonSubTypes.Type(value = CaseItemDto.class, name = "CASE_PC"),
         @JsonSubTypes.Type(value = StorageItemDto.class, name = "STORAGE"),
         @JsonSubTypes.Type(value = PowerSupplyItemDto.class, name = "POWER_SUPPLY"),
-        @JsonSubTypes.Type(value = CoolerItemDto.class, name = "CPU_COOLER")
+        @JsonSubTypes.Type(value = CoolerItemDto.class, name = "CPU_COOLER"),
+//        @JsonSubTypes.Type(value = UnknownComponentItemDto.class, name = "UNKNOWN")
+
 })
 @Data
 @AllArgsConstructor

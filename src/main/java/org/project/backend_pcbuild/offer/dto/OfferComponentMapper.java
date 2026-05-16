@@ -1,6 +1,7 @@
 package org.project.backend_pcbuild.offer.dto;
 
 import org.project.backend_pcbuild.offer.model.Offer;
+import org.project.backend_pcbuild.pcComponents.dto.UnknownComponentItemDto;
 import org.project.backend_pcbuild.pcComponents.model.*;
 import org.project.backend_pcbuild.pcComponents.model.*;
 import org.springframework.stereotype.Component;
@@ -162,6 +163,20 @@ public class OfferComponentMapper {
         dto.setFanRpm(entity.getFanRpm());
         dto.setNoiseLevel(entity.getNoiseLevel());
         dto.setRadiatorSize(entity.getRadiatorSize());
+        return dto;
+    }
+
+    public static UnknownComponentItemDto toDto(UnknownComponent entity, Offer offer) {
+        UnknownComponentItemDto dto = new UnknownComponentItemDto();
+        dto.setId(entity.getId());
+        dto.setTitle(offer.getTitle());
+        dto.setBrand(entity.getBrand() != null ? entity.getBrand().getName() : null);
+        dto.setModel(entity.getModel());
+        dto.setCondition(offer.getCondition());
+        dto.setPhotoUrl(offer.getPhotoUrl());
+        dto.setWebsiteUrl(offer.getWebsiteUrl());
+        dto.setPrice(offer.getPrice());
+        dto.setShopName(offer.getShop() != null ? offer.getShop().getName() : null);
         return dto;
     }
 
